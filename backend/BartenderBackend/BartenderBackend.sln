@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35828.75 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BartenderBackend", "BartenderBackend.csproj", "{4D11B08A-E4C6-479A-8729-ADC8C2736457}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BartenderBackend", "BartenderBackend.csproj", "{AE4A1E29-2C11-4EF3-9C42-89BA7A77BB4F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4D11B08A-E4C6-479A-8729-ADC8C2736457}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4D11B08A-E4C6-479A-8729-ADC8C2736457}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4D11B08A-E4C6-479A-8729-ADC8C2736457}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4D11B08A-E4C6-479A-8729-ADC8C2736457}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE4A1E29-2C11-4EF3-9C42-89BA7A77BB4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE4A1E29-2C11-4EF3-9C42-89BA7A77BB4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE4A1E29-2C11-4EF3-9C42-89BA7A77BB4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE4A1E29-2C11-4EF3-9C42-89BA7A77BB4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {64C99CCA-BA1F-4AAD-B386-3C4126BE626A}
+		SolutionGuid = {087DEE14-920E-41CE-8B9A-62BE798339CB}
 	EndGlobalSection
 EndGlobal

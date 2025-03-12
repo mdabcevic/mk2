@@ -1,4 +1,4 @@
-@BartenderBackend_HostAddress = http://localhost:5106
+@BartenderBackend_HostAddress = http://localhost:5064
 
 GET {{BartenderBackend_HostAddress}}/weatherforecast/
 Accept: application/json
