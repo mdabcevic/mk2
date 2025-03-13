@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: bartender_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpass
+      POSTGRES_DB: bartenderdb
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data  # Persistent data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql # Runs on first startup
+    ports:
+      - "5442:5432"
+
+volumes:
+  postgres_data:
