@@ -53,3 +53,4 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 backend/BartenderBackend/.vs
+backend/BartenderBackend/postgres_data
