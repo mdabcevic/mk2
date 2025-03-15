@@ -10,9 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="db\**" />
     <Compile Remove="postgres_data\**" />
+    <Content Remove="db\**" />
     <Content Remove="postgres_data\**" />
+    <EmbeddedResource Remove="db\**" />
     <EmbeddedResource Remove="postgres_data\**" />
+    <None Remove="db\**" />
     <None Remove="postgres_data\**" />
   </ItemGroup>
 
