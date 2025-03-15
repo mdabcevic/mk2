@@ -29,7 +29,6 @@ public class Repository<T> : IRepository<T> where T : class
                 }
             }
         }
-
         return await query.FirstOrDefaultAsync(entity => EF.Property<int>(entity, "Id") == id);
     }
 
