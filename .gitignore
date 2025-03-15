@@ -54,3 +54,5 @@ TestResult.xml
 nunit-*.xml
 backend/BartenderBackend/.vs
 backend/BartenderBackend/postgres_data
+backend/.vs/Backend/config
+backend/.vs/Backend/v17
