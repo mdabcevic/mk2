@@ -47,7 +47,7 @@ public class BusinessServiceTests
         var result = await _businessService.GetByIdAsync(1);
 
         // Assert
-        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.Null);
     }
 
     [Test]

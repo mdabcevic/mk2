@@ -3,8 +3,18 @@ using BartenderBackend.Repositories;
 using BartenderBackend.Services;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration) // Load from appsettings.json
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    //.WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog(); // Use Serilog as the logger
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -18,6 +28,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+//app.UseSerilogRequestLogging(); // Log all HTTP requests automatically
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
