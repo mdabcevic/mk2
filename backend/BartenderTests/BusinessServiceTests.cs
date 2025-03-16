@@ -60,7 +60,7 @@ public class BusinessServiceTests
             new() { Id = 2, OIB = "23456789012", Name = "Test Bar 2" }
         };
 
-        _repository.GetAllAsync().Returns(Task.FromResult(businesses.AsEnumerable()));
+        _repository.GetAllAsync().Returns(Task.FromResult(businesses));
 
         // Act
         var result = await _businessService.GetAllAsync();
@@ -90,7 +90,7 @@ public class BusinessServiceTests
         var business = new Business { Id = 1, OIB = "123", Name = "Test Bar" };
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<Exception>(async () => await _businessService.AddAsync(business));
+        var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () => await _businessService.AddAsync(business));
         Assert.That(ex.Message, Is.EqualTo("OIB must be 11 characters"));
     }
 

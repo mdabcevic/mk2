@@ -32,7 +32,7 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.FirstOrDefaultAsync(entity => EF.Property<int>(entity, "Id") == id);
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync()
+    public async Task<List<T>> GetAllAsync()
     {
         return await _dbSet.ToListAsync();
     }
