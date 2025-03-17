@@ -1,5 +1,11 @@
 # React + TypeScript + Vite
 
+
+# 1. Install NodeJs (version 22.13.1)
+# 2. Navigate to the project directory  (".../frontend/mk2") and install dependencies -> "npm install" (terminal)
+# 3. Start the development server -> run "npm run dev" (terminal)
+
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
