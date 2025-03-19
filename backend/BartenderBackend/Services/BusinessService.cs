@@ -1,5 +1,5 @@
-﻿using BartenderBackend.Models;
-using BartenderBackend.Repositories;
+﻿using BartenderBackend.Interfaces;
+using BartenderBackend.Models;
 
 namespace BartenderBackend.Services;
 

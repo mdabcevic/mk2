@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using BartenderBackend.Models;
+using BartenderBackend.Interfaces;
 
 namespace BartenderBackend.Repositories;
 
