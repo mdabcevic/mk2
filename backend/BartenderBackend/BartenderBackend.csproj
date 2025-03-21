@@ -43,4 +43,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Bartender.Data\Bartender.Data.csproj" />
+    <ProjectReference Include="..\Bartender.Domain\Bartender.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

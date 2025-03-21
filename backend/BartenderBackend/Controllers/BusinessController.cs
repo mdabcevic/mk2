@@ -1,5 +1,5 @@
-﻿using BartenderBackend.Interfaces;
-using BartenderBackend.Models;
+﻿using Bartender.Data.Models;
+using Bartender.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,6 +1,6 @@
-﻿using BartenderBackend.Models;
+﻿using Bartender.Data.Models;
 
-namespace BartenderBackend.Interfaces;
+namespace Bartender.Domain.Interfaces;
 
 public interface IBusinessService
 {

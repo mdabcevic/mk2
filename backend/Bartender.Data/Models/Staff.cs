@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace BartenderBackend.Models;
+namespace Bartender.Data.Models;
 
 [Table("staff")]
 public class Staff
@@ -12,7 +12,6 @@ public class Staff
     public int Id { get; set; }
 
     [Required]
-    [ForeignKey("Places")]
     [Column("place_id")]
     public int PlaceId { get; set; }
 

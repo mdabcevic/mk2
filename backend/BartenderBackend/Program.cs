@@ -1,7 +1,7 @@
-using BartenderBackend.Interfaces;
-using BartenderBackend.Models;
-using BartenderBackend.Repositories;
-using BartenderBackend.Services;
+using Bartender.Data;
+using Bartender.Domain.Interfaces;
+using Bartender.Domain.Repositories;
+using Bartender.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;

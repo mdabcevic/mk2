@@ -1,7 +1,7 @@
-﻿using BartenderBackend.Interfaces;
-using BartenderBackend.Models;
+﻿using Bartender.Data.Models;
+using Bartender.Domain.Interfaces;
 
-namespace BartenderBackend.Services;
+namespace Bartender.Domain.Services;
 
 public class BusinessService(IRepository<Business> repository) : IBusinessService
 {

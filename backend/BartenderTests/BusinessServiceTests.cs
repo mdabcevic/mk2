@@ -1,6 +1,6 @@
-﻿using BartenderBackend.Interfaces;
-using BartenderBackend.Models;
-using BartenderBackend.Services;
+﻿using Bartender.Data.Models;
+using Bartender.Domain.Interfaces;
+using Bartender.Domain.Services;
 using NSubstitute;
 
 namespace BartenderTests;

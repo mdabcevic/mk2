@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Bartender.Data.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace BartenderBackend.Models;
+namespace Bartender.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {

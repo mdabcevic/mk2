@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35828.75 d17.13
+VisualStudioVersion = 17.13.35828.75
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BartenderBackend", "BartenderBackend\BartenderBackend.csproj", "{AE51DD82-8ADC-B9B6-AA97-A57B4E8BF3C3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BartenderTests", "BartenderTests\BartenderTests.csproj", "{72A85485-2F78-47D3-A202-6AFBE349F720}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bartender.Data", "Bartender.Data\Bartender.Data.csproj", "{22748EE2-6291-491A-824D-F53799942ADF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bartender.Domain", "Bartender.Domain\Bartender.Domain.csproj", "{D49D5CEC-356E-4AC5-AA0F-97CF1B3DAD77}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{72A85485-2F78-47D3-A202-6AFBE349F720}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72A85485-2F78-47D3-A202-6AFBE349F720}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72A85485-2F78-47D3-A202-6AFBE349F720}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22748EE2-6291-491A-824D-F53799942ADF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22748EE2-6291-491A-824D-F53799942ADF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22748EE2-6291-491A-824D-F53799942ADF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22748EE2-6291-491A-824D-F53799942ADF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D49D5CEC-356E-4AC5-AA0F-97CF1B3DAD77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D49D5CEC-356E-4AC5-AA0F-97CF1B3DAD77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D49D5CEC-356E-4AC5-AA0F-97CF1B3DAD77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D49D5CEC-356E-4AC5-AA0F-97CF1B3DAD77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

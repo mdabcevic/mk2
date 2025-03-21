@@ -1,4 +1,4 @@
-﻿namespace BartenderBackend.Interfaces;
+﻿namespace Bartender.Domain.Interfaces;
 
 public interface IRepository<T> where T : class
 {

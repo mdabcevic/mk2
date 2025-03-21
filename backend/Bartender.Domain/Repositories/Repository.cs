@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using BartenderBackend.Models;
-using BartenderBackend.Interfaces;
+using Bartender.Domain.Interfaces;
+using Bartender.Data;
 
-namespace BartenderBackend.Repositories;
+namespace Bartender.Domain.Repositories;
 
 public class Repository<T> : IRepository<T> where T : class
 {
