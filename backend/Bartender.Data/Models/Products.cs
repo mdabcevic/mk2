@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Bartender.Data.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Bartender.Data.Models;
@@ -15,6 +16,10 @@ public class Products
     [StringLength(50)]
     [Column("name")]
     public required string Name { get; set; }
+
+    [Column("category")]
+    [EnumDataType(typeof(ProductCategory))]
+    public ProductCategory? Category { get; set; }
 
     public ICollection<MenuItems>? MenuItems { get; set; }
     public ICollection<Reviews>? Reviews { get; set; }

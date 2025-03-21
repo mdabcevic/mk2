@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Bartender.Data.Enums;
 
 namespace Bartender.Data.Models;
 
@@ -34,6 +35,8 @@ public class Staff
     [Column("fullname")]
     public required string FullName { get; set; }
 
+    [Required]
     [Column("role")]
-    public string Role { get; set; } = "bartender";
+    [EnumDataType(typeof(EmployeeRole))]
+    public EmployeeRole Role { get; set; } = EmployeeRole.regular;
 }

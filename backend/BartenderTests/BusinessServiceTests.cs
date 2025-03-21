@@ -8,13 +8,13 @@ namespace BartenderTests;
 [TestFixture]
 public class BusinessServiceTests
 {
-    private IRepository<Business> _repository;
+    private IRepository<Businesses> _repository;
     private BusinessService _businessService;
 
     [SetUp]
     public void SetUp()
     {
-        _repository = Substitute.For<IRepository<Business>>();
+        _repository = Substitute.For<IRepository<Businesses>>();
         _businessService = new BusinessService(_repository);
     }
 
@@ -22,8 +22,8 @@ public class BusinessServiceTests
     public async Task GetByIdAsync_ReturnsBusiness_WhenExists()
     {
         // Arrange
-        var business = new Business { Id = 1, OIB = "12345678901", Name = "Test Bar" };
-        _repository.GetByIdAsync(1).Returns(Task.FromResult((Business?)business));
+        var business = new Businesses { Id = 1, OIB = "12345678901", Name = "Test Bar" };
+        _repository.GetByIdAsync(1).Returns(Task.FromResult((Businesses?)business));
 
         // Act
         var result = await _businessService.GetByIdAsync(1);
@@ -41,7 +41,7 @@ public class BusinessServiceTests
     public async Task GetByIdAsync_ReturnsNull_WhenNotExists()
     {
         // Arrange
-        _repository.GetByIdAsync(1).Returns(Task.FromResult((Business?)null));
+        _repository.GetByIdAsync(1).Returns(Task.FromResult((Businesses?)null));
 
         // Act
         var result = await _businessService.GetByIdAsync(1);
@@ -54,7 +54,7 @@ public class BusinessServiceTests
     public async Task GetAllAsync_ReturnsAllBusinesses()
     {
         // Arrange
-        var businesses = new List<Business>
+        var businesses = new List<Businesses>
         {
             new() { Id = 1, OIB = "12345678901", Name = "Test Bar 1" },
             new() { Id = 2, OIB = "23456789012", Name = "Test Bar 2" }
@@ -74,7 +74,7 @@ public class BusinessServiceTests
     public async Task AddAsync_AddsBusinessSuccessfully()
     {
         // Arrange
-        var business = new Business { Id = 1, OIB = "12345678901", Name = "Test Bar" };
+        var business = new Businesses { Id = 1, OIB = "12345678901", Name = "Test Bar" };
 
         // Act
         await _businessService.AddAsync(business);
@@ -87,7 +87,7 @@ public class BusinessServiceTests
     public void AddAsync_ThrowsException_WhenOIBInvalid()
     {
         // Arrange
-        var business = new Business { Id = 1, OIB = "123", Name = "Test Bar" };
+        var business = new Businesses { Id = 1, OIB = "123", Name = "Test Bar" };
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () => await _businessService.AddAsync(business));
@@ -98,7 +98,7 @@ public class BusinessServiceTests
     public async Task UpdateAsync_UpdatesBusinessSuccessfully()
     {
         // Arrange
-        var business = new Business { Id = 1, OIB = "12345678901", Name = "Updated Bar" };
+        var business = new Businesses { Id = 1, OIB = "12345678901", Name = "Updated Bar" };
 
         // Act
         await _businessService.UpdateAsync(business);
@@ -111,8 +111,8 @@ public class BusinessServiceTests
     public async Task DeleteAsync_DeletesExistingBusiness()
     {
         // Arrange
-        var business = new Business { Id = 1, OIB = "12345678901", Name = "Test Bar" };
-        _repository.GetByIdAsync(1).Returns(Task.FromResult((Business?)business));
+        var business = new Businesses { Id = 1, OIB = "12345678901", Name = "Test Bar" };
+        _repository.GetByIdAsync(1).Returns(Task.FromResult((Businesses?)business));
 
         // Act
         await _businessService.DeleteAsync(1);
@@ -125,12 +125,12 @@ public class BusinessServiceTests
     public async Task DeleteAsync_DoesNothing_WhenBusinessNotExists()
     {
         // Arrange
-        _repository.GetByIdAsync(1).Returns(Task.FromResult((Business?)null));
+        _repository.GetByIdAsync(1).Returns(Task.FromResult((Businesses?)null));
 
         // Act
         await _businessService.DeleteAsync(1);
 
         // Assert
-        await _repository.DidNotReceive().DeleteAsync(Arg.Any<Business>());
+        await _repository.DidNotReceive().DeleteAsync(Arg.Any<Businesses>());
     }
 }
