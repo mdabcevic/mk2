@@ -124,3 +124,50 @@ CREATE TABLE IF NOT EXISTS Reviews (
     comment VARCHAR NULL,
     PRIMARY KEY (product_id, customer_id)
 );
+
+-- Insert subscription-tiered businesses with enum values
+INSERT INTO Businesses (OIB, name, headquarters, subscriptionTier) VALUES
+('12345678903', 'Vivas Bar', 'Neka Adresa 1', 'Basic'),
+('11115678903', 'Leggiero', 'Neka Adresa 2', 'Basic'),
+('22225678903', 'Bonaca', 'Selska cesta 28', 'None'),
+('33335678903', 'Elixir', 'Selska cesta 28', 'Basic'),
+('12345678901', 'Sunset Bar', 'New York, NY', 'Standard'),
+('23456789012', 'Moonlight Lounge', 'Los Angeles, CA', 'Trial'),
+('34567890123', 'Cloud9 Café', 'Chicago, IL', 'Premium');
+
+-- Insert cities (used as foreign keys in Places)
+INSERT INTO Cities (name) VALUES
+('Zagreb'),
+('Split'),
+('Dubrovnik'),
+('New York'),
+('Los Angeles'),
+('Chicago');
+
+-- Insert places (city_id assumes order of Cities insert above)
+INSERT INTO Places (business_id, city_id, address, opensAt, closesAt) VALUES
+(1, 1, 'Ilica 50', '07:00', '23:00'),
+(1, 1, 'Trg bana Jelačića 15', '08:00', '00:00'),
+(2, 1, 'Radnička cesta 1', '06:30', '22:30'),
+(2, 1, 'Jarunska 5', '07:00', '23:00'),
+(2, 2, 'Riva 2', '08:00', '23:00'),
+(3, 2, 'Poljička cesta 35', '07:30', '22:30'),
+(3, 3, 'Obala Kneza Domagoja 10', '09:00', '23:30'),
+(4, 3, 'Stradun 25', '08:30', '00:00'),
+(5, 4, '5th Ave', '07:00', '21:00'),
+(6, 5, 'Sunset Blvd', '08:00', '22:00'),
+(7, 6, 'Wacker Drive', '07:30', '23:00');
+
+-- Insert staff (one per place)
+INSERT INTO Staff (place_id, OIB, username, password, fullName, role) VALUES
+(1, '98765432101', 'vivas_ilica', 'hashed_password', 'Petar Horvat', 'manager'),
+(2, '98765432102', 'vivas_trg', 'hashed_password', 'Maja Novak', 'regular'),
+(3, '98765432103', 'leggiero_radnicka', 'hashed_password', 'Ivana Kovač', 'manager'),
+(4, '98765432104', 'leggiero_jarun', 'hashed_password', 'Marko Babić', 'regular'),
+(5, '98765432105', 'bonaca_riva', 'hashed_password', 'Ana Marić', 'manager'),
+(6, '98765432106', 'bonaca_poljicka', 'hashed_password', 'Luka Perić', 'regular'),
+(7, '98765432107', 'elixir_obala', 'hashed_password', 'Lucija Radić', 'manager'),
+(8, '98765432108', 'elixir_stradun', 'hashed_password', 'Nikola Jurić', 'regular'),
+(9, '98765432109', 'sunset_admin', 'hashed_password', 'Tom Smith', 'manager'),
+(10, '98765432110', 'moonlight_admin', 'hashed_password', 'Samantha Lee', 'manager'),
+(11, '98765432111', 'cloud9_admin', 'hashed_password', 'James Chen', 'manager');
