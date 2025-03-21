@@ -5,7 +5,7 @@ namespace Bartender.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<Business> Businesses { get; set; }
+    public DbSet<Businesses> Businesses { get; set; }
     public DbSet<Places> Places { get; set; }
     public DbSet<Staff> Staffs { get; set; }
     public DbSet<Tables> Tables { get; set; }
@@ -21,6 +21,31 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<MenuItems>().HasKey(mi => new { mi.PlaceId, mi.ProductId });
         modelBuilder.Entity<ProductsPerOrder>().HasKey(po => new { po.OrderId, po.ProductId });
         modelBuilder.Entity<Reviews>().HasKey(r => new { r.ProductId, r.CustomerId });
+
+        modelBuilder.Entity<Businesses>()
+            .Property(b => b.SubscriptionTier)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Staff>()
+            .Property(s => s.Role)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Tables>()
+            .Property(t => t.Status)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Products>()
+            .Property(p => p.Category)
+            .HasConversion<string?>(); // nullable, if you allow it in DB
+
+        modelBuilder.Entity<Orders>()
+            .Property(o => o.Status)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Orders>()
+            .Property(o => o.PaymentType)
+            .HasConversion<string>();
+
 
         base.OnModelCreating(modelBuilder);
     }
