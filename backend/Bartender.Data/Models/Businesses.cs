@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Bartender.Data.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Bartender.Data.Models;
 
-[Table("business")]
-public class Business
+[Table("businesses")]
+public class Businesses
 {
     [Key]
     [Column("id")]
@@ -22,8 +23,10 @@ public class Business
     [Column("headquarters")]
     public string? Headquarters { get; set; }
 
-    [Column("subscription_tier")]
-    public int SubscriptionTier { get; set; } = 1;
+    [Required]
+    [Column("subscriptiontier")] // matches the Postgres column name exactly
+    [EnumDataType(typeof(SubscriptionTier))]
+    public SubscriptionTier SubscriptionTier { get; set; } = SubscriptionTier.None;
 
     public ICollection<Places> Places { get; set; } = [];
 }

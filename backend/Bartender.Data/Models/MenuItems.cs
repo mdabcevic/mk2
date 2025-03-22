@@ -27,8 +27,8 @@ public class MenuItems
     public decimal Price { get; set; } = 0.0m;
 
     [Required]
-    [Column("quantity")]
-    public required string Quantity { get; set; }
+    [Column("isavailable")]
+    public bool IsAvailable { get; set; }
 
     [Column("description")]
     public string? Description { get; set; }

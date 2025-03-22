@@ -4,9 +4,9 @@ namespace Bartender.Domain.Interfaces;
 
 public interface IBusinessService
 {
-    Task<Business?> GetByIdAsync(int id);
-    Task<IEnumerable<Business>> GetAllAsync();
-    Task AddAsync(Business business);
-    Task UpdateAsync(Business business);
+    Task<Businesses?> GetByIdAsync(int id);
+    Task<IEnumerable<Businesses>> GetAllAsync();
+    Task AddAsync(Businesses business);
+    Task UpdateAsync(Businesses business);
     Task DeleteAsync(int id);
 }

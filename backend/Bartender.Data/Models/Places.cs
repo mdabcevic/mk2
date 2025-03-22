@@ -16,7 +16,7 @@ public class Places
     public int BusinessId { get; set; }
 
     [ForeignKey("BusinessId")] // Should reference the actual foreign key field
-    public Business? Business { get; set; }
+    public Businesses? Business { get; set; }
 
     [Column("location")]
     public required string Location { get; set; }
