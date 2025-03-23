@@ -16,22 +16,38 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet = this.context.Set<T>();
     }
 
-    // should include flag for choosing includes or not
-    public async Task<T?> GetByIdAsync(int id)
+    public async Task<T?> GetByIdAsync(int id, bool includeNavigations = false)
     {
-        var query = _dbSet.AsQueryable();
+        IQueryable<T> query = _dbSet;
 
-        var navigationProperties = context.Model.FindEntityType(typeof(T))?.GetNavigations();
-        if (navigationProperties != null)
+        if (includeNavigations)
         {
-            foreach (var property in navigationProperties)
+            var navigationProperties = context.Model.FindEntityType(typeof(T))?.GetNavigations();
+
+            if (navigationProperties != null)
             {
-                if (!property.DeclaringEntityType.IsOwned())
+                foreach (var property in navigationProperties)
                 {
-                    query = query.Include(property.Name);
+                    if (!property.DeclaringEntityType.IsOwned())
+                    {
+                        query = query.Include(property.Name);
+                    }
                 }
             }
         }
+
+        return await query.FirstOrDefaultAsync(entity => EF.Property<int>(entity, "Id") == id);
+    }
+
+    public async Task<T?> GetByIdAsync(
+    int id,
+    params Expression<Func<T, object>>[] includes)
+    {
+        IQueryable<T> query = _dbSet;
+
+        foreach (var include in includes)
+            query = query.Include(include);
+
         return await query.FirstOrDefaultAsync(entity => EF.Property<int>(entity, "Id") == id);
     }
 
