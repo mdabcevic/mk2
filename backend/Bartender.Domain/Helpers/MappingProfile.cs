@@ -12,8 +12,8 @@ namespace Bartender.Domain.Helpers
             CreateMap<Products, ProductsBaseDTO>();
 
             CreateMap<Products, ProductsDTO>()
-            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
-            .ForMember(dest => dest.Menu, opt => opt.MapFrom(src => src.MenuItems));
+            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category));
+            //.ForMember(dest => dest.Menu, opt => opt.MapFrom(src => src.MenuItems));
 
             CreateMap<ProductCategory, ProductCategoryDTO>();
 

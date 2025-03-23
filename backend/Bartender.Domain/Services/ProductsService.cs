@@ -27,11 +27,16 @@ namespace Bartender.Domain.Services
         {
             if (groupBy)
             {
-                var groupedProducts = await categoryRepository.GetAllIncludingNavigationAsync();
+                var groupedProducts = await categoryRepository.GetAllWithDetailsAsync();
                 return mapper.Map<IEnumerable<GroupedProductsDTO>>(groupedProducts);
             }
 
-            var products = await repository.GetAllIncludingNavigationAsync();
+            var products = await repository.GetAllWithDetailsAsync();
+
+            if (!products.Any())
+            {
+                throw new NotFoundException("There are currently no products");
+            }
             return mapper.Map<IEnumerable<ProductsDTO>>(products);
         }
 
@@ -51,6 +56,21 @@ namespace Bartender.Domain.Services
                 throw new NotFoundException("No products found matching the criteria");
             }
             return mapper.Map<IEnumerable<ProductsBaseDTO>>(products);
+        }
+
+        public async Task<IEnumerable<ProductsDTO>> GetSortedByNameAsync()
+        {
+            var query = repository.Query()
+                .Include(p => p.Category)
+                .OrderBy(x => x.Name);
+
+            var products = await query.ToListAsync();
+            if (!products.Any())
+            {
+                throw new NotFoundException("There are currently no products");
+            }
+            
+            return mapper.Map<IEnumerable<ProductsDTO>>(products);
         }
 
         public async Task AddAsync(UpsertProductDTO product)

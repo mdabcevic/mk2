@@ -9,7 +9,7 @@ public interface IRepository<T> where T : class
     /// <returns>Entity from table.</returns>
     Task<T?> GetByIdAsync(int id);
     Task<List<T>> GetAllAsync();
-    Task<List<T>> GetAllIncludingNavigationAsync();
+    Task<List<T>> GetAllWithDetailsAsync();
     Task AddAsync(T entity);
     Task AddMultipleAsync(IEnumerable<T> entities);
     Task UpdateAsync(T entity);

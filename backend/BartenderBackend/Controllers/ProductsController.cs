@@ -31,8 +31,18 @@ public class ProductsController(IProductsService productsService) : ControllerBa
     [HttpGet]
     public async Task<IActionResult> GetAll(bool group = false)
     {
-        var products = await productsService.GetAllAsync(group);
-        return Ok(products);
+        try {
+            var products = await productsService.GetAllAsync(group);
+            return Ok(products);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An unexpected error occurred", Error = ex.Message });
+        }
     }
 
     [HttpGet("categories")]
@@ -42,12 +52,30 @@ public class ProductsController(IProductsService productsService) : ControllerBa
         return Ok(categories);
     }
 
-    [HttpGet("filtered")]
+    [HttpGet("filter")]
     public async Task<IActionResult> GetFilteredList(string? name = null, string? category = null)
     {
         try
         {
             var products = await productsService.GetFilteredAsync(name, category);
+            return Ok(products);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An unexpected error occurred", Error = ex.Message });
+        }
+    }
+
+    [HttpGet("sort")]
+    public async Task<IActionResult> GetSortedByName()
+    {
+        try
+        {
+            var products = await productsService.GetSortedByNameAsync();
             return Ok(products);
         }
         catch (NotFoundException ex)

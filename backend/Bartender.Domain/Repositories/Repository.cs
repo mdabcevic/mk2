@@ -40,7 +40,7 @@ public class Repository<T> : IRepository<T> where T : class
         return await _dbSet.ToListAsync();
     }
 
-    public async Task<List<T>> GetAllIncludingNavigationAsync()
+    public async Task<List<T>> GetAllWithDetailsAsync()
     {
         var query = _dbSet.AsQueryable();
         var navigationProperties = context.Model.FindEntityType(typeof(T))?.GetNavigations();

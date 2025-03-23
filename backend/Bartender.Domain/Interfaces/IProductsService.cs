@@ -13,6 +13,7 @@ namespace Bartender.Domain.Interfaces
         Task<ProductsDTO?> GetByIdAsync(int id);
         Task<object> GetAllAsync(bool groupBy = false);
         Task<IEnumerable<ProductsBaseDTO>> GetFilteredAsync(string? name = null, string? category = null);
+        Task<IEnumerable<ProductsDTO>> GetSortedByNameAsync();
         Task<IEnumerable<ProductCategoryDTO>> GetProductCategoriesAsync();
         Task AddAsync(UpsertProductDTO product);
         Task UpdateAsync(int id, UpsertProductDTO product);

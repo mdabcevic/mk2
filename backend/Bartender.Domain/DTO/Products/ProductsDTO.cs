@@ -14,6 +14,6 @@ namespace Bartender.Domain.DTO.Products
     public class ProductsDTO : ProductsBaseDTO
     {
         public ProductCategoryDTO Category { get; set; }
-        public IEnumerable<MenuItemsDTO>? Menu {  get; set; }
+        //public IEnumerable<MenuItemsDTO>? Menu {  get; set; }
     }
 }
