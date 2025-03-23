@@ -15,6 +15,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ProductsPerOrder> ProductsPerOrders { get; set; }
     public DbSet<Customers> Customers { get; set; }
     public DbSet<Reviews> Reviews { get; set; }
+    public DbSet<ProductCategory> ProductCategory { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,10 +34,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Tables>()
             .Property(t => t.Status)
             .HasConversion<string>();
-
-        modelBuilder.Entity<Products>()
-            .Property(p => p.Category)
-            .HasConversion<string?>(); // nullable, if you allow it in DB
 
         modelBuilder.Entity<Orders>()
             .Property(o => o.Status)
