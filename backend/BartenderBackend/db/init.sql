@@ -16,10 +16,6 @@ BEGIN
     CREATE TYPE TableStatus AS ENUM ('empty', 'occupied', 'reserved');
   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'productcategory') THEN
-    CREATE TYPE ProductCategory AS ENUM ('softDrinks', 'hotBeverages', 'alcohol', 'desert', 'sparklingDrinks', 'other');
-  END IF;
-
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'orderstatus') THEN
     CREATE TYPE OrderStatus AS ENUM ('created', 'approved', 'delivered', 'paid', 'closed', 'cancelled');
   END IF;
@@ -74,11 +70,19 @@ CREATE TABLE IF NOT EXISTS Tables (
     qrcode VARCHAR NULL
 );
 
+-- Table: ProductCategory
+CREATE TABLE IF NOT EXISTS ProductCategory (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR NOT NULL,
+	parentcategory_id INTEGER NULL REFERENCES ProductCategory(id) ON DELETE SET NULL
+);
+
 -- Table: Products
 CREATE TABLE IF NOT EXISTS Products (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL,
-    category ProductCategory
+	volume VARCHAR NULL,
+    category_id INTEGER DEFAULT 1 REFERENCES ProductCategory(id) ON DELETE SET DEFAULT
 );
 
 -- Table: MenuItems
