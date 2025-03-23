@@ -2,47 +2,47 @@
 using Bartender.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BartenderBackend.Controllers
+namespace BartenderBackend.Controllers;
+
+//TODO: only managers should be able to access these endpoints.
+[Route("api/[controller]")]
+[ApiController]
+public class StaffController(IStaffService staffService) : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class StaffController(IStaffService staffService) : ControllerBase
+    [HttpGet("{id?}")]
+    public async Task<IActionResult> Get(int? id)
     {
-        [HttpGet("{id?}")]
-        public async Task<IActionResult> Get(int? id)
+        if (id.HasValue)
         {
-            if (id.HasValue)
-            {
-                var staffMember = await staffService.GetByIdAsync(id.Value);
-                return staffMember != null ? Ok(staffMember) : NotFound();
-            }
-
-            var staffList = await staffService.GetAllAsync();
-            return Ok(staffList);
+            var staffMember = await staffService.GetByIdAsync(id.Value);
+            return staffMember != null ? Ok(staffMember) : NotFound();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Staff staff)
-        {
-            await staffService.AddAsync(staff);
-            return CreatedAtAction(nameof(Get), new { id = staff.Id }, staff);
-        }
+        var staffList = await staffService.GetAllAsync();
+        return Ok(staffList);
+    }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Staff staff)
-        {
-            if (staff.Id != id)
-                return BadRequest();
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] Staff staff)
+    {
+        await staffService.AddAsync(staff);
+        return CreatedAtAction(nameof(Get), new { id = staff.Id }, staff);
+    }
 
-            await staffService.UpdateAsync(staff);
-            return NoContent();
-        }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] Staff staff)
+    {
+        if (staff.Id != id)
+            return BadRequest();
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            await staffService.DeleteAsync(id);
-            return NoContent();
-        }
+        await staffService.UpdateAsync(id, staff);
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await staffService.DeleteAsync(id);
+        return NoContent();
     }
 }
