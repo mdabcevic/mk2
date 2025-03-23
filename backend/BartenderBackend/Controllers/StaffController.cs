@@ -1,4 +1,4 @@
-﻿using Bartender.Data.Models;
+﻿using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,14 +23,14 @@ public class StaffController(IStaffService staffService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Staff staff)
+    public async Task<IActionResult> Create([FromBody] UpsertStaffDto staff)
     {
         await staffService.AddAsync(staff);
         return CreatedAtAction(nameof(Get), new { id = staff.Id }, staff);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] Staff staff)
+    public async Task<IActionResult> Update(int id, [FromBody] UpsertStaffDto staff)
     {
         if (staff.Id != id)
             return BadRequest();

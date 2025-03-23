@@ -4,17 +4,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Bartender.Domain.Services;
 
-public class StaffService(IRepository<Staff> repository, Microsoft.Extensions.Logging.ILogger<StaffService> logger) : IStaffService
+public class StaffService(
+    IRepository<Staff> repository, 
+    ILogger<StaffService> logger,
+    IMapper mapper
+    ) : IStaffService
 {
-    public async Task AddAsync(Staff staff)
+    public async Task AddAsync(UpsertStaffDto dto)
     {
-        if (await repository.ExistsAsync(s => s.Username == staff.Username))
+        if (await repository.ExistsAsync(s => s.Username == dto.Username))
         {
-            logger.LogWarning("Staff created with ID: {StaffId}", staff.Id);
-            throw new ArgumentException($"Staff with username '{staff.Username}' already exists.");
-        }           
-        await repository.AddAsync(staff);
-        logger.LogInformation("Staff created with ID: {StaffId}", staff.Id);
+            logger.LogWarning("Cannot insert duplicate employee with username: {Username}", dto.Username);
+            throw new ArgumentException($"Staff with username '{dto.Username}' already exists.");
+        }   
+        var employee = mapper.Map<Staff>(dto);
+        await repository.AddAsync(employee);
+        logger.LogInformation("Employee created with username: {Username}", dto.Username);
     }
 
     public async Task DeleteAsync(int id)
@@ -39,15 +44,18 @@ public class StaffService(IRepository<Staff> repository, Microsoft.Extensions.Lo
         return await repository.GetByIdAsync(id, includeNavigations);
     }
 
-    public async Task UpdateAsync(int id, Staff staff)
+    public async Task UpdateAsync(int id, UpsertStaffDto dto)
     {
-        var staff2 = await repository.GetByIdAsync(id);
-        if (staff2 == null)
+        var employee = await repository.GetByIdAsync(id);
+        if (employee == null)
         {
             logger.LogWarning("Attempted to update non-existing staff with ID: {StaffId}", id);
             throw new KeyNotFoundException($"Staff with ID {id} not found.");
         }
-        await repository.UpdateAsync(staff);
-        logger.LogInformation("Staff updated with ID: {StaffId}", id);
+
+        mapper.Map(dto, employee);
+
+        await repository.UpdateAsync(employee);
+        logger.LogInformation("Staff updated with ID: {StaffId}", employee.Id);
     }
 }

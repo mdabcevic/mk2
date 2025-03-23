@@ -7,7 +7,7 @@ public interface IStaffService
 {
     Task<Staff?> GetByIdAsync(int id, bool includeNavigations = false);
     Task<IEnumerable<Staff>> GetAllAsync();
-    Task AddAsync(Staff staff);
-    Task UpdateAsync(int id, Staff staff);
+    Task AddAsync(UpsertStaffDto dto);
+    Task UpdateAsync(int id, UpsertStaffDto dto);
     Task DeleteAsync(int id);
 }
