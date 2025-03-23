@@ -6,6 +6,7 @@ using Bartender.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;
+using System.Text.Json.Serialization; // <-- ensure this namespace is included
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +27,11 @@ builder.Services.AddScoped<IStaffService, StaffService>();
 // Clearly add AutoMapper here:
 builder.Services.AddAutoMapper(typeof(StaffMappingProfile)); //TODO: find easier way to register all mappings
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
