@@ -15,6 +15,7 @@ public class StaffMappingProfile : Profile
             .ForMember(dest => dest.Password, opt =>
                 opt.MapFrom(src => HashPassword(src.Password)));
 
+        CreateMap<Staff, StaffDto>();
     }
 
     private static string HashPassword(string password)

@@ -1,4 +1,6 @@
-﻿using Bartender.Data.Models;
+﻿using AutoMapper;
+using Bartender.Data.Models;
+using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -34,14 +36,23 @@ public class StaffService(
         logger.LogInformation("Staff deleted with ID: {StaffId}", id);
     }
 
-    public async Task<IEnumerable<Staff>> GetAllAsync()
+    public async Task<List<StaffDto>> GetAllAsync()
     {
-        return await repository.GetAllAsync();
+        var staffList = await repository.GetAllAsync();
+        return [.. staffList.Select(s => mapper.Map<StaffDto>(s))];
     }
 
-    public async Task<Staff?> GetByIdAsync(int id, bool includeNavigations = false)
+    public async Task<StaffDto?> GetByIdAsync(int id, bool includeNavigations = false)
     {
-        return await repository.GetByIdAsync(id, includeNavigations);
+        var staff = await repository.GetByIdAsync(id, includeNavigations);
+        if (staff is null)
+        {
+            logger.LogWarning("Staff with ID {StaffId} was not found.", id);
+            throw new KeyNotFoundException($"Staff with ID {id} not found.");
+        }
+
+        logger.LogInformation("Retrieved staff with ID {StaffId}.", id);
+        return mapper.Map<StaffDto>(staff);
     }
 
     public async Task UpdateAsync(int id, UpsertStaffDto dto)
