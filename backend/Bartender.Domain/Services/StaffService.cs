@@ -5,28 +5,30 @@ namespace Bartender.Domain.Services;
 
 public class StaffService(IRepository<Staff> repository) : IStaffService
 {
-    public Task AddAsync(Staff staff)
+    public async Task AddAsync(Staff staff)
     {
-        throw new NotImplementedException();
+        await repository.AddAsync(staff);
     }
 
-    public Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id)
     {
-        throw new NotImplementedException();
+        var staff = await repository.GetByIdAsync(id);
+        if (staff != null)
+            await repository.DeleteAsync(staff);
     }
 
-    public Task<IEnumerable<Staff>> GetAllAsync()
+    public async Task<IEnumerable<Staff>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        return await repository.GetAllAsync();
     }
 
-    public Task<Staff?> GetByIdAsync(int id, bool includeNavigations = false)
+    public async Task<Staff?> GetByIdAsync(int id, bool includeNavigations = false)
     {
-        throw new NotImplementedException();
+        return await repository.GetByIdAsync(id, includeNavigations);
     }
 
-    public Task UpdateAsync(Staff staff)
+    public async Task UpdateAsync(Staff staff)
     {
-        throw new NotImplementedException();
+        await repository.UpdateAsync(staff);
     }
 }

@@ -8,25 +8,24 @@ namespace BartenderBackend.Controllers
     [ApiController]
     public class StaffController(IStaffService staffService) : ControllerBase
     {
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("{id?}")]
+        public async Task<IActionResult> Get(int? id)
         {
-            var staff = await staffService.GetByIdAsync(id);
-            return staff != null ? Ok(staff) : NotFound();
-        }
+            if (id.HasValue)
+            {
+                var staffMember = await staffService.GetByIdAsync(id.Value);
+                return staffMember != null ? Ok(staffMember) : NotFound();
+            }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var staff = await staffService.GetAllAsync();
-            return Ok(staff);
+            var staffList = await staffService.GetAllAsync();
+            return Ok(staffList);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Staff staff)
         {
             await staffService.AddAsync(staff);
-            return CreatedAtAction(nameof(GetById), new { id = staff.Id }, staff);
+            return CreatedAtAction(nameof(Get), new { id = staff.Id }, staff);
         }
 
         [HttpPut("{id}")]
