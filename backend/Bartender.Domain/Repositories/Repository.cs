@@ -40,6 +40,23 @@ public class Repository<T> : IRepository<T> where T : class
         return await _dbSet.ToListAsync();
     }
 
+    public async Task<List<T>> GetAllIncludingNavigationAsync()
+    {
+        var query = _dbSet.AsQueryable();
+        var navigationProperties = context.Model.FindEntityType(typeof(T))?.GetNavigations();
+        if (navigationProperties != null)
+        {
+            foreach (var property in navigationProperties)
+            {
+                if (!property.DeclaringEntityType.IsOwned())
+                {
+                    query = query.Include(property.Name);
+                }
+            }
+        }
+        return await query.ToListAsync();
+    }
+
     // use only if you really need something very custom, otherwise rely on prebuild ones for consistency.
     public IQueryable<T> Query()
     {
@@ -71,6 +88,12 @@ public class Repository<T> : IRepository<T> where T : class
     public async Task AddAsync(T entity)
     {
         await _dbSet.AddAsync(entity);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task AddMultipleAsync(IEnumerable<T> entities)
+    {
+        await _dbSet.AddRangeAsync(entities);
         await context.SaveChangesAsync();
     }
 

@@ -2,6 +2,7 @@ using Bartender.Data;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
+using Bartender.Domain.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;
@@ -20,10 +21,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IBusinessService, BusinessService>();
+builder.Services.AddScoped<IProductsService, ProductsService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 app.UseSerilogRequestLogging(); // Log all HTTP requests automatically
