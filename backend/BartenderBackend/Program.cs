@@ -1,4 +1,5 @@
 using Bartender.Data;
+using Bartender.Data.Enums;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Mappings;
 using Bartender.Domain.Repositories;
@@ -16,9 +17,17 @@ builder.Host.UseSerilog((context, services, config) => config
     .ReadFrom.Configuration(context.Configuration)
 );
 
-// Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        o =>
+        {
+            o.MapEnum<EmployeeRole>("employeerole");
+            o.MapEnum<SubscriptionTier>("subscriptiontier");
+            o.MapEnum<TableStatus>("tablestatus");
+            o.MapEnum<ProductCategory>("productcategory");
+            o.MapEnum<OrderStatus>("orderstatus");
+            o.MapEnum<PaymentType>("paymenttype");
+        }));
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IBusinessService, BusinessService>();
