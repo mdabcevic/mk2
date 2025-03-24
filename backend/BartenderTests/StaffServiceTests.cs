@@ -78,22 +78,23 @@ class StaffServiceTests
     [Test]
     public async Task AddAsync_Should_Add_Staff_When_Username_Is_Unique()
     {
+        // Arrange
         var dto = CreateValidUpsertStaffDto();
-        var staff = CreateValidStaff();
 
         _repository.ExistsAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns(false);
-        _mapper.Map<Staff>(dto).Returns(staff);
 
+        // Act
         await _service.AddAsync(dto);
 
-        await _repository.Received(1).AddAsync(staff);
+        // Assert
+        await _repository.Received(1).AddAsync(Arg.Any<Staff>());
     }
 
     [Test]
     public void AddAsync_Should_Throw_When_Username_Exists()
     {
         var dto = CreateValidUpsertStaffDto();
-        _repository.ExistsAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns(false);
+        _repository.ExistsAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns(true);
 
         var ex = Assert.ThrowsAsync<ArgumentException>(() => _service.AddAsync(dto));
         Assert.That(ex.Message, Does.Contain("already exists"));
@@ -114,7 +115,7 @@ class StaffServiceTests
     [Test]
     public void DeleteAsync_Should_Throw_When_Not_Found()
     {
-        _repository.GetByIdAsync(1).Returns((Staff)null);
+        _repository.GetByIdAsync(1, Arg.Any<bool>()).Returns((Staff?)null);
 
         var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => _service.DeleteAsync(1));
         Assert.That(ex.Message, Does.Contain("not found"));
@@ -129,34 +130,37 @@ class StaffServiceTests
             CreateValidStaff(1),
             CreateValidStaff(2)
         };
-        var dtoList = new List<StaffDto>
-        {
-            CreateValidStaffDto(1),
-            CreateValidStaffDto(2)
-        };
-
         _repository.GetAllAsync().Returns(staffList);
-        _mapper.Map<StaffDto>(staffList[0]).Returns(dtoList[0]);
-        _mapper.Map<StaffDto>(staffList[1]).Returns(dtoList[1]);
 
         var result = await _service.GetAllAsync();
 
+        Assert.That(result, Has.All.InstanceOf<StaffDto>());
         Assert.That(result, Has.Count.EqualTo(2));
-        Assert.That(result[0].Username, Is.EqualTo("staff1"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[0].Username, Is.EqualTo("staff1"));
+            Assert.That(result[0].GetType().GetProperty("Password"), Is.Null);
+        });
     }
 
     [Test]
     public async Task GetByIdAsync_Should_Return_StaffDto_When_Found()
     {
-        var dto = CreateValidStaffDto(5);
+        // Arrange
         var staff = CreateValidStaff(5);
 
         _repository.GetByIdAsync(5, false).Returns(staff);
-        _mapper.Map<StaffDto>(staff).Returns(dto);
 
+        // Act
         var result = await _service.GetByIdAsync(5);
 
-        Assert.That(result?.Username, Is.EqualTo("staff5"));
+        // Assert
+        Assert.That(result, Is.InstanceOf<StaffDto>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.GetType().GetProperty("Password"), Is.Null);
+            Assert.That(result?.Username, Is.EqualTo("staff5"));
+        });
     }
 
     [Test]
@@ -178,7 +182,6 @@ class StaffServiceTests
 
         await _service.UpdateAsync(99, dto);
 
-        _mapper.Received().Map(dto, staff);
         await _repository.Received().UpdateAsync(staff);
     }
 
