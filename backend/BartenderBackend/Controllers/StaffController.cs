@@ -1,5 +1,6 @@
 ﻿using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BartenderBackend.Controllers;
@@ -7,6 +8,7 @@ namespace BartenderBackend.Controllers;
 //TODO: only managers should be able to access these endpoints.
 [Route("api/[controller]")]
 [ApiController]
+//[Authorize(Roles = "manager")] // Ensure only managers access this controller
 public class StaffController(IStaffService staffService) : ControllerBase
 {
     [HttpGet("{id?}")]
