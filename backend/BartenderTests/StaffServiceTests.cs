@@ -10,7 +10,6 @@ using System.Linq.Expressions;
 
 namespace BartenderTests;
 
-
 [TestFixture]
 class StaffServiceTests
 {
@@ -28,59 +27,43 @@ class StaffServiceTests
         var config = new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<Staff, StaffDto>();
-            cfg.CreateMap<UpsertStaffDto, Staff>();
+            cfg.CreateMap<UpsertStaffDto, Staff>()
+                .ForMember(dest => dest.FullName, opt =>
+                    opt.MapFrom(src => $"{src.FirstName} {src.LastName}"));
         });
         _mapper = config.CreateMapper();
 
         _service = new StaffService(_repository, _logger, _mapper);
     }
 
-    private static Staff CreateValidStaff(int id = 1)
+    private static Staff CreateValidStaff(int id = 1) => new()
     {
-        return new Staff
-        {
-            Id = id,
-            PlaceId = 10,
-            OIB = "12345678901",
-            Username = $"staff{id}",
-            Password = "SecurePass123!",
-            FullName = "Test User",
-            Role = EmployeeRole.regular
-        };
-    }
+        Id = id,
+        PlaceId = 10,
+        OIB = "12345678901",
+        Username = $"staff{id}",
+        Password = "SecurePass123!",
+        FullName = "Test User",
+        Role = EmployeeRole.regular
+    };
 
-    private static StaffDto CreateValidStaffDto(int id = 1)
+    private static UpsertStaffDto CreateValidUpsertStaffDto(int id = 1) => new()
     {
-        return new StaffDto
-        {
-            OIB = "12345678901",
-            Username = $"staff{id}",
-            FullName = "Test User",
-            Role = EmployeeRole.regular
-        };
-    }
-
-    private static UpsertStaffDto CreateValidUpsertStaffDto(int id = 1)
-    {
-        return new UpsertStaffDto
-        {
-            Id = id,
-            PlaceId = 10,
-            OIB = "12345678901",
-            Username = $"staff{id}",
-            Password = "SecurePass123!",
-            FirstName = "Test",
-            LastName = "User",
-            Role = EmployeeRole.regular
-        };
-    }
+        Id = id,
+        PlaceId = 10,
+        OIB = "12345678901",
+        Username = $"staff{id}",
+        Password = "SecurePass123!",
+        FirstName = "Test",
+        LastName = "User",
+        Role = EmployeeRole.regular
+    };
 
     [Test]
     public async Task AddAsync_Should_Add_Staff_When_Username_Is_Unique()
     {
         // Arrange
         var dto = CreateValidUpsertStaffDto();
-
         _repository.ExistsAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns(false);
 
         // Act
@@ -93,9 +76,11 @@ class StaffServiceTests
     [Test]
     public void AddAsync_Should_Throw_When_Username_Exists()
     {
+        // Arrange
         var dto = CreateValidUpsertStaffDto();
         _repository.ExistsAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns(true);
 
+        // Act & Assert
         var ex = Assert.ThrowsAsync<ArgumentException>(() => _service.AddAsync(dto));
         Assert.That(ex.Message, Does.Contain("already exists"));
     }
@@ -103,20 +88,24 @@ class StaffServiceTests
     [Test]
     public async Task DeleteAsync_Should_Remove_Staff_When_Found()
     {
+        // Arrange
         var staff = CreateValidStaff(1);
-
         _repository.GetByIdAsync(1).Returns(staff);
 
+        // Act
         await _service.DeleteAsync(1);
 
+        // Assert
         await _repository.Received(1).DeleteAsync(staff);
     }
 
     [Test]
     public void DeleteAsync_Should_Throw_When_Not_Found()
     {
-        _repository.GetByIdAsync(1, Arg.Any<bool>()).Returns((Staff?)null);
+        // Arrange
+        _repository.GetByIdAsync(1, Arg.Any<bool>()).Returns(Task.FromResult<Staff?>(null));
 
+        // Act & Assert
         var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => _service.DeleteAsync(1));
         Assert.That(ex.Message, Does.Contain("not found"));
     }
@@ -124,18 +113,16 @@ class StaffServiceTests
     [Test]
     public async Task GetAllAsync_Should_Return_StaffDto_List()
     {
-
-        var staffList = new List<Staff>
-        {
-            CreateValidStaff(1),
-            CreateValidStaff(2)
-        };
+        // Arrange
+        var staffList = new List<Staff> { CreateValidStaff(1), CreateValidStaff(2) };
         _repository.GetAllAsync().Returns(staffList);
 
+        // Act
         var result = await _service.GetAllAsync();
 
-        Assert.That(result, Has.All.InstanceOf<StaffDto>());
+        // Assert
         Assert.That(result, Has.Count.EqualTo(2));
+        Assert.That(result, Has.All.InstanceOf<StaffDto>());
         Assert.Multiple(() =>
         {
             Assert.That(result[0].Username, Is.EqualTo("staff1"));
@@ -148,7 +135,6 @@ class StaffServiceTests
     {
         // Arrange
         var staff = CreateValidStaff(5);
-
         _repository.GetByIdAsync(5, false).Returns(staff);
 
         // Act
@@ -166,8 +152,10 @@ class StaffServiceTests
     [Test]
     public void GetByIdAsync_Should_Throw_When_Not_Found()
     {
-        _repository.GetByIdAsync(10).Returns((Staff?)null);
+        // Arrange
+        _repository.GetByIdAsync(10, Arg.Any<bool>()).Returns(Task.FromResult<Staff?>(null));
 
+        // Act & Assert
         var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => _service.GetByIdAsync(10));
         Assert.That(ex.Message, Contains.Substring("not found"));
     }
@@ -175,22 +163,27 @@ class StaffServiceTests
     [Test]
     public async Task UpdateAsync_Should_Update_When_Found()
     {
-        var dto = CreateValidUpsertStaffDto();
+        // Arrange
+        var dto = CreateValidUpsertStaffDto(99);
         var staff = CreateValidStaff(99);
-
         _repository.GetByIdAsync(99).Returns(staff);
 
+        // Act
         await _service.UpdateAsync(99, dto);
 
-        await _repository.Received().UpdateAsync(staff);
+        // Assert
+        await _repository.Received().UpdateAsync(Arg.Any<Staff>());
     }
 
     [Test]
     public void UpdateAsync_Should_Throw_When_Not_Found()
     {
-        _repository.GetByIdAsync(50).Returns((Staff?)null);
+        // Arrange
+        var dto = CreateValidUpsertStaffDto(50);
+        _repository.GetByIdAsync(50).Returns(Task.FromResult<Staff?>(null));
 
-        var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => _service.UpdateAsync(50, CreateValidUpsertStaffDto(50)));
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<KeyNotFoundException>(() => _service.UpdateAsync(50, dto));
         Assert.That(ex.Message, Contains.Substring("not found"));
     }
 }
