@@ -10,4 +10,5 @@
     <ProjectReference Include="..\Bartender.Data\Bartender.Data.csproj" />
   </ItemGroup>
 
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
 </Project>
