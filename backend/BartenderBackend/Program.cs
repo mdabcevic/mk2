@@ -4,8 +4,6 @@ using Bartender.Domain.Interfaces;
 using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Npgsql;
 using Scalar.AspNetCore;
 using Serilog;
 
