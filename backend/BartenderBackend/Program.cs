@@ -17,16 +17,17 @@ builder.Host.UseSerilog((context, services, config) => config
     .ReadFrom.Configuration(context.Configuration)
 );
 
-
-//var dataSourceBuilder = new NpgsqlDataSourceBuilder(
-//    builder.Configuration.GetConnectionString("DefaultConnection"));
-//dataSourceBuilder.MapEnum<EmployeeRole>("employeerole");
-//var dataSource = dataSourceBuilder.Build();
-
-// ?? Register DbContext with the strongly typed data source
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-        o => o.MapEnum<EmployeeRole>("employeerole")));
+        o =>
+        {
+            o.MapEnum<EmployeeRole>("employeerole");
+            o.MapEnum<SubscriptionTier>("subscriptiontier");
+            o.MapEnum<TableStatus>("tablestatus");
+            o.MapEnum<ProductCategory>("productcategory");
+            o.MapEnum<OrderStatus>("orderstatus");
+            o.MapEnum<PaymentType>("paymenttype");
+        }));
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IBusinessService, BusinessService>();
