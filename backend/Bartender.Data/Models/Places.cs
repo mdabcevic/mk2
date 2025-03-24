@@ -18,8 +18,14 @@ public class Places
     [ForeignKey("BusinessId")] // Should reference the actual foreign key field
     public Businesses? Business { get; set; }
 
-    [Column("location")]
-    public required string Location { get; set; }
+    [Column("address")]
+    public required string Address { get; set; }
+
+    [Column("city_id")]
+    public int CityId { get; set; }
+
+    [ForeignKey("CityId")] 
+    public Cities? City { get; set; }
 
     [Column("opensat")]
     public TimeOnly OpensAt { get; set; } = TimeOnly.FromDateTime(DateTime.Now);
