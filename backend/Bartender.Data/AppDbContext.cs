@@ -1,5 +1,7 @@
-﻿using Bartender.Data.Models;
+﻿using Bartender.Data.Enums;
+using Bartender.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Bartender.Data;
 
@@ -22,31 +24,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<ProductsPerOrder>().HasKey(po => new { po.OrderId, po.ProductId });
         modelBuilder.Entity<Reviews>().HasKey(r => new { r.ProductId, r.CustomerId });
 
-        modelBuilder.Entity<Businesses>()
-            .Property(b => b.SubscriptionTier)
-            .HasConversion<string>();
+        //modelBuilder.HasPostgresEnum<EmployeeRole>("employeerole");
 
-        modelBuilder.Entity<Staff>()
-            .Property(s => s.Role)
-            .HasConversion<string>();
+        //modelBuilder.Entity<Staff>(entity =>
+        //{
+        //    entity.Property(e => e.Role)
+        //          .HasColumnType("employeerole");
+        //});
 
-        modelBuilder.Entity<Tables>()
-            .Property(t => t.Status)
-            .HasConversion<string>();
-
-        modelBuilder.Entity<Products>()
-            .Property(p => p.Category)
-            .HasConversion<string?>(); // nullable, if you allow it in DB
-
-        modelBuilder.Entity<Orders>()
-            .Property(o => o.Status)
-            .HasConversion<string>();
-
-        modelBuilder.Entity<Orders>()
-            .Property(o => o.PaymentType)
-            .HasConversion<string>();
-
+        //modelBuilder.Entity<Staff>()
+        //    .Property(e => e.Role)
+        //    .HasConversion<string>()
+        //    .HasColumnType("employeerole");
 
         base.OnModelCreating(modelBuilder);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder
+            .LogTo(Console.WriteLine, LogLevel.Information)
+            .EnableSensitiveDataLogging();
     }
 }

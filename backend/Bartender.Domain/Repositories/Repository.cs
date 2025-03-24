@@ -68,6 +68,24 @@ public class Repository<T> : IRepository<T> where T : class
         return await _dbSet.CountAsync(predicate);
     }
 
+    public IQueryable<T> GetPaged(
+    int pageNumber,
+    int pageSize,
+    Expression<Func<T, bool>>? predicate = null,
+    params Expression<Func<T, object>>[] includes)
+    {
+        IQueryable<T> query = _dbSet;
+
+        if (includes != null)
+            foreach (var include in includes)
+                query = query.Include(include);
+
+        if (predicate != null)
+            query = query.Where(predicate);
+
+        return query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+    }
+
     public async Task AddAsync(T entity)
     {
         await _dbSet.AddAsync(entity);

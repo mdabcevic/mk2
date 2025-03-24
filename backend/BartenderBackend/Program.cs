@@ -1,8 +1,11 @@
 using Bartender.Data;
+using Bartender.Data.Enums;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Npgsql;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -14,9 +17,16 @@ builder.Host.UseSerilog((context, services, config) => config
     .ReadFrom.Configuration(context.Configuration)
 );
 
-// Add services to the container.
+
+//var dataSourceBuilder = new NpgsqlDataSourceBuilder(
+//    builder.Configuration.GetConnectionString("DefaultConnection"));
+//dataSourceBuilder.MapEnum<EmployeeRole>("employeerole");
+//var dataSource = dataSourceBuilder.Build();
+
+// ?? Register DbContext with the strongly typed data source
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        o => o.MapEnum<EmployeeRole>("employeerole")));
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IBusinessService, BusinessService>();
