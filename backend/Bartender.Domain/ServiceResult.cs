@@ -1,4 +1,6 @@
-﻿public enum ErrorType
+﻿
+namespace Bartender.Domain;
+public enum ErrorType
 {
     NotFound,
     Unauthorized,
