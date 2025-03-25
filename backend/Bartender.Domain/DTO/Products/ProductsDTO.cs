@@ -11,8 +11,11 @@ using Bartender.Domain.DTO.MenuItems;
 
 namespace Bartender.Domain.DTO.Products
 {
-    public class ProductsDTO : ProductsBaseDTO
+    public class ProductsDTO
     {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Volume { get; set; }
         public ProductCategoryDTO Category { get; set; }
         //public IEnumerable<MenuItemsDTO>? Menu {  get; set; }
     }

@@ -35,6 +35,31 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.FirstOrDefaultAsync(entity => EF.Property<int>(entity, "Id") == id);
     }
 
+    public async Task<T?> GetByKeyAsync(Expression<Func<T, bool>> key, params Expression<Func<T, object>>[]? includes)
+    {
+        var query = _dbSet.AsQueryable();
+
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
+        }
+
+        var navigationProperties = context.Model.FindEntityType(typeof(T))?.GetNavigations();
+        if (navigationProperties != null)
+        {
+            foreach (var property in navigationProperties)
+            {
+                if (!property.DeclaringEntityType.IsOwned())
+                {
+                    query = query.Include(property.Name);
+                }
+            }
+        }
+
+        return await query.FirstOrDefaultAsync(key);
+    }
+
+
     public async Task<List<T>> GetAllAsync()
     {
         return await _dbSet.ToListAsync();

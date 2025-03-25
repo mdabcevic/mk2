@@ -6,14 +6,13 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bartender.Domain.DTO.Products;
+using Bartender.Domain.DTO.Places;
 
 namespace Bartender.Domain.DTO.MenuItems
 {
-    public class MenuItemsDTO
+    public class MenuItemsDTO : MenuItemsBaseDTO
     {
-        public int Id { get; set; }
-        public string Place { get; set; }
-        public bool IsAvailable { get; set; }
-        public string? Description { get; set; }
+        public PlaceDTO Place { get; set; }
     }
 }

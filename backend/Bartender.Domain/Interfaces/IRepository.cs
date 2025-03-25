@@ -10,6 +10,7 @@ public interface IRepository<T> where T : class
     /// <param name="id">Primary key in database.</param>
     /// <returns>Entity from table.</returns>
     Task<T?> GetByIdAsync(int id);
+    Task<T?> GetByKeyAsync(Expression<Func<T, bool>> key, params Expression<Func<T, object>>[]? includes);
     Task<List<T>> GetAllAsync();
     Task<List<T>> GetAllWithDetailsAsync();
     Task AddAsync(T entity);
@@ -18,4 +19,5 @@ public interface IRepository<T> where T : class
     Task DeleteAsync(T entity);
     IQueryable<T> Query();
     Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
+    IQueryable<T> QueryIncluding(params Expression<Func<T, object>>[] includes);
 }

@@ -1,6 +1,7 @@
 ﻿using Bartender.Data.Models;
 using AutoMapper;
 using Bartender.Domain.DTO.Products;
+using Bartender.Domain.DTO.Places;
 using Bartender.Domain.DTO.MenuItems;
 
 namespace Bartender.Domain.Helpers
@@ -9,7 +10,8 @@ namespace Bartender.Domain.Helpers
     {
         public MappingProfile()
         {
-            CreateMap<Products, ProductsBaseDTO>();
+            CreateMap<Products, ProductsBaseDTO>()
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
 
             CreateMap<Products, ProductsDTO>()
             .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category));
@@ -22,9 +24,20 @@ namespace Bartender.Domain.Helpers
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Name));
 
             CreateMap<MenuItems, MenuItemsDTO>()
-                .ForMember(dest => dest.Place, opt => opt.MapFrom(src => src.Place.Business.Name));
+                .ForMember(dest => dest.Place, opt => opt.MapFrom(src => src.Place))
+                .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
+
+            CreateMap<MenuItems, MenuItemsBaseDTO>()
+                .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
 
             CreateMap<UpsertProductDTO, Products>();
+            CreateMap<UpsertMenuItemDTO, MenuItems>();
+
+            CreateMap<Places, GroupedMenusDTO>()
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.MenuItems));
+
+            CreateMap<Places, PlaceDTO>()
+                .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.Business.Name));
         }
     }
 }
