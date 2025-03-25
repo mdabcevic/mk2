@@ -26,7 +26,7 @@ public class Businesses
     [Required]
     [Column("subscriptiontier")] // matches the Postgres column name exactly
     [EnumDataType(typeof(SubscriptionTier))]
-    public SubscriptionTier SubscriptionTier { get; set; } = SubscriptionTier.None;
+    public SubscriptionTier SubscriptionTier { get; set; } = SubscriptionTier.none;
 
     public ICollection<Places> Places { get; set; } = [];
 }
