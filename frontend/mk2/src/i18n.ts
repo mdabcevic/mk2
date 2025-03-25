@@ -6,7 +6,7 @@ import LanguageDetector from "i18next-browser-languagedetector";
 i18n
   .use(HttpApi) // Lazy load translations
   .use(LanguageDetector) // Detect browser language
-  .use(initReactI18next) // React binding
+  .use(initReactI18next)
   .init({
     supportedLngs: ["en", "hr"], // Define supported languages
     fallbackLng: "hr", // Default fallback language
@@ -15,9 +15,9 @@ i18n
       caches: ["localStorage", "cookie"],
     },
     backend: {
-      loadPath: (lng: any, ns: any) => `/assets/i18n_locales/${ns}/${lng}.json`, // Load from separate folders
+      loadPath: (lng: any, ns: any) => `/assets/i18n_locales/${ns}/${lng}.json`,
     },
-    ns: ["public", "admin"], // Define namespaces
+    ns: ["public", "admin"], // namespaces
     defaultNS: "public",
     interpolation: {
       escapeValue: false,

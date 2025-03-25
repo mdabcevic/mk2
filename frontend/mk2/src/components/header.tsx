@@ -1,56 +1,71 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
+import { Menu } from "lucide-react";
 
 const HeaderComponent = () => {
   const { t, i18n } = useTranslation("public");
   const location = useLocation();
-
-  useEffect(() => {
-    i18n.reloadResources();
-  }, []);
-  const changeLanguage = (e:any) => {
-    i18n.changeLanguage(e.target.value);
+  console.log(location.pathname);
+  const [open, setOpen] = useState(false);
+  const openNavbar = () => {
+    setOpen(!open);
   };
+
   return (
-    <header className="bg-gray-900 text-white p-4 shadow-md">
-      <h1 className="text-2xl font-bold">My Website</h1>
-      
-      <nav className="mt-2 flex gap-4">
-        <Link 
-          to="/home" 
-          className={`hover:text-orange-400 ${location.pathname === "/home" ? "text-orange-500" : ""}`}
+    <header>
+
+      <nav className="flex justify-between items-center text-[1.2rem] bg-gray-900 p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2
+">
+      <h1 className="text-2xl">Logo</h1>
+      <div className="Hamburger-Cross-Icons" onClick={openNavbar}>
+        <Menu size={24} />
+      </div>
+      <ul className={open ? "menu-items active" : "menu-items"}>
+      <Link
+          to="/home"
+          className={`nav-links ${
+            location.pathname === "/home" ? "text-orange-500" : ""
+          }`}
         >
           {t("home_link_text")}
         </Link>
-        <Link 
-          to="/app" 
-          className={`hover:text-orange-400 ${location.pathname === "/app" ? "text-orange-500" : ""}`}
+        <Link
+          to="/app"
+          className={`nav-links  ${
+            location.pathname === "/app" ? "text-orange-500" : ""
+          }`}
         >
           {t("bars_link_text")}
         </Link>
-        <Link 
-          to="/aboutus" 
-          className={`hover:text-orange-400 ${location.pathname === "/aboutus" ? "text-orange-500" : ""}`}
+        <Link
+          to="/aboutus"
+          className={`nav-links  ${
+            location.pathname === "/aboutus" ? "text-orange-500" : ""
+          }`}
         >
           {t("aboutus_link_text")}
         </Link>
-        <Link 
-          to="/NotFound" 
-          className={`hover:text-orange-400 ${location.pathname === "/NotFound" ? "text-orange-500" : ""}`}
+        <Link
+          to="/NotFound"
+          className={`nav-links  ${
+            location.pathname === "/NotFound" ? "text-orange-500" : ""
+          }`}
         >
           Not Found
         </Link>
-      </nav>
-
-      <select 
-        onChange={(e) => i18n.changeLanguage(e.target.value)} 
-        value={i18n.language}
-        className="mt-2 bg-gray-800 text-white border border-gray-700 p-2 rounded"
-      >
-        <option value="en">English</option>
-        <option value="hr">Hrvatski</option>
-      </select>
+        <select
+          onChange={(e) => i18n.changeLanguage(e.target.value)}
+          value={i18n.language}
+          className="bg-gray-800 text-white border border-gray-700 p-2 rounded"
+        >
+          <option value="en">🇬🇧</option>
+          <option value="hr">🇭🇷</option>
+        </select>
+      </ul>
+      
+    </nav>
+    
     </header>
   );
 };
