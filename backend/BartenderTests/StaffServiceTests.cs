@@ -14,6 +14,7 @@ namespace BartenderTests;
 class StaffServiceTests
 {
     private IRepository<Staff> _repository;
+    private IRepository<Places> _placesrepository;
     private ILogger<StaffService> _logger;
     private IMapper _mapper;
     private StaffService _service;
@@ -23,6 +24,7 @@ class StaffServiceTests
     {
         _repository = Substitute.For<IRepository<Staff>>();
         _logger = Substitute.For<ILogger<StaffService>>();
+        _placesrepository = Substitute.For<IRepository<Places>>();
 
         var config = new MapperConfiguration(cfg =>
         {
@@ -33,7 +35,7 @@ class StaffServiceTests
         });
         _mapper = config.CreateMapper();
 
-        _service = new StaffService(_repository, _logger, _mapper);
+        _service = new StaffService(_repository, _placesrepository, _logger, _mapper);
     }
 
     private static Staff CreateValidStaff(int id = 1) => new()

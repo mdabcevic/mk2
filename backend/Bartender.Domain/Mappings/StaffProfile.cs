@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO;
+using BCrypt.Net;
 
 namespace Bartender.Domain.Mappings;
 
