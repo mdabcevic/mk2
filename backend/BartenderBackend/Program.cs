@@ -1,5 +1,6 @@
 using Bartender.Data;
 using Bartender.Data.Enums;
+using Bartender.Domain;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
@@ -55,9 +56,6 @@ builder.Services.AddScoped<IBusinessService, BusinessService>();
 
 builder.Services.AddHttpContextAccessor(); // required!
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
-
-// Clearly add AutoMapper here:
-builder.Services.AddAutoMapper(typeof(StaffMappingProfile)); //TODO: find easier way to register all mappings
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
