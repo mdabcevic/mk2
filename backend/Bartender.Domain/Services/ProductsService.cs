@@ -75,29 +75,39 @@ namespace Bartender.Domain.Services
 
         public async Task AddAsync(UpsertProductDTO product)
         {
-            await ValidateProduct(product);
+            await ValidateProductAsync(product);
 
-            var existingProduct = await repository.Query()
-                .Where(p => p.Name.ToLower() == product.Name.ToLower())
-                .FirstOrDefaultAsync();
-            if (existingProduct != null)
+            var existingProduct = await repository.ExistsAsync(p =>
+                string.Equals(p.Name, product.Name, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(p.Volume, product.Volume, StringComparison.OrdinalIgnoreCase)
+            );
+
+            if (existingProduct)
             {
                 throw new DuplicateEntryException($"Product with name '{product.Name}' already exists.");
             }
+
             var newProduct = mapper.Map<Products>(product);
             await repository.AddAsync(newProduct);
         }
 
         public async Task UpdateAsync(int id, UpsertProductDTO product)
         {
-            await ValidateProduct(product);
+            await ValidateProductAsync(product);
 
             var updateProduct = await GetProductByIdAsync(id);
 
-            var existingProduct = await repository.Query()
-                .Where(p => p.Name.ToLower() == product.Name.ToLower())
-                .FirstOrDefaultAsync(); 
-            if (existingProduct != null)
+            if (updateProduct == null) {
+                throw new NotFoundException($"Product with id {id} not found");
+            }
+
+            var existingProduct = await repository.ExistsAsync(p =>
+                p.Id != id &&
+                string.Equals(p.Name, product.Name, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(p.Volume, product.Volume, StringComparison.OrdinalIgnoreCase)
+            );
+
+            if (existingProduct)
             {
                 throw new DuplicateEntryException($"Product with name '{product.Name}' already exists.");
             }
@@ -118,17 +128,15 @@ namespace Bartender.Domain.Services
             return mapper.Map<IEnumerable<ProductCategoryDTO>>(categories);
         }
 
-        public async Task ValidateProduct(UpsertProductDTO product)
+        public async Task ValidateProductAsync(UpsertProductDTO product)
         {
             if (string.IsNullOrEmpty(product.Name))
             {
                 throw new ValidationException("Product name is required.");
             }
 
-            var categories = await categoryRepository.GetAllAsync();
-            var categoryIds = categories.Select(c => c.Id).ToList();
-
-            if (!categoryIds.Contains(product.CategoryId))
+            bool categoryExists = await categoryRepository.ExistsAsync(c => c.Id == product.CategoryId);
+            if (!categoryExists)
             {
                 throw new ValidationException($"Product category id {product.CategoryId} doesn't exist");
             }

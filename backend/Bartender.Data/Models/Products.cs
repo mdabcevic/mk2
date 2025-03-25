@@ -17,7 +17,7 @@ public class Products
     public required string Name { get; set; }
 
     [Column("volume")]
-    public required string Volume { get; set; }
+    public string? Volume { get; set; }
 
     [Column("category_id")]
     public int CategoryId { get; set; }

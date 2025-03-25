@@ -4,11 +4,13 @@ using Bartender.Data.Models;
 using Bartender.Domain.DTO.Products;
 using Bartender.Domain.Exceptions;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BartenderBackend.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles ="admin, manager")]
 public class ProductsController(IProductsService productsService) : ControllerBase
 {
     [HttpGet("{id}")]
@@ -123,6 +125,7 @@ public class ProductsController(IProductsService productsService) : ControllerBa
         }
     }
 
+    [Authorize(Roles = "admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
