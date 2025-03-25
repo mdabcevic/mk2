@@ -39,9 +39,12 @@ public class Repository<T> : IRepository<T> where T : class
     {
         var query = _dbSet.AsQueryable();
 
-        foreach (var include in includes)
+        if (includes != null)
         {
-            query = query.Include(include);
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
         }
 
         var navigationProperties = context.Model.FindEntityType(typeof(T))?.GetNavigations();

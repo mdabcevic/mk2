@@ -11,6 +11,6 @@ namespace Bartender.Domain.DTO.MenuItems
     public class GroupedMenusDTO
     {
         public PlaceDTO Place {  get; set; }
-        public IEnumerable<MenuItemsDTO> Items { get; set; }
+        public IEnumerable<MenuItemsBaseDTO> Items { get; set; }
     }
 }

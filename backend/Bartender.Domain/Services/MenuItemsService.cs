@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Bartender.Domain.Repositories;
 using System.Globalization;
+using AutoMapper.QueryableExtensions;
 
 namespace Bartender.Domain.Services;
 public class MenuItemsService(
@@ -25,7 +26,7 @@ public class MenuItemsService(
             throw new NotFoundException($"Place with id {id} not found");
         }
 
-        var menu = await repository.QueryIncluding(mi => mi.Product, mi => mi.Product.Category)
+        var menu = await repository.QueryIncluding(mi => mi.Product, mi => mi.Product.Category, mi => mi.Place.Business)
             /*.Include(mi => mi.Place)
                 .ThenInclude(p => p.Business)
             .Include(mi => mi.Product)
@@ -44,7 +45,7 @@ public class MenuItemsService(
     {
         var menuItem = await repository.GetByKeyAsync(
             mi => mi.PlaceId == placeId && mi.ProductId == productId,
-            mi => mi.Product.Category);
+            mi => mi.Product.Category, mi => mi.Place.Business);
         if (menuItem == null)
         {
             throw new NotFoundException($"MenutItem with place id {placeId} and product id {productId} not found");
@@ -54,21 +55,13 @@ public class MenuItemsService(
 
     public async Task<IEnumerable<GroupedMenusDTO>> GetAllAsync()
     {
-        /*var menu = await repository
-            .QueryIncluding(mi => mi.Product)
-            .GroupBy(mi => mi.Place)
-            .Select(g => new GroupedMenusDTO
-            {
-                Place = g.Key,
-                Items = mapper.Map<IEnumerable<MenuItemsDTO>>(g.ToList())
-            })
+        var groupedMenus =  await placeRepository.Query()
+        .Include(p => p.Business)
+        .Include(p => p.MenuItems)
+            .ThenInclude(mi => mi.Product)
+                .ThenInclude(p => p.Category)
         .ToListAsync();
 
-        if (!menu.Any())
-        {
-            throw new NotFoundException("There are no menus available at the moment");
-        }*/
-        var groupedMenus = await placeRepository.GetAllWithDetailsAsync();
         return mapper.Map<IEnumerable<GroupedMenusDTO>>(groupedMenus);
     }
 

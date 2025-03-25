@@ -34,7 +34,8 @@ namespace Bartender.Domain.Helpers
             CreateMap<UpsertMenuItemDTO, MenuItems>();
 
             CreateMap<Places, GroupedMenusDTO>()
-                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.MenuItems));
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.MenuItems))
+                .ForMember(dest => dest.Place, opt => opt.MapFrom(src => src));
 
             CreateMap<Places, PlaceDTO>()
                 .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.Business.Name));
