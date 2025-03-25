@@ -1,21 +1,21 @@
-﻿using BartenderBackend.Models;
-using BartenderBackend.Repositories;
+﻿using Bartender.Data.Models;
+using Bartender.Domain.Interfaces;
 
-namespace BartenderBackend.Services;
+namespace Bartender.Domain.Services;
 
-public class BusinessService(IRepository<Business> repository) : IBusinessService
+public class BusinessService(IRepository<Businesses> repository) : IBusinessService
 {
-    public async Task<Business?> GetByIdAsync(int id)
+    public async Task<Businesses?> GetByIdAsync(int id)
     {
         return await repository.GetByIdAsync(id);
     }
 
-    public async Task<IEnumerable<Business>> GetAllAsync()
+    public async Task<IEnumerable<Businesses>> GetAllAsync()
     {
         return await repository.GetAllAsync();
     }
 
-    public async Task AddAsync(Business business)
+    public async Task AddAsync(Businesses business)
     {
         if (business.OIB.Length != 11)
             throw new KeyNotFoundException("OIB must be 11 characters");
@@ -23,7 +23,7 @@ public class BusinessService(IRepository<Business> repository) : IBusinessServic
         await repository.AddAsync(business);
     }
 
-    public async Task UpdateAsync(Business business)
+    public async Task UpdateAsync(Businesses business)
     {
         await repository.UpdateAsync(business);
     }

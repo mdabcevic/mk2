@@ -1,7 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Bartender.Data.Enums;
 
-namespace BartenderBackend.Models;
+namespace Bartender.Data.Models;
 
 [Table("orders")]
 public class Orders
@@ -27,11 +28,15 @@ public class Orders
     [Column("createdat")]
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+    [Required]
     [Column("status")]
-    public string Status { get; set; } = "created";
+    [EnumDataType(typeof(OrderStatus))]
+    public OrderStatus Status { get; set; } = OrderStatus.created;
 
+    [Required]
     [Column("paymenttype")]
-    public string PaymentType { get; set; } = "cash";
+    [EnumDataType(typeof(PaymentType))]
+    public PaymentType PaymentType { get; set; } = PaymentType.cash;
 
     public ICollection<ProductsPerOrder> Products { get; set; } = [];
 }

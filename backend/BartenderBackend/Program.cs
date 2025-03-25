@@ -1,9 +1,18 @@
-using BartenderBackend.Models;
-using BartenderBackend.Repositories;
-using BartenderBackend.Services;
+using Bartender.Data;
+using Bartender.Data.Enums;
+using Bartender.Domain;
+using Bartender.Domain.Interfaces;
+using Bartender.Domain.Repositories;
+using Bartender.Domain.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Serilog;
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json.Serialization; // <-- ensure this namespace is included
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,14 +22,46 @@ builder.Host.UseSerilog((context, services, config) => config
     .ReadFrom.Configuration(context.Configuration)
 );
 
-// Add services to the container.
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            NameClaimType = ClaimTypes.NameIdentifier,
+            RoleClaimType = ClaimTypes.Role,
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
+        };
+    });
+IdentityModelEventSource.ShowPII = true;
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        o =>
+        {
+            o.MapEnum<EmployeeRole>("employeerole");
+            o.MapEnum<SubscriptionTier>("subscriptiontier");
+            o.MapEnum<TableStatus>("tablestatus");
+            o.MapEnum<ProductCategory>("productcategory");
+            o.MapEnum<OrderStatus>("orderstatus");
+            o.MapEnum<PaymentType>("paymenttype");
+        }));
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IBusinessService, BusinessService>();
 
-builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor(); // required!
+builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -36,6 +77,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication(); // <--- MUST come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
 await app.RunAsync();

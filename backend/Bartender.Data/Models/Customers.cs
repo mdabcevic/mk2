@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace BartenderBackend.Models;
+namespace Bartender.Data.Models;
 
 [Table("customers")]
 public class Customers

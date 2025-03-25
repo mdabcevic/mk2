@@ -1,5 +1,5 @@
-﻿using BartenderBackend.Models;
-using BartenderBackend.Services;
+﻿using Bartender.Data.Models;
+using Bartender.Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,14 +24,14 @@ public class BusinessController(IBusinessService businessService) : ControllerBa
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Business business)
+    public async Task<IActionResult> Create([FromBody] Businesses business)
     {
         await businessService.AddAsync(business);
         return CreatedAtAction(nameof(GetById), new { id = business.Id }, business);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] Business business)
+    public async Task<IActionResult> Update(int id, [FromBody] Businesses business)
     {
         if (business.Id != id)
             return BadRequest();

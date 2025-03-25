@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace BartenderBackend.Models;
+namespace Bartender.Data.Models;
 
 [Table("places")]
 public class Places
@@ -16,10 +16,16 @@ public class Places
     public int BusinessId { get; set; }
 
     [ForeignKey("BusinessId")] // Should reference the actual foreign key field
-    public Business? Business { get; set; }
+    public Businesses? Business { get; set; }
 
-    [Column("location")]
-    public required string Location { get; set; }
+    [Column("address")]
+    public required string Address { get; set; }
+
+    [Column("city_id")]
+    public int CityId { get; set; }
+
+    [ForeignKey("CityId")] 
+    public Cities? City { get; set; }
 
     [Column("opensat")]
     public TimeOnly OpensAt { get; set; } = TimeOnly.FromDateTime(DateTime.Now);
