@@ -24,7 +24,7 @@ public class CurrentUserContext(
 
     public async Task<Staff> GetCurrentUserAsync()
     {
-        return _cachedStaff ??= await staffRepo.GetByIdAsync(UserId)
+        return _cachedStaff ??= await staffRepo.GetByIdAsync(UserId, true)
             ?? throw new UnauthorizedAccessException("User not found.");
     }
 }

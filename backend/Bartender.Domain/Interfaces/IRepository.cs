@@ -1,4 +1,6 @@
-﻿namespace Bartender.Domain.Interfaces;
+﻿using System.Linq.Expressions;
+
+namespace Bartender.Domain.Interfaces;
 
 public interface IRepository<T> where T : class
 {
@@ -12,4 +14,14 @@ public interface IRepository<T> where T : class
     Task AddAsync(T entity);
     Task UpdateAsync(T entity);
     Task DeleteAsync(T entity);
+
+    // Querying
+    //IQueryable<T> Find(Expression<Func<T, bool>> predicate);
+    IQueryable<T> QueryIncluding(params Expression<Func<T, object>>[] includes);
+
+    // Additional helpers
+    Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
+    Task<int> CountAsync(Expression<Func<T, bool>> predicate);
+
+    //void Detach(T entity);
 }
