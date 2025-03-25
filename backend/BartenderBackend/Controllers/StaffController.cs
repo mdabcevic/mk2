@@ -7,43 +7,36 @@ namespace BartenderBackend.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "manager")] // Ensure only managers access this controller
+[Authorize(Roles = "manager")]
 public class StaffController(IStaffService staffService) : ControllerBase
 {
     [HttpGet("{id?}")]
     public async Task<IActionResult> Get(int? id)
     {
         if (id.HasValue)
-        {
-            var staffMember = await staffService.GetByIdAsync(id.Value);
-            return staffMember != null ? Ok(staffMember) : NotFound();
-        }
+            return (await staffService.GetByIdAsync(id.Value)).ToActionResult();
 
-        var staffList = await staffService.GetAllAsync();
-        return Ok(staffList);
+        return (await staffService.GetAllAsync()).ToActionResult();
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] UpsertStaffDto staff)
     {
-        await staffService.AddAsync(staff);
-        return CreatedAtAction(nameof(Get), new { id = staff.Id }, staff);
+        return (await staffService.AddAsync(staff)).ToActionResult();
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpsertStaffDto staff)
     {
         if (staff.Id != id)
-            return BadRequest();
+            return BadRequest(new { error = "Mismatched ID" });
 
-        await staffService.UpdateAsync(id, staff);
-        return NoContent();
+        return (await staffService.UpdateAsync(id, staff)).ToActionResult();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await staffService.DeleteAsync(id);
-        return NoContent();
+        return (await staffService.DeleteAsync(id)).ToActionResult();
     }
 }
