@@ -5,7 +5,7 @@
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'subscriptiontier') THEN
-    CREATE TYPE SubscriptionTier AS ENUM ('None', 'Trial', 'Basic', 'Standard', 'Premium', 'Enterprise');
+    CREATE TYPE SubscriptionTier AS ENUM ('none', 'trial', 'basic', 'standard', 'premium', 'enterprise');
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'employeerole') THEN
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS Businesses (
     OIB VARCHAR NOT NULL UNIQUE,
     name VARCHAR NOT NULL,
     headquarters VARCHAR,
-    subscriptionTier SubscriptionTier NOT NULL DEFAULT 'None'
+    subscriptionTier SubscriptionTier NOT NULL DEFAULT 'none'
 );
 
 -- Table: Cities
@@ -131,13 +131,13 @@ CREATE TABLE IF NOT EXISTS Reviews (
 
 -- Insert subscription-tiered businesses with enum values
 INSERT INTO Businesses (OIB, name, headquarters, subscriptionTier) VALUES
-('12345678903', 'Vivas Bar', 'Neka Adresa 1', 'Basic'),
-('11115678903', 'Leggiero', 'Neka Adresa 2', 'Basic'),
-('22225678903', 'Bonaca', 'Selska cesta 28', 'None'),
-('33335678903', 'Elixir', 'Selska cesta 28', 'Basic'),
-('12345678901', 'Sunset Bar', 'New York, NY', 'Standard'),
-('23456789012', 'Moonlight Lounge', 'Los Angeles, CA', 'Trial'),
-('34567890123', 'Cloud9 Café', 'Chicago, IL', 'Premium');
+('12345678903', 'Vivas Bar', 'Neka Adresa 1', 'basic'),
+('11115678903', 'Leggiero', 'Neka Adresa 2', 'basic'),
+('22225678903', 'Bonaca', 'Selska cesta 28', 'none'),
+('33335678903', 'Elixir', 'Selska cesta 28', 'basic'),
+('12345678901', 'Sunset Bar', 'New York, NY', 'standard'),
+('23456789012', 'Moonlight Lounge', 'Los Angeles, CA', 'trial'),
+('34567890123', 'Cloud9 Café', 'Chicago, IL', 'premium');
 
 -- Insert cities (used as foreign keys in Places)
 INSERT INTO Cities (name) VALUES
