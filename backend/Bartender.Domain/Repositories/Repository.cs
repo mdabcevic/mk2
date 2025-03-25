@@ -16,6 +16,7 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet = this.context.Set<T>();
     }
 
+    // should include flag for choosing includes or not
     public async Task<T?> GetByIdAsync(int id, bool includeNavigations = false)
     {
         IQueryable<T> query = _dbSet;
