@@ -8,33 +8,27 @@ namespace Bartender.Domain.Services;
 
 public class StaffService(
     IRepository<Staff> repository, 
-    IRepository<Places> placesRepository,
     ILogger<StaffService> logger,
+    ICurrentUserContext currentUser,
     IMapper mapper
     ) : IStaffService
 {
-    public async Task AddAsync(UpsertStaffDto dto /*, int currentUserId */)
+    public async Task AddAsync(UpsertStaffDto dto)
     {
-        //await EnsureSameBusinessAsync(currentUserId, dto.PlaceId);
-
-        if (!await placesRepository.ExistsAsync(p => p.Id == dto.PlaceId))
-        {
-            logger.LogWarning("Place with ID {PlaceId} does not exist.", dto.PlaceId);
-            throw new ArgumentException($"Place with ID {dto.PlaceId} does not exist.");
-        }
+        await EnsureSameBusinessAsync(dto.PlaceId);
 
         if (await repository.ExistsAsync(s => s.Username == dto.Username))
         {
-            logger.LogWarning("Cannot insert duplicate employee with username: {Username}", dto.Username);
+            logger.LogWarning("Username conflict: {Username}", dto.Username);
             throw new ArgumentException($"Staff with username '{dto.Username}' already exists.");
         }
 
         var employee = mapper.Map<Staff>(dto);
         await repository.AddAsync(employee);
-        logger.LogInformation("Employee created with username: {Username}", dto.Username);
+        logger.LogInformation("User {UserId} created new staff: {Username}", currentUser.UserId, dto.Username);
     }
 
-    public async Task DeleteAsync(int id /*, int currentUserId */)
+    public async Task DeleteAsync(int id)
     {
         var staff = await repository.GetByIdAsync(id);
         if (staff == null)
@@ -43,24 +37,23 @@ public class StaffService(
             throw new KeyNotFoundException($"Staff with ID {id} not found.");
         }
 
-        //await EnsureSameBusinessAsync(currentUserId, staff.PlaceId);
+        await EnsureSameBusinessAsync(staff.PlaceId);
 
         await repository.DeleteAsync(staff);
         logger.LogInformation("Staff deleted with ID: {StaffId}", id);
     }
 
-    public async Task<List<StaffDto>> GetAllAsync(/*int currentUserId */)
+    public async Task<List<StaffDto>> GetAllAsync()
     {
-        //var currentUser = await repository.GetByIdAsync(currentUserId);
+        var user = await currentUser.GetCurrentUserAsync();
         var staffList = await repository.GetAllAsync();
 
-        //return [.. staffList
-        //    .Where(s => s.PlaceId == currentUser.PlaceId) // optional: filter to same place only
-        //    .Select(s => mapper.Map<StaffDto>(s))];
-        return [.. staffList.Select(s => mapper.Map<StaffDto>(s))];
+        return [.. staffList
+            .Where(s => s.PlaceId == user.PlaceId)
+            .Select(s => mapper.Map<StaffDto>(s))];
     }
 
-    public async Task<StaffDto?> GetByIdAsync(int id, /*int currentUserId,*/ bool includeNavigations = false)
+    public async Task<StaffDto?> GetByIdAsync(int id, bool includeNavigations = false)
     {
         var staff = await repository.GetByIdAsync(id, includeNavigations);
         if (staff is null)
@@ -69,13 +62,13 @@ public class StaffService(
             throw new KeyNotFoundException($"Staff with ID {id} not found.");
         }
 
-        //await EnsureSameBusinessAsync(currentUserId, staff.PlaceId);
+        await EnsureSameBusinessAsync(staff.PlaceId);
 
         logger.LogInformation("Retrieved staff with ID {StaffId}.", id);
         return mapper.Map<StaffDto>(staff);
     }
 
-    public async Task UpdateAsync(int id, UpsertStaffDto dto/*, int currentUserId*/)
+    public async Task UpdateAsync(int id, UpsertStaffDto dto)
     {
         var employee = await repository.GetByIdAsync(id);
         if (employee == null)
@@ -84,22 +77,19 @@ public class StaffService(
             throw new KeyNotFoundException($"Staff with ID {id} not found.");
         }
 
-        //await EnsureSameBusinessAsync(currentUserId, dto.PlaceId);
+        await EnsureSameBusinessAsync(dto.PlaceId);
 
         mapper.Map(dto, employee);
         await repository.UpdateAsync(employee);
         logger.LogInformation("Staff updated with ID: {StaffId}", employee.Id);
     }
 
-    private async Task EnsureSameBusinessAsync(int currentUserId, int targetPlaceId)
+    private async Task EnsureSameBusinessAsync(int targetPlaceId)
     {
-        var user = await repository.GetByIdAsync(currentUserId, includeNavigations: true)
-            ?? throw new UnauthorizedAccessException("User not found.");
-
-        var userPlace = await placesRepository.GetByIdAsync(user.PlaceId);
-        var targetPlace = await placesRepository.GetByIdAsync(targetPlaceId);
-
-        if (userPlace?.BusinessId != targetPlace?.BusinessId)
+        var user = await currentUser.GetCurrentUserAsync();
+        if (targetPlaceId != user.PlaceId)
             throw new UnauthorizedAccessException("Cross-business access denied.");
+
+        //TODO: consider allowing admins to operate on employees from all facilities listed under that business
     }
 }
