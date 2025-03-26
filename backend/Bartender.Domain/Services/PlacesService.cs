@@ -42,11 +42,10 @@ public class PlacesService(
 
     public async Task<ServiceResult<List<PlaceDto>>> GetAllAsync()
     {
-        var placesWithMenus = repository.Query() //needed because of nested product include!
-            .Include(p => p.Business)
-            .Include(p => p.City)
-            .Include(p => p.MenuItems)!
-        .ThenInclude(mi => mi.Product);
+        var placesWithMenus = repository.QueryIncluding(
+            p => p.Business,
+            p => p.City
+        );
 
         var list = await placesWithMenus
             .Select(p => mapper.Map<PlaceDto>(p))
@@ -54,9 +53,15 @@ public class PlacesService(
         return ServiceResult<List<PlaceDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<PlaceWithMenuDto>> GetByIdAsync(int id, bool includeNavigations = false)
+    public async Task<ServiceResult<PlaceWithMenuDto>> GetByIdAsync(int id, bool includeNavigations = true)
     {
-        var place = await repository.GetByIdAsync(id, includeNavigations);
+        var place = await repository.Query()
+        .Include(p => p.Business)
+        .Include(p => p.City)
+        .Include(p => p.MenuItems)!
+            .ThenInclude(mi => mi.Product)
+        .FirstOrDefaultAsync(p => p.Id == id);
+
         if (place == null)
             return ServiceResult<PlaceWithMenuDto>.Fail($"Place with ID {id} not found.", ErrorType.NotFound);
 
