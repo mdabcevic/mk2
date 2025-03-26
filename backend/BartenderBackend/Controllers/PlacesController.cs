@@ -1,6 +1,6 @@
 ﻿using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BartenderBackend.Controllers;
@@ -18,21 +18,21 @@ public class PlacesController(IPlacesService placesService) : ControllerBase
         return (await placesService.GetAllAsync()).ToActionResult();
     }
 
+    [Authorize(Roles = "manager")] //switch to admin/owner maybe
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] InsertPlaceDto dto)
     {
         return (await placesService.AddAsync(dto)).ToActionResult();
     }
 
+    [Authorize(Roles = "manager")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdatePlaceDto dto)
     {
-        //if (place.Id != id)
-        //    return BadRequest(new { error = "Mismatched ID" });
-
         return (await placesService.UpdateAsync(id, dto)).ToActionResult();
     }
 
+    [Authorize(Roles = "manager")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
