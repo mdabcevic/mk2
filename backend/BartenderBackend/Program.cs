@@ -55,6 +55,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IBusinessService, BusinessService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
+builder.Services.AddScoped<IPlacesService, PlacesService>();
 
 builder.Services.AddHttpContextAccessor(); // required!
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
