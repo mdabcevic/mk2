@@ -65,9 +65,6 @@ public class PlacesService(
         if (place == null)
             return ServiceResult<PlaceWithMenuDto>.Fail($"Place with ID {id} not found.", ErrorType.NotFound);
 
-        if (!await IsSameBusinessAsync(place.BusinessId))
-            return ServiceResult<PlaceWithMenuDto>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
-
         var dto = mapper.Map<PlaceWithMenuDto>(place);
         return ServiceResult<PlaceWithMenuDto>.Ok(dto);
     }
