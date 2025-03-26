@@ -1,7 +1,5 @@
-﻿using Bartender.Data.Enums;
-using Bartender.Data.Models;
+﻿using Bartender.Data.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Bartender.Data;
 

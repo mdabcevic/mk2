@@ -1,5 +1,4 @@
 ﻿
-
 namespace Bartender.Data.Enums;
 
 public enum EmployeeRole

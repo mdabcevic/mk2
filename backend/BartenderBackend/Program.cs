@@ -2,6 +2,7 @@ using Bartender.Data;
 using Bartender.Data.Enums;
 using Bartender.Domain;
 using Bartender.Domain.Interfaces;
+using Bartender.Domain.Mappings;
 using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -54,11 +55,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IBusinessService, BusinessService>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IMenuItemService, MenuItemService>();
+builder.Services.AddScoped<IStaffService, StaffService>();
+builder.Services.AddScoped<IProductsService, ProductsService>();
+builder.Services.AddScoped<IMenuItemsService, MenuItemsService>();
 
 builder.Services.AddHttpContextAccessor(); // required!
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+// Clearly add AutoMapper here:
+builder.Services.AddAutoMapper(typeof(StaffMappingProfile)); //TODO: find easier way to register all mappings
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
