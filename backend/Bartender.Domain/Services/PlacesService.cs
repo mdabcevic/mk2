@@ -15,7 +15,7 @@ public class PlacesService(
     )
     : IPlacesService
 {
-    public async Task<ServiceResult> AddAsync(UpsertPlaceDto dto)
+    public async Task<ServiceResult> AddAsync(InsertPlaceDto dto)
     {
         if (!await IsSameBusinessAsync(dto.BusinessId))
             return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
@@ -54,20 +54,20 @@ public class PlacesService(
         return ServiceResult<List<PlaceDto>>.Ok(list);
     }
 
-    public async Task<ServiceResult<PlaceDto>> GetByIdAsync(int id, bool includeNavigations = false)
+    public async Task<ServiceResult<PlaceWithMenuDto>> GetByIdAsync(int id, bool includeNavigations = false)
     {
         var place = await repository.GetByIdAsync(id, includeNavigations);
         if (place == null)
-            return ServiceResult<PlaceDto>.Fail($"Place with ID {id} not found.", ErrorType.NotFound);
+            return ServiceResult<PlaceWithMenuDto>.Fail($"Place with ID {id} not found.", ErrorType.NotFound);
 
         if (!await IsSameBusinessAsync(place.BusinessId))
-            return ServiceResult<PlaceDto>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            return ServiceResult<PlaceWithMenuDto>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
 
-        var dto = mapper.Map<PlaceDto>(place);
-        return ServiceResult<PlaceDto>.Ok(dto);
+        var dto = mapper.Map<PlaceWithMenuDto>(place);
+        return ServiceResult<PlaceWithMenuDto>.Ok(dto);
     }
 
-    public async Task<ServiceResult> UpdateAsync(int id, UpsertPlaceDto dto)
+    public async Task<ServiceResult> UpdateAsync(int id, UpdatePlaceDto dto)
     {
         var place = await repository.GetByIdAsync(id);
         if (place == null)
