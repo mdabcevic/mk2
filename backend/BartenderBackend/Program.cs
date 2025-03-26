@@ -54,8 +54,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IBusinessService, BusinessService>();
-builder.Services.AddScoped<IProductsService, ProductsService>();
-builder.Services.AddScoped<IMenuItemsService, MenuItemsService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
 builder.Services.AddHttpContextAccessor(); // required!
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
@@ -68,7 +68,11 @@ builder.Services.AddControllers()
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(
+    typeof(ProductMapping),
+    typeof(MenuItemMapping),
+    typeof(PlaceMapping)
+    );
 
 var app = builder.Build();
 app.UseSerilogRequestLogging(); // Log all HTTP requests automatically

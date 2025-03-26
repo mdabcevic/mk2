@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Bartender.Domain;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BartenderBackend;
 
