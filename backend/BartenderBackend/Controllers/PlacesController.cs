@@ -19,18 +19,18 @@ public class PlacesController(IPlacesService placesService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] UpsertPlaceDto place)
+    public async Task<IActionResult> Create([FromBody] UpsertPlaceDto dto)
     {
-        return (await placesService.AddAsync(place)).ToActionResult();
+        return (await placesService.AddAsync(dto)).ToActionResult();
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpsertPlaceDto place)
+    public async Task<IActionResult> Update(int id, [FromBody] UpsertPlaceDto dto)
     {
-        if (place.Id != id)
-            return BadRequest(new { error = "Mismatched ID" });
+        //if (place.Id != id)
+        //    return BadRequest(new { error = "Mismatched ID" });
 
-        return (await placesService.UpdateAsync(id, place)).ToActionResult();
+        return (await placesService.UpdateAsync(id, dto)).ToActionResult();
     }
 
     [HttpDelete("{id}")]
