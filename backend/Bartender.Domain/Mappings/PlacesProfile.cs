@@ -4,7 +4,7 @@ using Bartender.Domain.DTO;
 
 namespace Bartender.Domain.Mappings;
 
-internal class PlacesProfile : Profile
+public class PlacesProfile : Profile
 {
     public PlacesProfile()
     {
