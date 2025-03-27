@@ -131,8 +131,11 @@ public class PlacesServiceTests
 
         var result = await _service.AddAsync(dto);
 
-        Assert.That(result.Success, Is.False);
-        Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
+        });
         await _repository.DidNotReceive().AddAsync(Arg.Any<Places>());
     }
 
@@ -156,8 +159,11 @@ public class PlacesServiceTests
 
         var result = await _service.DeleteAsync(1);
 
-        Assert.That(result.Success, Is.False);
-        Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        });
     }
 
     [Test]
@@ -170,8 +176,11 @@ public class PlacesServiceTests
 
         var result = await _service.DeleteAsync(1);
 
-        Assert.That(result.Success, Is.False);
-        Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
+        });
         await _repository.DidNotReceive().DeleteAsync(Arg.Any<Places>());
     }
 
@@ -196,8 +205,11 @@ public class PlacesServiceTests
 
         var result = await _service.UpdateAsync(1, CreateValidUpdatePlaceDto());
 
-        Assert.That(result.Success, Is.False);
-        Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        });
     }
 
     [Test]
@@ -210,8 +222,11 @@ public class PlacesServiceTests
 
         var result = await _service.UpdateAsync(1, CreateValidUpdatePlaceDto());
 
-        Assert.That(result.Success, Is.False);
-        Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
+        });
         await _repository.DidNotReceive().UpdateAsync(Arg.Any<Places>());
     }
 }
