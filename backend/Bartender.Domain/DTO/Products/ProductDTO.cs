@@ -11,7 +11,7 @@ using Bartender.Domain.DTO.MenuItems;
 
 namespace Bartender.Domain.DTO.Products
 {
-    public class ProductsDTO
+    public class ProductDTO
     {
         public int Id { get; set; }
         public string Name { get; set; }

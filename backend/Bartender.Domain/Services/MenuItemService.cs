@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using AutoMapper.QueryableExtensions;
 using Bartender.Data.Enums;
+using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+using Bartender.Domain.DTO.Places;
 
 namespace Bartender.Domain.Services;
 public class MenuItemService(
@@ -18,7 +21,7 @@ public class MenuItemService(
     ICurrentUserContext currentUser,
     IMapper mapper) : IMenuItemService
 {
-    public async Task<ServiceResult<IEnumerable<MenuItemsBaseDTO>>> GetByPlaceIdAsync(int id, bool onlyAvailable = false)
+    public async Task<ServiceResult<IEnumerable<MenuItemBaseDTO>>> GetByPlaceIdAsync(int id, bool onlyAvailable = false)
     {
         try
         {
@@ -26,17 +29,18 @@ public class MenuItemService(
 
             var menu = await query
                 .OrderBy(mi => mi.Product.Name)
-                .ProjectTo<MenuItemsBaseDTO>(mapper.ConfigurationProvider)
+                .ProjectTo<MenuItemBaseDTO>(mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            if (!menu.Any())
-                return ServiceResult<IEnumerable<MenuItemsBaseDTO>>.Fail("This place does not have any products on the menu at the moment", ErrorType.NotFound);
-
-            return ServiceResult<IEnumerable<MenuItemsBaseDTO?>>.Ok(menu);
+            return ServiceResult<IEnumerable<MenuItemBaseDTO?>>.Ok(menu);
+        }
+        catch (NotFoundException ex)
+        {
+            return ServiceResult<IEnumerable<MenuItemBaseDTO?>>.Fail(ex.Message, ErrorType.NotFound);
         }
         catch (Exception ex)
         {
-            return ServiceResult<IEnumerable<MenuItemsBaseDTO?>>.Fail(ex.Message, ErrorType.NotFound);
+            return ServiceResult<IEnumerable<MenuItemBaseDTO?>>.Fail(ex.Message, ErrorType.Unknown);
         }
     }
 
@@ -47,18 +51,15 @@ public class MenuItemService(
         {
             var query = await GetBaseQuery(id, onlyAvailable);
 
-            if (!await query.AnyAsync())
-                return ServiceResult<IEnumerable<GroupedCategoryMenu>>.Fail("This place does not have any products on the menu at the moment", ErrorType.NotFound);
-
             var groupedMenu = await query
                 .GroupBy(mi => mi.Product.Category)
                 .Select(g => new GroupedCategoryMenu
                 {
                     Category = g.Key.Name,
                     Items = g.OrderBy(mi => mi.Product.Name)
-                    .Select(mi => new MenuItemsBaseDTO
+                    .Select(mi => new MenuItemBaseDTO
                     {
-                        Product = mapper.Map<ProductsBaseDTO>(mi.Product),
+                        Product = mapper.Map<ProductBaseDTO>(mi.Product),
                         Price = mi.Price,
                         Description = mi.Description,
                         IsAvailable = mi.IsAvailable,
@@ -68,8 +69,12 @@ public class MenuItemService(
                 .ToListAsync();
             return ServiceResult<IEnumerable<GroupedCategoryMenu?>>.Ok(groupedMenu);
         }
-        catch (Exception ex) {
+        catch (NotFoundException ex)
+        {
             return ServiceResult<IEnumerable<GroupedCategoryMenu?>>.Fail(ex.Message, ErrorType.NotFound);
+        }
+        catch (Exception ex) {
+            return ServiceResult<IEnumerable<GroupedCategoryMenu?>>.Fail($"An error occurred while retrieving the menu items: {ex.Message}", ErrorType.Unknown);
         } 
     }
 
@@ -82,76 +87,113 @@ public class MenuItemService(
             .QueryIncluding(mi => mi.Product, mi => mi.Product.Category) 
             .Where(mi => mi.PlaceId == id);                   
 
-        // apply availability filter if requested
         if (onlyAvailable)
             query = query.Where(mi => mi.IsAvailable);
+
+        if (!await query.AnyAsync())
+            throw new NotFoundException("This place does not have any products on the menu at the moment");
 
         return query;
     }
 
-    public async Task<ServiceResult<MenuItemsDTO?>> GetByIdAsync(int placeId, int productId)
+    public async Task<ServiceResult<MenuItemDTO?>> GetByIdAsync(int placeId, int productId)
     {
-        var menuItem = await repository.GetByKeyAsync(
-            mi => mi.PlaceId == placeId && mi.ProductId == productId,
-            mi => mi.Product.Category, mi => mi.Place.Business);
+        try
+        {
+            var menuItem = await repository.GetByKeyAsync(
+                mi => mi.PlaceId == placeId && mi.ProductId == productId,
+                mi => mi.Product.Category, mi => mi.Place.Business);
 
-        if (menuItem == null)
-            return ServiceResult<MenuItemsDTO?>.Fail($"MenutItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
+            if (menuItem == null)
+                return ServiceResult<MenuItemDTO?>.Fail($"MenutItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
 
-        var dto = mapper.Map<MenuItemsDTO>(menuItem);
+            var dto = mapper.Map<MenuItemDTO>(menuItem);
 
-        return ServiceResult<MenuItemsDTO?>.Ok(dto);
+            return ServiceResult<MenuItemDTO?>.Ok(dto);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<MenuItemDTO?>.Fail($"An error occurred while fetching the menu item: {ex.Message}", ErrorType.Unknown);
+        }
     }
 
-    // get all menus grouped by their places
+    // get all menus grouped by their places and sort by product name
     public async Task<ServiceResult<IEnumerable<GroupedPlaceMenuDTO>>> GetAllAsync()
     {
-        var groupedMenus =  await placeRepository.Query()
-        .Include(p => p.Business)
-        .Include(p => p.MenuItems)
-            .ThenInclude(mi => mi.Product)
-                .ThenInclude(p => p.Category)
-        .ToListAsync();
+        try
+        {
+            var groupedMenus = await placeRepository.Query()
+            .Include(p => p.Business)
+            .Include(p => p.MenuItems)
+                .ThenInclude(mi => mi.Product)
+                    .ThenInclude(p => p.Category)
+            .Select(g => new GroupedPlaceMenuDTO
+            {
+                Place = mapper.Map<PlaceDTO>(g),
+                Items = g.MenuItems
+                .OrderBy(m => m.Product.Name)
+                .Select(it => new MenuItemBaseDTO
+                {
+                    Product = mapper.Map<ProductBaseDTO>(it.Product),
+                    Price = it.Price,
+                    Description = it.Description,
+                    IsAvailable = it.IsAvailable,
+                })
+            }).ToListAsync();
 
-        var dto = mapper.Map<IEnumerable<GroupedPlaceMenuDTO>>(groupedMenus);
-
-        return ServiceResult<IEnumerable<GroupedPlaceMenuDTO>>.Ok(dto);
+            return ServiceResult<IEnumerable<GroupedPlaceMenuDTO>>.Ok(groupedMenus);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<IEnumerable<GroupedPlaceMenuDTO?>>.Fail($"An error occurred while retrieving the menu items: {ex.Message}", ErrorType.Unknown);
+        }
     }
 
     public async Task<ServiceResult> AddAsync(UpsertMenuItemDTO menuItem)
     {
-        if (!await VerifyUserPlaceAccess(menuItem.PlaceId))
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+        try
+        {
+            if (!await VerifyUserPlaceAccess(menuItem.PlaceId))
+                return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
 
+            await ValidateMenuItemAsync(menuItem);
 
-        await ValidateMenuItemAsync(menuItem);
+            bool existingMenuItem = await repository.ExistsAsync(mi =>
+                mi.ProductId == menuItem.ProductId &&
+                mi.PlaceId == menuItem.PlaceId);
 
-        bool existingMenuItem = await repository.ExistsAsync(mi =>
-            mi.ProductId == menuItem.ProductId &&
-            mi.PlaceId == menuItem.PlaceId);
+            if (existingMenuItem)
+                return ServiceResult.Fail($"The menu item with product ID {menuItem.ProductId} already exists at the place with ID {menuItem.PlaceId}", ErrorType.Conflict);  
 
-        if (existingMenuItem)
-            return ServiceResult.Fail($"The menu item with product ID {menuItem.ProductId} already exists at the place with ID {menuItem.PlaceId}", ErrorType.Conflict);
-        
-        var newMenuItem = mapper.Map<MenuItems>(menuItem);
-        await repository.AddAsync(newMenuItem);
-        logger.LogInformation($"User {currentUser.UserId} added product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
-        return ServiceResult.Ok();
+            var newMenuItem = mapper.Map<MenuItems>(menuItem);
+            await repository.AddAsync(newMenuItem);
+            logger.LogInformation($"User {currentUser.UserId} added product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
+            return ServiceResult.Ok();
+        }
+        catch (Exception ex)
+        {
+            var errorType = ex switch
+            {
+                NotFoundException => ErrorType.NotFound,
+                ValidationException => ErrorType.Validation,
+                _ => ErrorType.Unknown
+            };
+
+            return ServiceResult.Fail(ex.Message, errorType);
+        }
     }
 
-    public async Task<ServiceResult<IEnumerable<FailedMenuItemsDTO>>> AddMultipleAsync(IEnumerable<UpsertMenuItemDTO> menuItems)
+    public async Task<ServiceResult<IEnumerable<FailedMenuItemDTO>>> AddMultipleAsync(IEnumerable<UpsertMenuItemDTO> menuItems)
     {
         var validMenuItems = new List<MenuItems>();
-        var failedMenuItems = new List<FailedMenuItemsDTO>();
+        var failedMenuItems = new List<FailedMenuItemDTO>();
 
         foreach (var menuItem in menuItems)
         {
             try
             {
                 if (!await VerifyUserPlaceAccess(menuItem.PlaceId))
-                    throw new UnauthorizedAccessException("Cross-business access denied.");
-
-                await ValidateMenuItemAsync(menuItem);
+                    throw new UnauthorizedAccessException("Cross-business access denied.");   
 
                 if (await repository.ExistsAsync(mi =>
                     mi.ProductId == menuItem.ProductId &&
@@ -160,10 +202,12 @@ public class MenuItemService(
                     throw new DuplicateEntryException($"Duplicate item at place {menuItem.PlaceId}, product {menuItem.ProductId}");
                 }
 
+                await ValidateMenuItemAsync(menuItem);
+
                 validMenuItems.Add(mapper.Map<MenuItems>(menuItem));
             }
             catch (Exception ex) {
-                failedMenuItems.Add(new FailedMenuItemsDTO
+                failedMenuItems.Add(new FailedMenuItemDTO
                 {
                     MenuItem = menuItem,
                     ErrorMessage = ex.Message,
@@ -177,13 +221,13 @@ public class MenuItemService(
                 await repository.AddMultipleAsync(validMenuItems);
             }
             catch (Exception ex) {
-                return ServiceResult<IEnumerable<FailedMenuItemsDTO>>.Fail(ex.Message, ErrorType.Unknown);
+                return ServiceResult<IEnumerable<FailedMenuItemDTO>>.Fail($"An error occured while adding the items: {ex.Message}", ErrorType.Unknown);
             }
 
 
         return failedMenuItems.Any()
-            ? ServiceResult<IEnumerable<FailedMenuItemsDTO>>.Fail($"Successfully added {validMenuItems.Count}, failed: {failedMenuItems.Count}", ErrorType.Conflict, failedMenuItems)
-            : ServiceResult<IEnumerable<FailedMenuItemsDTO>>.Ok(failedMenuItems);
+            ? ServiceResult<IEnumerable<FailedMenuItemDTO>>.Fail($"Successfully added {validMenuItems.Count}, failed: {failedMenuItems.Count}", ErrorType.Conflict, failedMenuItems)
+            : ServiceResult<IEnumerable<FailedMenuItemDTO>>.Ok(failedMenuItems);
         
     }
 
@@ -198,67 +242,92 @@ public class MenuItemService(
             throw new NotFoundException($"Product with id {menuItem.PlaceId} not found");
 
         if (menuItem.Price <= 0)
-            throw new ArgumentException("Price must be greater than zero.");
+            throw new ValidationException("Price must be greater than zero.");
 
     }
 
     public async Task<ServiceResult> UpdateAsync(UpsertMenuItemDTO menuItem)
     {
-        if (!await VerifyUserPlaceAccess(menuItem.PlaceId))
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+        try {
+            if (!await VerifyUserPlaceAccess(menuItem.PlaceId))
+                return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
 
-        bool existingMenuItem = await repository.ExistsAsync(mi => mi.PlaceId == menuItem.PlaceId && mi.ProductId == menuItem.ProductId);
-        if (!existingMenuItem)
-            return ServiceResult.Fail($"MenutItem with place id {menuItem.PlaceId} and product id {menuItem.ProductId} not found", ErrorType.NotFound);
+            bool existingMenuItem = await repository.ExistsAsync(mi => mi.PlaceId == menuItem.PlaceId && mi.ProductId == menuItem.ProductId);
+            if (!existingMenuItem)
+                return ServiceResult.Fail($"MenutItem with place id {menuItem.PlaceId} and product id {menuItem.ProductId} not found", ErrorType.NotFound);
 
-        try
-        {
             await ValidateMenuItemAsync(menuItem);
+      
+            var newMenuItem = mapper.Map<MenuItems>(menuItem);
+            await repository.UpdateAsync(newMenuItem);
+            logger.LogInformation($"User {currentUser.UserId} updated product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
+            return ServiceResult.Ok();
         }
-        catch (Exception ex)
-        {
-            return ServiceResult.Fail(ex.Message, ErrorType.Validation);
+        catch (Exception ex) {
+            var errorType = ex switch
+            {
+                NotFoundException => ErrorType.NotFound,
+                ValidationException => ErrorType.Validation,
+                _ => ErrorType.Unknown
+            };
+            return ServiceResult.Fail(ex.Message, errorType);
         }
-
-        var newMenuItem = mapper.Map<MenuItems>(menuItem);
-        await repository.UpdateAsync(newMenuItem);
-        logger.LogInformation($"User {currentUser.UserId} updated product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
-        return ServiceResult.Ok();
     }
 
     public async Task<ServiceResult> DeleteAsync(int placeId, int productId)
     {
-        if (!await VerifyUserPlaceAccess(placeId))
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+        try
+        {
+            if (!await VerifyUserPlaceAccess(placeId))
+                return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
 
-        bool existingMenuItem = await repository.ExistsAsync(mi => mi.PlaceId == placeId && mi.ProductId == productId);
-        if (!existingMenuItem)
-            return ServiceResult.Fail($"MenutItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
+            var menuItem = await repository.GetByKeyAsync(mi => mi.PlaceId == placeId && mi.ProductId == productId);
 
-        var menuItem = await repository.GetByKeyAsync(mi => mi.PlaceId == placeId && mi.ProductId == productId);
-        await repository.DeleteAsync(menuItem);
-        logger.LogInformation($"User {currentUser.UserId} deleted product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
-        return ServiceResult.Ok();
+            if (menuItem == null)
+                return ServiceResult.Fail($"MenutItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
+
+            await repository.DeleteAsync(menuItem);
+
+            logger.LogInformation($"User {currentUser.UserId} deleted product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
+            return ServiceResult.Ok();
+        }
+        catch (Exception ex)
+        {
+            var errorType = ex switch
+            {
+                NotFoundException => ErrorType.NotFound,
+                ValidationException => ErrorType.Validation,
+                _ => ErrorType.Unknown
+            };
+            return ServiceResult.Fail(ex.Message,errorType);
+        }
     }
 
 
-    public async Task<ServiceResult<IEnumerable<MenuItemsBaseDTO>>> GetFilteredAsync(int placeId, string searchProduct)
+    public async Task<ServiceResult<IEnumerable<MenuItemBaseDTO>>> GetFilteredAsync(int placeId, string searchProduct)
     {
-        bool existingPlace = await placeRepository.ExistsAsync(p => p.Id == placeId);
+        try
+        {
+            bool existingPlace = await placeRepository.ExistsAsync(p => p.Id == placeId);
 
-        if (!existingPlace)
-            throw new NotFoundException($"Place with id {placeId} not found");
+            if (!existingPlace)
+                return ServiceResult<IEnumerable<MenuItemBaseDTO>>.Fail($"Place with id {placeId} not found", ErrorType.NotFound);
 
-        var menu = await repository
-            .QueryIncluding(mi => mi.Product, mi => mi.Place, mi => mi.Product.Category)
-            .Where(mi => mi.PlaceId == placeId && mi.Product.Name.ToLower().Contains(searchProduct.ToLower()))
-        .ToListAsync();
+            var menu = await repository
+                .QueryIncluding(mi => mi.Product, mi => mi.Place, mi => mi.Product.Category)
+                .Where(mi => mi.PlaceId == placeId && mi.Product.Name.ToLower().Contains(searchProduct.ToLower()))
+            .ToListAsync();
 
-        if (!menu.Any())
-            return ServiceResult<IEnumerable<MenuItemsBaseDTO>>.Fail("This place does not have any products that match the criteria", ErrorType.NotFound);
+            if (!menu.Any())
+                return ServiceResult<IEnumerable<MenuItemBaseDTO>>.Fail("This place does not have any products that match the criteria", ErrorType.NotFound);
 
-        var dto = mapper.Map<IEnumerable<MenuItemsBaseDTO>>(menu);
-        return ServiceResult<IEnumerable<MenuItemsBaseDTO>>.Ok(dto);
+            var dto = mapper.Map<IEnumerable<MenuItemBaseDTO>>(menu);
+            return ServiceResult<IEnumerable<MenuItemBaseDTO>>.Ok(dto);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<IEnumerable<MenuItemBaseDTO?>>.Fail($"An error occurred while retrieving the menu items: {ex.Message}", ErrorType.Unknown);
+        }
     }
 
     private async Task<bool> VerifyUserPlaceAccess(int targetPlaceId)

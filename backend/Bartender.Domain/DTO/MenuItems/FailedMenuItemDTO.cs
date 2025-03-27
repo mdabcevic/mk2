@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Bartender.Domain.DTO.MenuItems
 {
-    public class FailedMenuItemsDTO
+    public class FailedMenuItemDTO
     {
         public UpsertMenuItemDTO MenuItem { get; set; }
         public string ErrorMessage { get; set; }

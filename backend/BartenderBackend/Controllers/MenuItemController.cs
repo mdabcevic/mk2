@@ -1,18 +1,12 @@
-﻿using Bartender.Data.Models;
-using Bartender.Domain.DTO.MenuItems;
-using Bartender.Domain.DTO.Products;
-using Bartender.Domain.Exceptions;
+﻿using Bartender.Domain.DTO.MenuItems;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 namespace BartenderBackend.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-//[Authorize(Roles = "admin, manager")]
 public class MenuItemController(IMenuItemService menuItemsService) : ControllerBase
 {
     [HttpGet("{placeId}/{productId}")]
@@ -56,6 +50,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
         return result.ToActionResult();
     }*/
 
+    [Authorize(Roles = "admin, manager")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] IEnumerable<UpsertMenuItemDTO> menuItems)
     {
@@ -63,6 +58,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
         return result.ToActionResult();
     }
 
+    [Authorize(Roles = "admin, manager")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpsertMenuItemDTO menuItem)
     {
@@ -70,6 +66,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
         return result.ToActionResult();
     }
 
+    [Authorize(Roles = "admin, manager")]
     [HttpDelete("{placeId}/{productId}")]
     public async Task<IActionResult> Delete(int placeId, int productId)
     {

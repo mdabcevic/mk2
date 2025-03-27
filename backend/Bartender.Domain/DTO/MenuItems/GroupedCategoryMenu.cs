@@ -10,6 +10,6 @@ namespace Bartender.Domain.DTO.MenuItems
     public class GroupedCategoryMenu
     {
         public string Category { get; set; }
-        public IEnumerable<MenuItemsBaseDTO> Items { get; set; }
+        public IEnumerable<MenuItemBaseDTO> Items { get; set; }
     }
 }

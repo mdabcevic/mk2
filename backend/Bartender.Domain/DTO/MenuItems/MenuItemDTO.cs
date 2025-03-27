@@ -11,7 +11,7 @@ using Bartender.Domain.DTO.Places;
 
 namespace Bartender.Domain.DTO.MenuItems
 {
-    public class MenuItemsDTO : MenuItemsBaseDTO
+    public class MenuItemDTO : MenuItemBaseDTO
     {
         public PlaceDTO Place { get; set; }
     }

@@ -2,6 +2,7 @@
 using Bartender.Domain.Interfaces;
 using Bartender.Data;
 using System.Linq.Expressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Bartender.Domain.Repositories;
 
@@ -64,31 +65,33 @@ public class Repository<T> : IRepository<T> where T : class
             }
         }
 
-        var navigationProperties = context.Model.FindEntityType(typeof(T))?.GetNavigations();
-        if (navigationProperties != null)
-        {
-            foreach (var property in navigationProperties)
-            {
-                if (!property.DeclaringEntityType.IsOwned())
-                {
-                    query = query.Include(property.Name);
-                }
-            }
-        }
+        query = IncludeNavigations(query);
 
         return await query.FirstOrDefaultAsync(key);
     }
 
 
-    public async Task<List<T>> GetAllAsync()
-    {
-        return await _dbSet.ToListAsync();
-    }
-
-    public async Task<List<T>> GetAllWithDetailsAsync()
+    public async Task<List<T>> GetAllAsync(bool? includeNavigations = false, params Expression<Func<T, object>>[]? orderBy)
     {
         var query = _dbSet.AsQueryable();
+
+        if (includeNavigations != null && includeNavigations == true)
+        {
+            query = IncludeNavigations(query);
+        }
+
+        if (orderBy != null)
+        {
+            query = ApplyOrdering(query, orderBy);
+        }
+
+        return await query.ToListAsync();
+    }
+
+    public IQueryable<T> IncludeNavigations(IQueryable<T> query)
+    {
         var navigationProperties = context.Model.FindEntityType(typeof(T))?.GetNavigations();
+
         if (navigationProperties != null)
         {
             foreach (var property in navigationProperties)
@@ -99,7 +102,22 @@ public class Repository<T> : IRepository<T> where T : class
                 }
             }
         }
-        return await query.ToListAsync();
+        return query;
+    }
+
+    public IQueryable<T> ApplyOrdering(IQueryable<T> query, Expression<Func<T, object>>[] orderBy)
+    {
+        if (orderBy.Length == 0)
+            return query;
+
+        var orderedQuery = query.OrderBy(orderBy[0]);
+
+        for (int i = 1; i < orderBy.Length; i++)
+        {
+            orderedQuery = orderedQuery.ThenBy(orderBy[i]);
+        }
+
+        return orderedQuery;
     }
 
     // use only if you really need something very custom, otherwise rely on prebuild ones for consistency.
