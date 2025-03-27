@@ -20,9 +20,8 @@ public interface IRepository<T> where T : class
 
     // Querying
     //IQueryable<T> Find(Expression<Func<T, bool>> predicate);
-    IQueryable<T> QueryIncluding(params Expression<Func<T, object>>[] includes);
-
     IQueryable<T> Query();
+    IQueryable<T> QueryIncluding(params Expression<Func<T, object>>[] includes);
 
     // Additional helpers
     Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
