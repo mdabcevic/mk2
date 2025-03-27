@@ -9,7 +9,7 @@ namespace Bartender.Domain.Services;
 
 public class PlacesService(
     IRepository<Places> repository,
-    ILogger<StaffService> logger,
+    ILogger<PlacesService> logger,
     ICurrentUserContext currentUser,
     IMapper mapper
     )
