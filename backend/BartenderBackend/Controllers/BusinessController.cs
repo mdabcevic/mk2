@@ -1,11 +1,10 @@
 ﻿using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BartenderBackend.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/business")]
 [ApiController]
 public class BusinessController(IBusinessService businessService) : ControllerBase
 {
