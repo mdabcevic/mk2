@@ -50,7 +50,7 @@ class StaffServiceTests
         Role = EmployeeRole.regular
     };
 
-    private static UpsertStaffDto CreateValidUpsertStaffDto(int id = 1) => new()
+    private static UpsertStaffDto CreateValidUpsertStaffDto(int id = 1) => new() //TODO: make more flexible for testing
     {
         Id = id,
         PlaceId = 10,
@@ -96,6 +96,28 @@ class StaffServiceTests
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Conflict));
             Assert.That(result.Error, Does.Contain("already exists"));
         });
+        await _repository.DidNotReceive().AddAsync(Arg.Any<Staff>());
+    }
+
+    [Test]
+    public async Task AddAsync_Should_Return_Unauthorized_When_CrossBusiness()
+    {
+        // Arrange
+        var dto = CreateValidUpsertStaffDto();
+        var user = CreateValidStaff();
+        user.PlaceId = 999;
+        _userContext.GetCurrentUserAsync().Returns(user);
+
+        // Act
+        var result = await _service.AddAsync(dto);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
+        });
+        await _repository.DidNotReceive().AddAsync(Arg.Any<Staff>());
     }
 
     [Test]
@@ -104,7 +126,7 @@ class StaffServiceTests
         // Arrange
         var staff = CreateValidStaff();
         _repository.GetByIdAsync(1).Returns(staff);
-        _userContext.GetCurrentUserAsync().Returns(staff); // PlaceId matches
+        _userContext.GetCurrentUserAsync().Returns(staff); 
 
         // Act
         var result = await _service.DeleteAsync(1);
@@ -129,6 +151,28 @@ class StaffServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
         });
+        await _repository.DidNotReceive().DeleteAsync(Arg.Any<Staff>());
+    }
+
+    [Test]
+    public async Task DeleteAsync_Should_Return_Unauthorized_When_PlaceId_Does_Not_Match_CurrentUser()
+    {
+        // Arrange
+        var staff = CreateValidStaff();
+        staff.PlaceId = 99; 
+        _repository.GetByIdAsync(1).Returns(staff);
+        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff(1)); 
+
+        // Act
+        var result = await _service.DeleteAsync(1);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
+        });
+        await _repository.DidNotReceive().DeleteAsync(Arg.Any<Staff>());
     }
 
     [Test]
@@ -137,7 +181,7 @@ class StaffServiceTests
         // Arrange
         var staffList = new List<Staff> { CreateValidStaff(1), CreateValidStaff(2) };
         _repository.GetAllAsync().Returns(staffList);
-        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff(1)); // PlaceId = 10
+        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff(1)); 
 
         // Act
         var result = await _service.GetAllAsync();
@@ -151,6 +195,7 @@ class StaffServiceTests
         });
         Assert.That(result.Data, Has.Count.EqualTo(2));
         Assert.That(result.Data, Has.All.InstanceOf<StaffDto>());
+        await _repository.Received(1).GetAllAsync();
     }
 
     [Test]
@@ -171,7 +216,8 @@ class StaffServiceTests
             Assert.That(result.Data, Is.Not.Null);
             Assert.That(result.Data?.Username, Is.EqualTo("staff5"));
         });
-        
+        await _repository.Received(1).GetByIdAsync(5, false);
+
     }
 
     [Test]
@@ -193,6 +239,27 @@ class StaffServiceTests
     }
 
     [Test]
+    public async Task GetByIdAsync_Should_Return_Unauthorized_When_PlaceId_Does_Not_Match_CurrentUser()
+    {
+        // Arrange
+        var staff = CreateValidStaff(5);
+        staff.PlaceId = 99;
+        _repository.GetByIdAsync(5, false).Returns(staff);
+        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff(1)); //TODO: simulate another user properly...
+
+        // Act
+        var result = await _service.GetByIdAsync(5);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Data, Is.Null);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
+        });
+    }
+
+    [Test]
     public async Task UpdateAsync_Should_Update_When_Found()
     {
         // Arrange
@@ -206,7 +273,7 @@ class StaffServiceTests
 
         // Assert
         Assert.That(result.Success, Is.True);
-        await _repository.Received().UpdateAsync(Arg.Any<Staff>());
+        await _repository.Received(1).UpdateAsync(Arg.Any<Staff>());
     }
 
     [Test]
@@ -225,5 +292,28 @@ class StaffServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
         });
+        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Staff>());
+    }
+
+    [Test]
+    public async Task UpdateAsync_Should_Return_Unauthorized_When_PlaceId_Does_Not_Match_CurrentUser()
+    {
+        // Arrange
+        var dto = CreateValidUpsertStaffDto(50);
+        dto.PlaceId = 99; 
+        var staff = CreateValidStaff(50);
+        _repository.GetByIdAsync(50).Returns(staff);
+        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff(1));
+
+        // Act
+        var result = await _service.UpdateAsync(50, dto);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
+        });
+        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Staff>());
     }
 }
