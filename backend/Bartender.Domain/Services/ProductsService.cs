@@ -2,7 +2,6 @@
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Products;
 using Bartender.Domain.Exceptions;
-using Bartender.Domain.Helpers;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;

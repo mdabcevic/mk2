@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Bartender.Domain.DTO.MenuItems
 {
-    public class GroupedMenusDTO
+    public class GroupedPlaceMenuDTO
     {
         public PlaceDTO Place {  get; set; }
         public IEnumerable<MenuItemsBaseDTO> Items { get; set; }

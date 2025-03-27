@@ -9,7 +9,6 @@ namespace Bartender.Domain.DTO.MenuItems
 {
     public class UpsertMenuItemDTO
     {
-        public int Id { get; set; }
         public int PlaceId { get; set; }
         public int ProductId { get; set; }
         public decimal Price { get; set; }

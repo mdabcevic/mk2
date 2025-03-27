@@ -4,7 +4,7 @@ using Bartender.Domain.DTO.Products;
 using Bartender.Domain.DTO.Places;
 using Bartender.Domain.DTO.MenuItems;
 
-namespace Bartender.Domain.Helpers
+namespace Bartender.Domain.Mappings
 {
     public class ProductMapping : Profile
     {

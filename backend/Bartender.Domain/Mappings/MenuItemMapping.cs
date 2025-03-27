@@ -2,7 +2,7 @@
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.MenuItems;
 
-namespace Bartender.Domain.Helpers
+namespace Bartender.Domain.Mappings
 {
     public class MenuItemMapping : Profile
     {
@@ -12,7 +12,7 @@ namespace Bartender.Domain.Helpers
                 .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
 
             CreateMap<MenuItems, MenuItemsBaseDTO>()
-                .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
+                 .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
 
             CreateMap<UpsertMenuItemDTO, MenuItems>();
         }
