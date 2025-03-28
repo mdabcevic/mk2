@@ -11,7 +11,7 @@ namespace BartenderBackend.Controllers;
 public class BusinessController(IBusinessService businessService) : ControllerBase
 {
     [HttpGet("{id}")]
-    //[Authorize(Roles = "manager")]
+    [Authorize(Roles = "manager")]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await businessService.GetByIdAsync(id);
@@ -19,7 +19,7 @@ public class BusinessController(IBusinessService businessService) : ControllerBa
     }
 
     [HttpGet]
-    [Authorize(Roles = "owner")]
+    //[Authorize(Roles = "owner")]
     public async Task<IActionResult> GetAll()
     {
         var result = await businessService.GetAllAsync();
