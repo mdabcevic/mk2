@@ -15,6 +15,8 @@ namespace Bartender.Domain.Mappings
                  .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
 
             CreateMap<UpsertMenuItemDto, MenuItems>();
+
+            CreateMap<MenuItems, UpsertMenuItemDto>();
         }
     }
 }

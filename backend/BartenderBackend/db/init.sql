@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS Products (
 CREATE TABLE IF NOT EXISTS MenuItems (
     place_id INTEGER NOT NULL REFERENCES Places(id) ON DELETE CASCADE,
     product_id INTEGER NOT NULL REFERENCES Products(id) ON DELETE CASCADE,
-    price DECIMAL NOT NULL DEFAULT 0.0,
+    price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     isAvailable BOOLEAN NOT NULL,
     description VARCHAR NULL,
     PRIMARY KEY (place_id, product_id)

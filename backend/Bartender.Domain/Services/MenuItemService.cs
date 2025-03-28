@@ -232,6 +232,78 @@ public class MenuItemService(
         
     }
 
+    public async Task<ServiceResult<IEnumerable<FailedMenuItemDto>>> CopyMenuAsync(int fromPlaceId, int toPlaceId)
+    {
+        var validMenuItems = new List<MenuItems>();
+        var failedMenuItems = new List<FailedMenuItemDto>();
+
+        bool existingPlace = await placeRepository.ExistsAsync(p => p.Id == fromPlaceId);
+        if (!existingPlace)
+            return ServiceResult<IEnumerable<FailedMenuItemDto>>.Fail($"Place with id {fromPlaceId} not found", ErrorType.NotFound);
+
+        bool existingPlace2 = await placeRepository.ExistsAsync(p => p.Id == toPlaceId);
+        if (!existingPlace2)
+            return ServiceResult<IEnumerable<FailedMenuItemDto>>.Fail($"Place with id {toPlaceId} not found", ErrorType.NotFound);
+
+        if (!await VerifyUserPlaceAccess(toPlaceId) || !await VerifySameBusinessAccess(fromPlaceId, toPlaceId))
+            return ServiceResult<IEnumerable<FailedMenuItemDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+
+        try
+        {
+            var menuItemsToCopy = await (await GetBaseQuery(fromPlaceId, false)).ToListAsync();
+
+            var existingProductIds = await repository.QueryIncluding()
+                .Where(mi => mi.PlaceId == toPlaceId)
+                .Select(mi => mi.ProductId)
+            .ToListAsync();
+
+            foreach (var m in menuItemsToCopy)
+            {
+                if (existingProductIds.Contains(m.ProductId))
+                {
+                    failedMenuItems.Add(new FailedMenuItemDto
+                    {
+                        MenuItem = mapper.Map<UpsertMenuItemDto>(m),
+                        ErrorMessage = $"Product {m.ProductId} already exists at location {toPlaceId}"
+                    });
+                    continue;
+                }
+
+                var newMenuItem = new MenuItems
+                {
+                    PlaceId = toPlaceId,
+                    ProductId = m.ProductId,
+                    Description = m.Description,
+                    Price = m.Price,
+                    IsAvailable = false
+                };
+
+                validMenuItems.Add(newMenuItem);
+            }
+
+            if (validMenuItems.Any())
+                try
+                {
+                    await repository.AddMultipleAsync(validMenuItems);
+                }
+                catch (Exception ex)
+                {
+                    return ServiceResult<IEnumerable<FailedMenuItemDto>>.Fail($"An error occured while adding the items: {ex.Message}", ErrorType.Unknown);
+                }
+
+
+            return failedMenuItems.Any()
+                ? ServiceResult<IEnumerable<FailedMenuItemDto>>.Fail($"Successfully copied {validMenuItems.Count}, failed: {failedMenuItems.Count}", ErrorType.Conflict, failedMenuItems)
+                : ServiceResult<IEnumerable<FailedMenuItemDto>>.Ok(failedMenuItems);
+
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<IEnumerable<FailedMenuItemDto>>.Fail($"An unexpected error occurred: {ex.Message}", ErrorType.Unknown);
+        }
+
+    }
+
     public async Task ValidateMenuItemAsync(UpsertMenuItemDto menuItem)
     {
         bool existingPlace = await placeRepository.ExistsAsync(p => p.Id == menuItem.PlaceId);
@@ -361,6 +433,29 @@ public class MenuItemService(
             return true;
 
         return targetPlaceId == user.PlaceId;
+    }
+
+    private async Task<bool> VerifySameBusinessAccess(int placeId1, int placeId2)
+    {
+        var user = await currentUser.GetCurrentUserAsync();
+
+        if (user.Role == EmployeeRole.admin)
+            return true;
+
+        var place1BusinessId = await placeRepository.Query()
+            .Where(p => p.Id == placeId1)
+            .Select(p => (int?)p.BusinessId)
+            .FirstOrDefaultAsync();
+
+        var place2BusinessId = await placeRepository.Query()
+            .Where(p => p.Id == placeId2)
+            .Select(p => (int?)p.BusinessId)
+            .FirstOrDefaultAsync();
+
+        if (place1BusinessId == null || place2BusinessId == null)
+            return false;
+
+        return place1BusinessId == place2BusinessId;
     }
 }
 

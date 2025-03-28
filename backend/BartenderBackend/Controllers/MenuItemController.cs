@@ -62,6 +62,14 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
     }
 
     [Authorize(Roles = "admin, manager")]
+    [HttpPost("{fromPlaceId}/{toPlaceId}/copy")]
+    public async Task<IActionResult> Create(int fromPlaceId, int toPlaceId)
+    {
+        var result = await menuItemsService.CopyMenuAsync(fromPlaceId, toPlaceId);
+        return result.ToActionResult();
+    }
+
+    [Authorize(Roles = "admin, manager")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpsertMenuItemDto menuItem)
     {
