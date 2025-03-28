@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BartenderBackend.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/staff")]
 [ApiController]
 [Authorize(Roles = "manager")]
 public class StaffController(IStaffService staffService) : ControllerBase

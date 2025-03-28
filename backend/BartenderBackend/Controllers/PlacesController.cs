@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BartenderBackend.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/places")]
 [ApiController]
 public class PlacesController(IPlacesService placesService) : ControllerBase
 {
