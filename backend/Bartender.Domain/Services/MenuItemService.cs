@@ -25,7 +25,7 @@ public class MenuItemService(
     {
         try
         {
-            var query = await GetBaseQuery(id, onlyAvailable);
+            var query = await GetPlaceMenuItemsQuery(id, onlyAvailable);
 
             var menu = await query
                 .OrderBy(mi => mi.Product.Name)
@@ -49,7 +49,7 @@ public class MenuItemService(
     {
         try
         {
-            var query = await GetBaseQuery(id, onlyAvailable);
+            var query = await GetPlaceMenuItemsQuery(id, onlyAvailable);
 
             var groupedMenu = await query
                 .GroupBy(mi => mi.Product.Category)
@@ -78,7 +78,7 @@ public class MenuItemService(
         } 
     }
 
-    private async Task<IQueryable<MenuItems>> GetBaseQuery(int id, bool onlyAvailable)
+    private async Task<IQueryable<MenuItems>> GetPlaceMenuItemsQuery(int id, bool onlyAvailable)
     {
         if (!await placeRepository.ExistsAsync(p => p.Id == id))
             throw new NotFoundException($"Place with id {id} not found");
@@ -250,7 +250,7 @@ public class MenuItemService(
 
         try
         {
-            var menuItemsToCopy = await (await GetBaseQuery(fromPlaceId, false)).ToListAsync();
+            var menuItemsToCopy = await (await GetPlaceMenuItemsQuery(fromPlaceId, false)).ToListAsync();
 
             var existingProductIds = await repository.QueryIncluding()
                 .Where(mi => mi.PlaceId == toPlaceId)
