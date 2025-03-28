@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+namespace Bartender.Domain.DTO.Products;
 
-namespace Bartender.Domain.DTO.Products
+public class ProductBaseDto
 {
-    public class ProductBaseDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Volume { get; set; }
-        public string Category { get; set; }
-    }
+    public required string Name { get; set; }
+    public required string Volume { get; set; }
+    public required string Category { get; set; }
 }

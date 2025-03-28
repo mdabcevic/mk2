@@ -1,18 +1,17 @@
-﻿using Bartender.Domain.DTO.Products;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System.ComponentModel.DataAnnotations;
 
-namespace Bartender.Domain.DTO.MenuItems
+namespace Bartender.Domain.DTO.MenuItems;
+
+public class UpsertMenuItemDto
 {
-    public class UpsertMenuItemDto
-    {
-        public int PlaceId { get; set; }
-        public int ProductId { get; set; }
-        public decimal Price { get; set; }
-        public bool IsAvailable { get; set; }
-        public string? Description { get; set; }
-    }
+    [Required]
+    public int PlaceId { get; set; }
+    [Required]
+    public int ProductId { get; set; }
+    [Required]
+    public decimal Price { get; set; }
+    [Required]
+    public bool IsAvailable { get; set; }
+    public string? Description { get; set; }
 }

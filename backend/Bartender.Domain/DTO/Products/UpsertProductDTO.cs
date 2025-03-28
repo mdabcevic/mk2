@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System.ComponentModel.DataAnnotations;
 
-namespace Bartender.Domain.DTO.Products
+namespace Bartender.Domain.DTO.Products;
+
+public class UpsertProductDto
 {
-    public class UpsertProductDto
-    {
-        public string Name { get; set; }
-        public string? Volume {  get; set; }
-        public int CategoryId { get; set; }
-    }
+    [Required]
+    public required string Name { get; set; }
+    public string? Volume {  get; set; }
+    [Required]
+    public int CategoryId { get; set; }
 }

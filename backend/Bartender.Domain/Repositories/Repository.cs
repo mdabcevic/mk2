@@ -61,7 +61,8 @@ public class Repository<T> : IRepository<T> where T : class
         {
             foreach (var include in includes)
             {
-                query = query.Include(include);
+                if (include != null)
+                    query = query.Include(include);
             }
         }
 
@@ -132,7 +133,8 @@ public class Repository<T> : IRepository<T> where T : class
         IQueryable<T> query = _dbSet;
         foreach (var include in includes)
         {
-            query = query.Include(include);
+            if (include != null)
+                query = query.Include(include);
         }
         return query;
     }

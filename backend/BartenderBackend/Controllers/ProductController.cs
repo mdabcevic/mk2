@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace BartenderBackend.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/product")]
 [ApiController]
 [Authorize(Roles ="admin, manager")]
 public class ProductController(IProductService productsService) : ControllerBase

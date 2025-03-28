@@ -47,7 +47,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             o.MapEnum<EmployeeRole>("employeerole");
             o.MapEnum<SubscriptionTier>("subscriptiontier");
             o.MapEnum<TableStatus>("tablestatus");
-            o.MapEnum<ProductCategory>("productcategory");
             o.MapEnum<OrderStatus>("orderstatus");
             o.MapEnum<PaymentType>("paymenttype");
         }));

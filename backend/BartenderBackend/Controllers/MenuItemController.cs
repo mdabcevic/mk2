@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BartenderBackend.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/menu")]
 [ApiController]
 public class MenuItemController(IMenuItemService menuItemsService) : ControllerBase
 {
@@ -16,6 +16,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
         return result.ToActionResult();
     }
 
+    [Authorize(Roles = "owner")]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -55,7 +56,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
 
     [Authorize(Roles = "admin, manager")]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] IEnumerable<UpsertMenuItemDto> menuItems)
+    public async Task<IActionResult> Create([FromBody] List<UpsertMenuItemDto> menuItems)
     {
         var result = await menuItemsService.AddMultipleAsync(menuItems);
         return result.ToActionResult();
@@ -63,7 +64,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
 
     [Authorize(Roles = "admin, manager")]
     [HttpPost("{fromPlaceId}/{toPlaceId}/copy")]
-    public async Task<IActionResult> Create(int fromPlaceId, int toPlaceId)
+    public async Task<IActionResult> CreateCopy(int fromPlaceId, int toPlaceId)
     {
         var result = await menuItemsService.CopyMenuAsync(fromPlaceId, toPlaceId);
         return result.ToActionResult();
