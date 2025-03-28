@@ -19,6 +19,7 @@ namespace Bartender.Domain.Interfaces
         Task<ServiceResult> AddAsync(UpsertMenuItemDto menuItem);
         Task<ServiceResult<IEnumerable<FailedMenuItemDto>>> AddMultipleAsync(IEnumerable<UpsertMenuItemDto> menuItems);
         Task<ServiceResult> UpdateAsync(UpsertMenuItemDto menuItem);
+        Task<ServiceResult> UpdateItemAvailabilityAsync(int placeId, int productId, bool isAvailable);
         Task<ServiceResult> DeleteAsync(int placeId, int productId);
     }
 }

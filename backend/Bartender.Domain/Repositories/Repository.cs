@@ -53,7 +53,7 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.FirstOrDefaultAsync(entity => EF.Property<int>(entity, "Id") == id);
     }
 
-    public async Task<T?> GetByKeyAsync(Expression<Func<T, bool>> key, params Expression<Func<T, object>>[]? includes)
+    public async Task<T?> GetByKeyAsync(Expression<Func<T, bool>> key, bool includeNavigations = false, params Expression<Func<T, object>>[]? includes)
     {
         var query = _dbSet.AsQueryable();
 
@@ -65,7 +65,8 @@ public class Repository<T> : IRepository<T> where T : class
             }
         }
 
-        query = IncludeNavigations(query);
+        if (includeNavigations)
+            query = IncludeNavigations(query);
 
         return await query.FirstOrDefaultAsync(key);
     }

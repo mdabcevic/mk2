@@ -102,6 +102,7 @@ public class MenuItemService(
         {
             var menuItem = await repository.GetByKeyAsync(
                 mi => mi.PlaceId == placeId && mi.ProductId == productId,
+                true,
                 mi => mi.Product.Category, mi => mi.Place.Business);
 
             if (menuItem == null)
@@ -271,6 +272,28 @@ public class MenuItemService(
                 _ => ErrorType.Unknown
             };
             return ServiceResult.Fail(ex.Message, errorType);
+        }
+    }
+
+    public async Task<ServiceResult> UpdateItemAvailabilityAsync(int placeId, int productId, bool isAvailable)
+    {
+        try
+        {
+            if (!await VerifyUserPlaceAccess(placeId))
+            {
+                return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            }
+            var menuItem = await repository.GetByKeyAsync(mi => mi.PlaceId == placeId && mi.ProductId == productId);
+            if (menuItem == null) {
+                return ServiceResult.Fail($"MenutItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
+            }
+
+            menuItem.IsAvailable = isAvailable;
+            await repository.UpdateAsync(menuItem);
+            return ServiceResult.Ok();
+        }
+        catch (Exception ex) {
+            return ServiceResult.Fail(ex.Message, ErrorType.Unknown);
         }
     }
 

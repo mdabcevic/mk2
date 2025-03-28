@@ -24,7 +24,10 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
     }
 
     [HttpGet("{placeId}")]
-    public async Task<IActionResult> GetByPlaceId(int placeId, bool onlyAvailable = false, bool groupByCategory = false)
+    public async Task<IActionResult> GetByPlaceId(
+        int placeId, 
+        [FromQuery] bool onlyAvailable = false,
+        [FromQuery] bool groupByCategory = false)
     {
         if (groupByCategory)
         {
@@ -37,7 +40,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
     }
 
     [HttpGet("search")]
-    public async Task<IActionResult> GetFilteredList(int placeId, string searchProduct)
+    public async Task<IActionResult> GetFilteredList(int placeId, [FromQuery] string searchProduct)
     {
         var result = await menuItemsService.GetFilteredAsync(placeId, searchProduct);
         return result.ToActionResult();
@@ -63,6 +66,14 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
     public async Task<IActionResult> Update([FromBody] UpsertMenuItemDto menuItem)
     {
         var result = await menuItemsService.UpdateAsync(menuItem);
+        return result.ToActionResult();
+    }
+
+    [Authorize(Roles = "admin, manager, regular")]
+    [HttpPut("{placeId}/{productId}/availability")]
+    public async Task<IActionResult> UpdateAvailability(int placeId, int productId, [FromBody] bool isAvailable)
+    {
+        var result = await menuItemsService.UpdateItemAvailabilityAsync(placeId, productId, isAvailable);
         return result.ToActionResult();
     }
 

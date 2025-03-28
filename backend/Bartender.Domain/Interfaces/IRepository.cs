@@ -10,7 +10,7 @@ public interface IRepository<T> where T : class
     /// <param name="id">Primary key in database.</param>
     /// <returns>Entity from table.</returns>
     Task<T?> GetByIdAsync(int id, bool includeNavigations = false);
-    Task<T?> GetByKeyAsync(Expression<Func<T, bool>> key, params Expression<Func<T, object>>[]? includes);
+    Task<T?> GetByKeyAsync(Expression<Func<T, bool>> key, bool includeNavigations = false, params Expression<Func<T, object>>[]? includes);
     Task<List<T>> GetAllAsync(bool? includeNavigations = false, params Expression<Func<T, object>>[]? orderBy);
     Task AddAsync(T entity);
     Task AddMultipleAsync(IEnumerable<T> entities);
