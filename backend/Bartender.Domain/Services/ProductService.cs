@@ -13,68 +13,68 @@ namespace Bartender.Domain.Services
         IRepository<ProductCategory> categoryRepository, 
         IMapper mapper) : IProductService
     {
-        public async Task<ServiceResult<ProductDTO?>> GetByIdAsync(int id)
+        public async Task<ServiceResult<ProductDto?>> GetByIdAsync(int id)
         {
             try
             {
                 var product = await repository.GetByIdAsync(id);
                 if (product == null)
-                    return ServiceResult<ProductDTO?>.Fail($"Product with id {id} not found", ErrorType.NotFound);
+                    return ServiceResult<ProductDto?>.Fail($"Product with id {id} not found", ErrorType.NotFound);
 
-                var dto = mapper.Map<ProductDTO>(product);
-                return ServiceResult<ProductDTO?>.Ok(dto);
+                var dto = mapper.Map<ProductDto>(product);
+                return ServiceResult<ProductDto?>.Ok(dto);
             }
             catch (Exception ex)
             {
-                return ServiceResult<ProductDTO?>.Fail($"An error occurred while fetching the product: {ex.Message}", ErrorType.Unknown);
+                return ServiceResult<ProductDto?>.Fail($"An error occurred while fetching the product: {ex.Message}", ErrorType.Unknown);
             }
         }
 
-        public async Task<ServiceResult<IEnumerable<ProductDTO>>> GetAllAsync()
+        public async Task<ServiceResult<IEnumerable<ProductDto>>> GetAllAsync()
         {
             try
             {
                 var products = await repository.GetAllAsync(true, p => p.Name);
 
                 if (!products.Any())
-                    return ServiceResult<IEnumerable<ProductDTO>>.Fail("There are currently no products", ErrorType.NotFound);
+                    return ServiceResult<IEnumerable<ProductDto>>.Fail("There are currently no products", ErrorType.NotFound);
 
-                var dto = mapper.Map<IEnumerable<ProductDTO>>(products);
-                return ServiceResult<IEnumerable<ProductDTO>>.Ok(dto);
+                var dto = mapper.Map<IEnumerable<ProductDto>>(products);
+                return ServiceResult<IEnumerable<ProductDto>>.Ok(dto);
             }
             catch (Exception ex)
             {
-                return ServiceResult<IEnumerable<ProductDTO>>.Fail($"An error occurred while fetching the products: {ex.Message}", ErrorType.Unknown);
+                return ServiceResult<IEnumerable<ProductDto>>.Fail($"An error occurred while fetching the products: {ex.Message}", ErrorType.Unknown);
             }
         }
 
-        public async Task<ServiceResult<IEnumerable<GroupedProductsDTO>>> GetAllGroupedAsync()
+        public async Task<ServiceResult<IEnumerable<GroupedProductsDto>>> GetAllGroupedAsync()
         {
             try
             {
                 var groupedProducts = await categoryRepository.GetAllAsync(true);
 
                 if (!groupedProducts.Any())
-                    return ServiceResult<IEnumerable<GroupedProductsDTO>>.Fail("There are currently no products", ErrorType.NotFound);
+                    return ServiceResult<IEnumerable<GroupedProductsDto>>.Fail("There are currently no products", ErrorType.NotFound);
 
                 var sortedProducts = groupedProducts
-                    .Select(gp => new GroupedProductsDTO
+                    .Select(gp => new GroupedProductsDto
                     {
                         Category = gp.Name,
                         Products = gp.Products
                         .OrderBy(p => p.Name)
-                        .Select(p => mapper.Map<ProductBaseDTO>(p))
+                        .Select(p => mapper.Map<ProductBaseDto>(p))
                     }).ToList();
 
-                return ServiceResult<IEnumerable<GroupedProductsDTO>>.Ok(sortedProducts);
+                return ServiceResult<IEnumerable<GroupedProductsDto>>.Ok(sortedProducts);
             }
             catch (Exception ex)
             {
-                return ServiceResult<IEnumerable<GroupedProductsDTO>>.Fail($"An error occurred while fetching the products: {ex.Message}", ErrorType.Unknown);
+                return ServiceResult<IEnumerable<GroupedProductsDto>>.Fail($"An error occurred while fetching the products: {ex.Message}", ErrorType.Unknown);
             }
         }
 
-        public async Task<ServiceResult<IEnumerable<ProductBaseDTO>>> GetFilteredAsync(string? name = null, string? category = null)
+        public async Task<ServiceResult<IEnumerable<ProductBaseDto>>> GetFilteredAsync(string? name = null, string? category = null)
         {
             try
             {
@@ -88,18 +88,18 @@ namespace Bartender.Domain.Services
                 var products = await query.ToListAsync();
 
                 if (!products.Any())
-                    return ServiceResult<IEnumerable<ProductBaseDTO>>.Fail("No products found matching the criteria", ErrorType.NotFound);
+                    return ServiceResult<IEnumerable<ProductBaseDto>>.Fail("No products found matching the criteria", ErrorType.NotFound);
 
-                var dto = mapper.Map<IEnumerable<ProductBaseDTO>>(products);
-                return ServiceResult<IEnumerable<ProductBaseDTO>>.Ok(dto);
+                var dto = mapper.Map<IEnumerable<ProductBaseDto>>(products);
+                return ServiceResult<IEnumerable<ProductBaseDto>>.Ok(dto);
             }
             catch (Exception ex)
             {
-                return ServiceResult<IEnumerable<ProductBaseDTO>>.Fail($"An error occurred while fetching the products: {ex.Message}", ErrorType.Unknown);
+                return ServiceResult<IEnumerable<ProductBaseDto>>.Fail($"An error occurred while fetching the products: {ex.Message}", ErrorType.Unknown);
             }
         }
 
-        public async Task<ServiceResult> AddAsync(UpsertProductDTO product)
+        public async Task<ServiceResult> AddAsync(UpsertProductDto product)
         {
             try
             {
@@ -128,7 +128,7 @@ namespace Bartender.Domain.Services
             }
         }
 
-        public async Task<ServiceResult> UpdateAsync(int id, UpsertProductDTO product)
+        public async Task<ServiceResult> UpdateAsync(int id, UpsertProductDto product)
         {
             try
             {
@@ -179,21 +179,21 @@ namespace Bartender.Domain.Services
             }
         }
 
-        public async Task<ServiceResult<IEnumerable<ProductCategoryDTO>>> GetProductCategoriesAsync()
+        public async Task<ServiceResult<IEnumerable<ProductCategoryDto>>> GetProductCategoriesAsync()
         {
             try
             {
                 var categories = await categoryRepository.GetAllAsync();
-                var dto = mapper.Map<IEnumerable<ProductCategoryDTO>>(categories);
-                return ServiceResult<IEnumerable<ProductCategoryDTO>>.Ok(dto);
+                var dto = mapper.Map<IEnumerable<ProductCategoryDto>>(categories);
+                return ServiceResult<IEnumerable<ProductCategoryDto>>.Ok(dto);
             }
             catch (Exception ex)
             {
-                return ServiceResult<IEnumerable<ProductCategoryDTO>>.Fail($"An error occurred while fetching the categories: {ex.Message}", ErrorType.Unknown);
+                return ServiceResult<IEnumerable<ProductCategoryDto>>.Fail($"An error occurred while fetching the categories: {ex.Message}", ErrorType.Unknown);
             }
         }
 
-        private async Task ValidateProductAsync(UpsertProductDTO product)
+        private async Task ValidateProductAsync(UpsertProductDto product)
         {
             if (string.IsNullOrEmpty(product.Name))
             {

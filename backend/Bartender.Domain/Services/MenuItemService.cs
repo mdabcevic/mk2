@@ -21,7 +21,7 @@ public class MenuItemService(
     ICurrentUserContext currentUser,
     IMapper mapper) : IMenuItemService
 {
-    public async Task<ServiceResult<IEnumerable<MenuItemBaseDTO>>> GetByPlaceIdAsync(int id, bool onlyAvailable = false)
+    public async Task<ServiceResult<IEnumerable<MenuItemBaseDto>>> GetByPlaceIdAsync(int id, bool onlyAvailable = false)
     {
         try
         {
@@ -29,23 +29,23 @@ public class MenuItemService(
 
             var menu = await query
                 .OrderBy(mi => mi.Product.Name)
-                .ProjectTo<MenuItemBaseDTO>(mapper.ConfigurationProvider)
+                .ProjectTo<MenuItemBaseDto>(mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            return ServiceResult<IEnumerable<MenuItemBaseDTO?>>.Ok(menu);
+            return ServiceResult<IEnumerable<MenuItemBaseDto?>>.Ok(menu);
         }
         catch (NotFoundException ex)
         {
-            return ServiceResult<IEnumerable<MenuItemBaseDTO?>>.Fail(ex.Message, ErrorType.NotFound);
+            return ServiceResult<IEnumerable<MenuItemBaseDto?>>.Fail(ex.Message, ErrorType.NotFound);
         }
         catch (Exception ex)
         {
-            return ServiceResult<IEnumerable<MenuItemBaseDTO?>>.Fail(ex.Message, ErrorType.Unknown);
+            return ServiceResult<IEnumerable<MenuItemBaseDto?>>.Fail(ex.Message, ErrorType.Unknown);
         }
     }
 
     // grouping menu items by product categories
-    public async Task<ServiceResult<IEnumerable<GroupedCategoryMenu>>> GetByPlaceIdGroupedAsync(int id, bool onlyAvailable = false)
+    public async Task<ServiceResult<IEnumerable<GroupedCategoryMenuDto>>> GetByPlaceIdGroupedAsync(int id, bool onlyAvailable = false)
     {
         try
         {
@@ -53,13 +53,13 @@ public class MenuItemService(
 
             var groupedMenu = await query
                 .GroupBy(mi => mi.Product.Category)
-                .Select(g => new GroupedCategoryMenu
+                .Select(g => new GroupedCategoryMenuDto
                 {
                     Category = g.Key.Name,
                     Items = g.OrderBy(mi => mi.Product.Name)
-                    .Select(mi => new MenuItemBaseDTO
+                    .Select(mi => new MenuItemBaseDto
                     {
-                        Product = mapper.Map<ProductBaseDTO>(mi.Product),
+                        Product = mapper.Map<ProductBaseDto>(mi.Product),
                         Price = mi.Price,
                         Description = mi.Description,
                         IsAvailable = mi.IsAvailable,
@@ -67,14 +67,14 @@ public class MenuItemService(
                     .ToList()
                 })
                 .ToListAsync();
-            return ServiceResult<IEnumerable<GroupedCategoryMenu?>>.Ok(groupedMenu);
+            return ServiceResult<IEnumerable<GroupedCategoryMenuDto?>>.Ok(groupedMenu);
         }
         catch (NotFoundException ex)
         {
-            return ServiceResult<IEnumerable<GroupedCategoryMenu?>>.Fail(ex.Message, ErrorType.NotFound);
+            return ServiceResult<IEnumerable<GroupedCategoryMenuDto?>>.Fail(ex.Message, ErrorType.NotFound);
         }
         catch (Exception ex) {
-            return ServiceResult<IEnumerable<GroupedCategoryMenu?>>.Fail($"An error occurred while retrieving the menu items: {ex.Message}", ErrorType.Unknown);
+            return ServiceResult<IEnumerable<GroupedCategoryMenuDto?>>.Fail($"An error occurred while retrieving the menu items: {ex.Message}", ErrorType.Unknown);
         } 
     }
 
@@ -96,7 +96,7 @@ public class MenuItemService(
         return query;
     }
 
-    public async Task<ServiceResult<MenuItemDTO?>> GetByIdAsync(int placeId, int productId)
+    public async Task<ServiceResult<MenuItemDto?>> GetByIdAsync(int placeId, int productId)
     {
         try
         {
@@ -105,20 +105,20 @@ public class MenuItemService(
                 mi => mi.Product.Category, mi => mi.Place.Business);
 
             if (menuItem == null)
-                return ServiceResult<MenuItemDTO?>.Fail($"MenutItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
+                return ServiceResult<MenuItemDto?>.Fail($"MenutItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
 
-            var dto = mapper.Map<MenuItemDTO>(menuItem);
+            var dto = mapper.Map<MenuItemDto>(menuItem);
 
-            return ServiceResult<MenuItemDTO?>.Ok(dto);
+            return ServiceResult<MenuItemDto?>.Ok(dto);
         }
         catch (Exception ex)
         {
-            return ServiceResult<MenuItemDTO?>.Fail($"An error occurred while fetching the menu item: {ex.Message}", ErrorType.Unknown);
+            return ServiceResult<MenuItemDto?>.Fail($"An error occurred while fetching the menu item: {ex.Message}", ErrorType.Unknown);
         }
     }
 
     // get all menus grouped by their places and sort by product name
-    public async Task<ServiceResult<IEnumerable<GroupedPlaceMenuDTO>>> GetAllAsync()
+    public async Task<ServiceResult<IEnumerable<GroupedPlaceMenuDto>>> GetAllAsync()
     {
         try
         {
@@ -127,29 +127,29 @@ public class MenuItemService(
             .Include(p => p.MenuItems)
                 .ThenInclude(mi => mi.Product)
                     .ThenInclude(p => p.Category)
-            .Select(g => new GroupedPlaceMenuDTO
+            .Select(g => new GroupedPlaceMenuDto
             {
-                Place = mapper.Map<PlaceDTO>(g),
+                Place = mapper.Map<PlaceDto>(g),
                 Items = g.MenuItems
                 .OrderBy(m => m.Product.Name)
-                .Select(it => new MenuItemBaseDTO
+                .Select(it => new MenuItemBaseDto
                 {
-                    Product = mapper.Map<ProductBaseDTO>(it.Product),
+                    Product = mapper.Map<ProductBaseDto>(it.Product),
                     Price = it.Price,
                     Description = it.Description,
                     IsAvailable = it.IsAvailable,
                 })
             }).ToListAsync();
 
-            return ServiceResult<IEnumerable<GroupedPlaceMenuDTO>>.Ok(groupedMenus);
+            return ServiceResult<IEnumerable<GroupedPlaceMenuDto>>.Ok(groupedMenus);
         }
         catch (Exception ex)
         {
-            return ServiceResult<IEnumerable<GroupedPlaceMenuDTO?>>.Fail($"An error occurred while retrieving the menu items: {ex.Message}", ErrorType.Unknown);
+            return ServiceResult<IEnumerable<GroupedPlaceMenuDto?>>.Fail($"An error occurred while retrieving the menu items: {ex.Message}", ErrorType.Unknown);
         }
     }
 
-    public async Task<ServiceResult> AddAsync(UpsertMenuItemDTO menuItem)
+    public async Task<ServiceResult> AddAsync(UpsertMenuItemDto menuItem)
     {
         try
         {
@@ -183,10 +183,10 @@ public class MenuItemService(
         }
     }
 
-    public async Task<ServiceResult<IEnumerable<FailedMenuItemDTO>>> AddMultipleAsync(IEnumerable<UpsertMenuItemDTO> menuItems)
+    public async Task<ServiceResult<IEnumerable<FailedMenuItemDto>>> AddMultipleAsync(IEnumerable<UpsertMenuItemDto> menuItems)
     {
         var validMenuItems = new List<MenuItems>();
-        var failedMenuItems = new List<FailedMenuItemDTO>();
+        var failedMenuItems = new List<FailedMenuItemDto>();
 
         foreach (var menuItem in menuItems)
         {
@@ -207,7 +207,7 @@ public class MenuItemService(
                 validMenuItems.Add(mapper.Map<MenuItems>(menuItem));
             }
             catch (Exception ex) {
-                failedMenuItems.Add(new FailedMenuItemDTO
+                failedMenuItems.Add(new FailedMenuItemDto
                 {
                     MenuItem = menuItem,
                     ErrorMessage = ex.Message,
@@ -221,17 +221,17 @@ public class MenuItemService(
                 await repository.AddMultipleAsync(validMenuItems);
             }
             catch (Exception ex) {
-                return ServiceResult<IEnumerable<FailedMenuItemDTO>>.Fail($"An error occured while adding the items: {ex.Message}", ErrorType.Unknown);
+                return ServiceResult<IEnumerable<FailedMenuItemDto>>.Fail($"An error occured while adding the items: {ex.Message}", ErrorType.Unknown);
             }
 
 
         return failedMenuItems.Any()
-            ? ServiceResult<IEnumerable<FailedMenuItemDTO>>.Fail($"Successfully added {validMenuItems.Count}, failed: {failedMenuItems.Count}", ErrorType.Conflict, failedMenuItems)
-            : ServiceResult<IEnumerable<FailedMenuItemDTO>>.Ok(failedMenuItems);
+            ? ServiceResult<IEnumerable<FailedMenuItemDto>>.Fail($"Successfully added {validMenuItems.Count}, failed: {failedMenuItems.Count}", ErrorType.Conflict, failedMenuItems)
+            : ServiceResult<IEnumerable<FailedMenuItemDto>>.Ok(failedMenuItems);
         
     }
 
-    public async Task ValidateMenuItemAsync(UpsertMenuItemDTO menuItem)
+    public async Task ValidateMenuItemAsync(UpsertMenuItemDto menuItem)
     {
         bool existingPlace = await placeRepository.ExistsAsync(p => p.Id == menuItem.PlaceId);
         if (!existingPlace) 
@@ -246,7 +246,7 @@ public class MenuItemService(
 
     }
 
-    public async Task<ServiceResult> UpdateAsync(UpsertMenuItemDTO menuItem)
+    public async Task<ServiceResult> UpdateAsync(UpsertMenuItemDto menuItem)
     {
         try {
             if (!await VerifyUserPlaceAccess(menuItem.PlaceId))
@@ -304,14 +304,14 @@ public class MenuItemService(
     }
 
 
-    public async Task<ServiceResult<IEnumerable<MenuItemBaseDTO>>> GetFilteredAsync(int placeId, string searchProduct)
+    public async Task<ServiceResult<IEnumerable<MenuItemBaseDto>>> GetFilteredAsync(int placeId, string searchProduct)
     {
         try
         {
             bool existingPlace = await placeRepository.ExistsAsync(p => p.Id == placeId);
 
             if (!existingPlace)
-                return ServiceResult<IEnumerable<MenuItemBaseDTO>>.Fail($"Place with id {placeId} not found", ErrorType.NotFound);
+                return ServiceResult<IEnumerable<MenuItemBaseDto>>.Fail($"Place with id {placeId} not found", ErrorType.NotFound);
 
             var menu = await repository
                 .QueryIncluding(mi => mi.Product, mi => mi.Place, mi => mi.Product.Category)
@@ -319,14 +319,14 @@ public class MenuItemService(
             .ToListAsync();
 
             if (!menu.Any())
-                return ServiceResult<IEnumerable<MenuItemBaseDTO>>.Fail("This place does not have any products that match the criteria", ErrorType.NotFound);
+                return ServiceResult<IEnumerable<MenuItemBaseDto>>.Fail("This place does not have any products that match the criteria", ErrorType.NotFound);
 
-            var dto = mapper.Map<IEnumerable<MenuItemBaseDTO>>(menu);
-            return ServiceResult<IEnumerable<MenuItemBaseDTO>>.Ok(dto);
+            var dto = mapper.Map<IEnumerable<MenuItemBaseDto>>(menu);
+            return ServiceResult<IEnumerable<MenuItemBaseDto>>.Ok(dto);
         }
         catch (Exception ex)
         {
-            return ServiceResult<IEnumerable<MenuItemBaseDTO?>>.Fail($"An error occurred while retrieving the menu items: {ex.Message}", ErrorType.Unknown);
+            return ServiceResult<IEnumerable<MenuItemBaseDto?>>.Fail($"An error occurred while retrieving the menu items: {ex.Message}", ErrorType.Unknown);
         }
     }
 

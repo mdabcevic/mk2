@@ -10,19 +10,19 @@ namespace Bartender.Domain.Mappings
     {
         public ProductMapping()
         {
-            CreateMap<Products, ProductBaseDTO>()
+            CreateMap<Products, ProductBaseDto>()
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
 
-            CreateMap<Products, ProductDTO>()
+            CreateMap<Products, ProductDto>()
             .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category));
 
-            CreateMap<ProductCategory, ProductCategoryDTO>();
+            CreateMap<ProductCategory, ProductCategoryDto>();
 
-            CreateMap<ProductCategory, GroupedProductsDTO>()
+            CreateMap<ProductCategory, GroupedProductsDto>()
                 .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.Products))
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Name));
 
-            CreateMap<UpsertProductDTO, Products>();
+            CreateMap<UpsertProductDto, Products>();
         }
     }
 }

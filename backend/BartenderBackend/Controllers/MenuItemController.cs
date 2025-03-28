@@ -52,7 +52,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
 
     [Authorize(Roles = "admin, manager")]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] IEnumerable<UpsertMenuItemDTO> menuItems)
+    public async Task<IActionResult> Create([FromBody] IEnumerable<UpsertMenuItemDto> menuItems)
     {
         var result = await menuItemsService.AddMultipleAsync(menuItems);
         return result.ToActionResult();
@@ -60,7 +60,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
 
     [Authorize(Roles = "admin, manager")]
     [HttpPut]
-    public async Task<IActionResult> Update([FromBody] UpsertMenuItemDTO menuItem)
+    public async Task<IActionResult> Update([FromBody] UpsertMenuItemDto menuItem)
     {
         var result = await menuItemsService.UpdateAsync(menuItem);
         return result.ToActionResult();

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Bartender.Domain.DTO.Products
 {
-    public class GroupedProductsDTO
+    public class GroupedProductsDto
     {
         public string Category { get; set; }
-        public IEnumerable<ProductBaseDTO>? Products { get; set; }
+        public IEnumerable<ProductBaseDto>? Products { get; set; }
     }
 }

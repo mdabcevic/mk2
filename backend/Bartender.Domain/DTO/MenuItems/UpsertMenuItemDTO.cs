@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Bartender.Domain.DTO.MenuItems
 {
-    public class UpsertMenuItemDTO
+    public class UpsertMenuItemDto
     {
         public int PlaceId { get; set; }
         public int ProductId { get; set; }

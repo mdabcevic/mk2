@@ -10,13 +10,13 @@ namespace Bartender.Domain.Interfaces
 {
     public interface IProductService
     {
-        Task<ServiceResult<ProductDTO?>> GetByIdAsync(int id);
-        Task<ServiceResult<IEnumerable<ProductDTO>>> GetAllAsync();
-        Task<ServiceResult<IEnumerable<GroupedProductsDTO>>> GetAllGroupedAsync();
-        Task<ServiceResult<IEnumerable<ProductBaseDTO>>> GetFilteredAsync(string? name = null, string? category = null);
-        Task<ServiceResult<IEnumerable<ProductCategoryDTO>>> GetProductCategoriesAsync();
-        Task<ServiceResult> AddAsync(UpsertProductDTO product);
-        Task<ServiceResult> UpdateAsync(int id, UpsertProductDTO product);
+        Task<ServiceResult<ProductDto?>> GetByIdAsync(int id);
+        Task<ServiceResult<IEnumerable<ProductDto>>> GetAllAsync();
+        Task<ServiceResult<IEnumerable<GroupedProductsDto>>> GetAllGroupedAsync();
+        Task<ServiceResult<IEnumerable<ProductBaseDto>>> GetFilteredAsync(string? name = null, string? category = null);
+        Task<ServiceResult<IEnumerable<ProductCategoryDto>>> GetProductCategoriesAsync();
+        Task<ServiceResult> AddAsync(UpsertProductDto product);
+        Task<ServiceResult> UpdateAsync(int id, UpsertProductDto product);
         Task<ServiceResult> DeleteAsync(int id);
     }
 }

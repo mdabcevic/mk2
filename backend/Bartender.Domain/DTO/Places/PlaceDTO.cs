@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Bartender.Domain.DTO.Places
 {
-    public class PlaceDTO
+    public class PlaceDto
     {
         public int Id { get; set; }
         public string BusinessName { get; set; }

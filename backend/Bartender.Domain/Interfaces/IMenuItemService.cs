@@ -11,14 +11,14 @@ namespace Bartender.Domain.Interfaces
 {
     public interface IMenuItemService
     {
-        Task<ServiceResult<IEnumerable<MenuItemBaseDTO>>> GetByPlaceIdAsync(int id, bool onlyAvailable = false);
-        Task<ServiceResult<IEnumerable<GroupedCategoryMenu>>> GetByPlaceIdGroupedAsync(int id, bool onlyAvailable = false);
-        Task<ServiceResult<MenuItemDTO?>> GetByIdAsync(int placeId, int productId);
-        Task<ServiceResult<IEnumerable<GroupedPlaceMenuDTO>>> GetAllAsync();
-        Task<ServiceResult<IEnumerable<MenuItemBaseDTO>>> GetFilteredAsync(int placeId, string searchProduct);
-        Task<ServiceResult> AddAsync(UpsertMenuItemDTO menuItem);
-        Task<ServiceResult<IEnumerable<FailedMenuItemDTO>>> AddMultipleAsync(IEnumerable<UpsertMenuItemDTO> menuItems);
-        Task<ServiceResult> UpdateAsync(UpsertMenuItemDTO menuItem);
+        Task<ServiceResult<IEnumerable<MenuItemBaseDto>>> GetByPlaceIdAsync(int id, bool onlyAvailable = false);
+        Task<ServiceResult<IEnumerable<GroupedCategoryMenuDto>>> GetByPlaceIdGroupedAsync(int id, bool onlyAvailable = false);
+        Task<ServiceResult<MenuItemDto?>> GetByIdAsync(int placeId, int productId);
+        Task<ServiceResult<IEnumerable<GroupedPlaceMenuDto>>> GetAllAsync();
+        Task<ServiceResult<IEnumerable<MenuItemBaseDto>>> GetFilteredAsync(int placeId, string searchProduct);
+        Task<ServiceResult> AddAsync(UpsertMenuItemDto menuItem);
+        Task<ServiceResult<IEnumerable<FailedMenuItemDto>>> AddMultipleAsync(IEnumerable<UpsertMenuItemDto> menuItems);
+        Task<ServiceResult> UpdateAsync(UpsertMenuItemDto menuItem);
         Task<ServiceResult> DeleteAsync(int placeId, int productId);
     }
 }

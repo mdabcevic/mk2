@@ -7,14 +7,14 @@ namespace Bartender.Domain.Mappings
     public class MenuItemMapping : Profile
     {
         public MenuItemMapping() {
-            CreateMap<MenuItems, MenuItemDTO>()
+            CreateMap<MenuItems, MenuItemDto>()
                 .ForMember(dest => dest.Place, opt => opt.MapFrom(src => src.Place))
                 .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
 
-            CreateMap<MenuItems, MenuItemBaseDTO>()
+            CreateMap<MenuItems, MenuItemBaseDto>()
                  .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
 
-            CreateMap<UpsertMenuItemDTO, MenuItems>();
+            CreateMap<UpsertMenuItemDto, MenuItems>();
         }
     }
 }

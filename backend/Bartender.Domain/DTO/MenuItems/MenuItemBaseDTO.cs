@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Bartender.Domain.DTO.MenuItems
 {
-    public class MenuItemBaseDTO
+    public class MenuItemBaseDto
     {
-        public ProductBaseDTO Product { get; set; }
+        public ProductBaseDto Product { get; set; }
         public decimal Price { get; set; }
         public string? Description { get; set; }
         public bool IsAvailable { get; set; }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Bartender.Domain.DTO.Products
 {
-    public class ProductCategoryDTO
+    public class ProductCategoryDto
     {
         public int Id { get; set; }
         public string Name { get; set; }
