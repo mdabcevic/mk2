@@ -477,8 +477,8 @@ public class MenuItemService(
     private async Task<bool> VerifyUserPlaceAccess(int targetPlaceId)
     {
         var user = await currentUser.GetCurrentUserAsync();
-
-        if (user.Role == EmployeeRole.admin)
+        
+        if (user.Role == EmployeeRole.admin) // TODO: Add Owner role check when implemented
             return true;
 
         return targetPlaceId == user.PlaceId;

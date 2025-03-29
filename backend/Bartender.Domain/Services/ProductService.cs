@@ -213,11 +213,6 @@ public class ProductService(
 
     private async Task ValidateProductAsync(UpsertProductDto product)
     {
-        if (string.IsNullOrEmpty(product.Name))
-        {
-            throw new ValidationException("Product name is required.");
-        }
-
         bool categoryExists = await categoryRepository.ExistsAsync(c => c.Id == product.CategoryId);
         if (!categoryExists)
         {
