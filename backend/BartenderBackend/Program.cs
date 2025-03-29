@@ -45,7 +45,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             o.MapEnum<EmployeeRole>("employeerole");
             o.MapEnum<SubscriptionTier>("subscriptiontier");
             o.MapEnum<TableStatus>("tablestatus");
-            o.MapEnum<ProductCategory>("productcategory");
             o.MapEnum<OrderStatus>("orderstatus");
             o.MapEnum<PaymentType>("paymenttype");
         }));
@@ -54,6 +53,8 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IBusinessService, BusinessService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IPlacesService, PlacesService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
 builder.Services.AddHttpContextAccessor(); // required!
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
@@ -70,6 +71,12 @@ builder.Services.AddControllers()
     });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddAutoMapper(
+    typeof(ProductProfile),
+    typeof(MenuItemProfile),
+    typeof(PlacesProfile)
+    );
 
 var app = builder.Build();
 app.UseSerilogRequestLogging(); // Log all HTTP requests automatically

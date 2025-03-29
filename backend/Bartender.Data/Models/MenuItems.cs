@@ -23,7 +23,7 @@ public class MenuItems
     public Products? Product { get; set; }
 
     [Required]
-    [Column("price")]
+    [Column("price", TypeName = "decimal(10,2)")]
     public decimal Price { get; set; } = 0.0m;
 
     [Required]
