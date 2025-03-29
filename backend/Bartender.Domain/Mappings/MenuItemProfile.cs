@@ -4,9 +4,9 @@ using Bartender.Domain.DTO.MenuItems;
 
 namespace Bartender.Domain.Mappings;
 
-public class MenuItemMapping : Profile
+public class MenuItemProfile : Profile
 {
-    public MenuItemMapping() {
+    public MenuItemProfile() {
         CreateMap<MenuItems, MenuItemDto>()
             .ForMember(dest => dest.Place, opt => opt.MapFrom(src => src.Place))
             .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));

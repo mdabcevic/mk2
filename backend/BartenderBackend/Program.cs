@@ -73,9 +73,9 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 
 builder.Services.AddAutoMapper(
-    typeof(ProductMapping),
-    typeof(MenuItemMapping),
-    typeof(PlaceMapping)
+    typeof(ProductProfile),
+    typeof(MenuItemProfile),
+    typeof(PlacesProfile)
     );
 
 var app = builder.Build();

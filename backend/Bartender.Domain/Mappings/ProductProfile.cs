@@ -1,14 +1,12 @@
 ﻿using Bartender.Data.Models;
 using AutoMapper;
 using Bartender.Domain.DTO.Products;
-using Bartender.Domain.DTO.Places;
-using Bartender.Domain.DTO.MenuItems;
 
 namespace Bartender.Domain.Mappings;
 
-public class ProductMapping : Profile
+public class ProductProfile : Profile
 {
-    public ProductMapping()
+    public ProductProfile()
     {
         CreateMap<Products, ProductBaseDto>()
             .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));

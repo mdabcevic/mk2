@@ -6,10 +6,8 @@ using Bartender.Domain.DTO.Products;
 using Bartender.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using AutoMapper.QueryableExtensions;
 using Bartender.Data.Enums;
 using System.ComponentModel.DataAnnotations;
-using Bartender.Domain.DTO.Places;
 using Bartender.Domain.DTO;
 
 namespace Bartender.Domain.Services;
