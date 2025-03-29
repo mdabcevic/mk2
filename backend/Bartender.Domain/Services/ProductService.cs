@@ -88,7 +88,8 @@ public class ProductService(
     {
         try
         {
-            var query = repository.Query();
+            var query = repository.QueryIncluding(p => p.Category);
+
             if (name != null)
                 query = query.Where(x => x.Name.ToLower().Contains(name.ToLower()));
 

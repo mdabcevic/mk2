@@ -16,7 +16,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
         return result.ToActionResult();
     }
 
-    [Authorize(Roles = "owner")]
+    //[Authorize(Roles = "owner")]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {

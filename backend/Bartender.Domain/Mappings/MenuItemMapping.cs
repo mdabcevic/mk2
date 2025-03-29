@@ -12,7 +12,8 @@ public class MenuItemMapping : Profile
             .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
 
         CreateMap<MenuItems, MenuItemBaseDto>()
-             .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
+             .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product))
+             .ForMember(dest => dest.FormattedPrice, opt => opt.Ignore());
 
         CreateMap<UpsertMenuItemDto, MenuItems>();
 

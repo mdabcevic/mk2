@@ -1,5 +1,6 @@
 ﻿using Bartender.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Bartender.Data;
 

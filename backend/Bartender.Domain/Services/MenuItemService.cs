@@ -29,10 +29,10 @@ public class MenuItemService(
 
             var menu = await query
                 .OrderBy(mi => mi.Product != null ? mi.Product.Name : "")
-                .ProjectTo<MenuItemBaseDto>(mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            return ServiceResult<List<MenuItemBaseDto>>.Ok(menu);
+            var dto = mapper.Map<List<MenuItemBaseDto>>(menu);
+            return ServiceResult<List<MenuItemBaseDto>>.Ok(dto);
         }
         catch (NotFoundException ex)
         {
@@ -142,27 +142,36 @@ public class MenuItemService(
         try
         {
             var groupedMenus = await placeRepository.Query()
-            .Include(p => p.Business)
-            .Include(p => p.City)
-            .Include(p => p.MenuItems)
-                .ThenInclude(mi => mi.Product)
-                    .ThenInclude(p => p.Category)
-            .Select(g => new GroupedPlaceMenuDto
+            .Select(p => new GroupedPlaceMenuDto
             {
-                Place = mapper.Map<PlaceDto>(g),
-                Items = g.MenuItems!
-                .Where(mi => mi.Product != null)  
-                .OrderBy(m => m.Product!.Name) 
-                .Select(mi => new MenuItemBaseDto
+                Place = new PlaceDto
                 {
-                    Product = mapper.Map<ProductBaseDto>(mi.Product!),
-                    Price = mi.Price,
-                    Description = mi.Description,
-                    IsAvailable = mi.IsAvailable,
-                })
-                .ToList()
-   
-            }).ToListAsync();
+                    BusinessName = p.Business != null ? p.Business.Name : null,
+                    Address = p.Address,
+                    CityName = p.City != null ? p.City.Name : null,
+                    WorkHours = $"{p.OpensAt:hh\\:mm} - {p.ClosesAt:hh\\:mm}"
+                },
+                Items = p.MenuItems
+                    .Where(mi => mi.Product != null)
+                    .OrderBy(mi => mi.Product!.Name)
+                    .Select(mi => new MenuItemBaseDto
+                    {
+                        Product = new ProductBaseDto
+                        {
+                            Name = mi.Product!.Name,
+                            Volume = mi.Product.Volume,
+                            Category = mi.Product.Category != null
+                                ? mi.Product.Category.Name
+                                : "Uncategorized"
+                        },
+                        Price = mi.Price,
+                        Description = mi.Description,
+                        IsAvailable = mi.IsAvailable
+                    })
+                    .ToList()
+            })
+            .AsNoTracking()
+            .ToListAsync();
 
             return ServiceResult<List<GroupedPlaceMenuDto>>.Ok(groupedMenus);
         }
