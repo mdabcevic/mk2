@@ -69,9 +69,12 @@ CREATE TABLE IF NOT EXISTS Staff (
 CREATE TABLE IF NOT EXISTS Tables (
     id SERIAL PRIMARY KEY,
     place_id INTEGER NOT NULL REFERENCES Places(id) ON DELETE CASCADE,
+    label VARCHAR not null,
     seats INTEGER NOT NULL DEFAULT 2,
     status TableStatus NOT NULL DEFAULT 'empty',
-    qrcode VARCHAR NULL
+    qrsalt text NOT NULL,
+    isdisabled boolean DEFAULT false
+
 );
 
 -- Table: Products
