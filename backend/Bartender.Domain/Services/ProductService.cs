@@ -13,9 +13,10 @@ namespace Bartender.Domain.Services;
 public class ProductService(
     IRepository<Products> repository, 
     IRepository<ProductCategory> categoryRepository,
-    ILogger<MenuItemService> logger,
+    ILogger<ProductService> logger,
     IMapper mapper) : IProductService
 {
+    private const string GenericErrorMessage = "An unexpected error occurred. Please try again later.";
     public async Task<ServiceResult<ProductDto?>> GetByIdAsync(int id)
     {
         try
@@ -30,7 +31,7 @@ public class ProductService(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while fetching the product.");
-            return ServiceResult<ProductDto?>.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult<ProductDto?>.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -49,7 +50,7 @@ public class ProductService(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while fetching the products.");
-            return ServiceResult<List<ProductDto>>.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult<List<ProductDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -80,7 +81,7 @@ public class ProductService(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while fetching the products.");
-            return ServiceResult<List<GroupedProductsDto>>.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult<List<GroupedProductsDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -91,10 +92,10 @@ public class ProductService(
             var query = repository.QueryIncluding(p => p.Category);
 
             if (name != null)
-                query = query.Where(x => x.Name.ToLower().Contains(name.ToLower()));
+                query = query.Where(x => EF.Functions.ILike(x.Name, $"%{name}%"));
 
             if (category != null)
-                query = query.Where(x => x.Category.Name.ToLower().Contains(category.ToLower()));
+                query = query.Where(x => EF.Functions.ILike(x.Category.Name, $"%{category}%"));
 
             var products = await query.ToListAsync();
 
@@ -107,7 +108,7 @@ public class ProductService(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while fetching the products.");
-            return ServiceResult<List<ProductBaseDto>>.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult<List<ProductBaseDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -137,7 +138,7 @@ public class ProductService(
         }
         catch (Exception ex) {
             logger.LogError(ex, "An unexpected error occurred while adding a product.");
-            return ServiceResult.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -171,7 +172,7 @@ public class ProductService(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while updating a product.");
-            return ServiceResult.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -191,7 +192,7 @@ public class ProductService(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while deleting a product.");
-            return ServiceResult.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -206,7 +207,7 @@ public class ProductService(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while fetching product categories.");
-            return ServiceResult<List<ProductCategoryDto>>.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult<List<ProductCategoryDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 

@@ -19,6 +19,8 @@ public class MenuItemService(
     ICurrentUserContext currentUser,
     IMapper mapper) : IMenuItemService
 {
+    private const string GenericErrorMessage = "An unexpected error occurred. Please try again later.";
+
     public async Task<ServiceResult<List<MenuItemBaseDto>>> GetByPlaceIdAsync(int id, bool onlyAvailable = false)
     {
         try
@@ -39,7 +41,7 @@ public class MenuItemService(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while processing the request.");
-            return ServiceResult<List<MenuItemBaseDto>>.Fail("An error occurred while processing your request. Please try again later.", ErrorType.Unknown);
+            return ServiceResult<List<MenuItemBaseDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -84,8 +86,8 @@ public class MenuItemService(
             return ServiceResult<List<GroupedCategoryMenuDto>>.Fail(ex.Message, ErrorType.NotFound);
         }
         catch (Exception ex) {
-            logger.LogError(ex, "An error occurred while retrieving the menu items.");
-            return ServiceResult<List<GroupedCategoryMenuDto>>.Fail($"An error occurred while retrieving the menu items. Please try again later.", ErrorType.Unknown);
+            logger.LogError(ex, "An unexpected error occurred while retrieving the menu items.");
+            return ServiceResult<List<GroupedCategoryMenuDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
     
         } 
     }
@@ -118,7 +120,7 @@ public class MenuItemService(
                 mi => mi.Product!.Category, mi => mi.Place!.Business!);
 
             if (menuItem == null)
-                return ServiceResult<MenuItemDto?>.Fail($"MenutItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
+                return ServiceResult<MenuItemDto?>.Fail($"MenuItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
 
             var dto = mapper.Map<MenuItemDto>(menuItem);
 
@@ -126,13 +128,13 @@ public class MenuItemService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred while fetching the menu item.");
-            return ServiceResult<MenuItemDto?>.Fail("An error occurred while fetching the menu item. Please try again later.", ErrorType.Unknown);
+            logger.LogError(ex, "An unexpected error occurred while fetching the menu item.");
+            return ServiceResult<MenuItemDto?>.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
     /// <summary>
-    /// retireves all menus grouped by their places with products sorted alphabetically
+    /// retrieves all menus grouped by their places with products sorted alphabetically
     /// </summary>
     /// <returns>List of places with their menus when successful</returns>
     public async Task<ServiceResult<List<GroupedPlaceMenuDto>>> GetAllAsync()
@@ -144,9 +146,9 @@ public class MenuItemService(
             {
                 Place = new PlaceDto
                 {
-                    BusinessName = p.Business != null ? p.Business.Name : null,
+                    BusinessName = p.Business != null ? p.Business.Name : "Unknown",
                     Address = p.Address,
-                    CityName = p.City != null ? p.City.Name : null,
+                    CityName = p.City != null ? p.City.Name : "Unknown",
                     WorkHours = $"{p.OpensAt:hh\\:mm} - {p.ClosesAt:hh\\:mm}"
                 },
                 Items = p.MenuItems
@@ -157,7 +159,7 @@ public class MenuItemService(
                         Product = new ProductBaseDto
                         {
                             Name = mi.Product!.Name,
-                            Volume = mi.Product.Volume,
+                            Volume = mi.Product!.Volume != null ? mi.Product!.Volume : "",
                             Category = mi.Product.Category != null
                                 ? mi.Product.Category.Name
                                 : "Uncategorized"
@@ -175,8 +177,8 @@ public class MenuItemService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred while retrieving the menu items.");
-            return ServiceResult<List<GroupedPlaceMenuDto>>.Fail("An error occurred while retrieving the menu items. Please try again later.", ErrorType.Unknown);
+            logger.LogError(ex, "An unexpected error occurred while retrieving the menu items.");
+            return ServiceResult<List<GroupedPlaceMenuDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -204,12 +206,12 @@ public class MenuItemService(
         catch (Exception ex) when (ex is NotFoundException || ex is ValidationException)
         {
             var errorType = ex is NotFoundException ? ErrorType.NotFound : ErrorType.Validation;
-            return ServiceResult.Fail($"The item was not found: {ex.Message}", errorType);
+            return ServiceResult.Fail(ex.Message, errorType);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while adding the menu item.");
-            return ServiceResult.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -237,10 +239,18 @@ public class MenuItemService(
                 validMenuItems.Add(mapper.Map<MenuItems>(menuItem));
             }
             catch (Exception ex) {
+                var errorMessage = ex switch
+                {
+                    UnauthorizedAccessException => ex.Message,
+                    ValidationException => ex.Message,
+                    NotFoundException => ex.Message,
+                    _ => "An unexpected error occurred."
+                };
+
                 failedMenuItems.Add(new FailedMenuItemDto
                 {
                     MenuItem = menuItem,
-                    ErrorMessage = ex.Message,
+                    ErrorMessage = errorMessage,
                 });
             }
         }
@@ -255,7 +265,7 @@ public class MenuItemService(
             catch (Exception ex)
             {
                 logger.LogError(ex, "An unexpected error occurred while adding the menu item.");
-                return ServiceResult<List<FailedMenuItemDto>>.Fail($"An unexpected error occured while adding the items. Please try again later.", ErrorType.Unknown);
+                return ServiceResult<List<FailedMenuItemDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
             }
         }
 
@@ -325,7 +335,7 @@ public class MenuItemService(
                 catch (Exception ex)
                 {
                     logger.LogError(ex, "An unexpected error occurred while copying the menu items.");
-                    return ServiceResult<List<FailedMenuItemDto>>.Fail($"An unexpected error occured while copying the menu. Please try again later.", ErrorType.Unknown);
+                    return ServiceResult<List<FailedMenuItemDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
                 }
             }
 
@@ -337,7 +347,7 @@ public class MenuItemService(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while copying the menu items.");
-            return ServiceResult<List<FailedMenuItemDto>>.Fail($"An unexpected error occured while copying the menu. Please try again later.", ErrorType.Unknown);
+            return ServiceResult<List<FailedMenuItemDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
 
     }
@@ -365,7 +375,7 @@ public class MenuItemService(
 
             bool existingMenuItem = await repository.ExistsAsync(mi => mi.PlaceId == menuItem.PlaceId && mi.ProductId == menuItem.ProductId);
             if (!existingMenuItem)
-                return ServiceResult.Fail($"MenutItem with place id {menuItem.PlaceId} and product id {menuItem.ProductId} not found", ErrorType.NotFound);
+                return ServiceResult.Fail($"MenuItem with place id {menuItem.PlaceId} and product id {menuItem.ProductId} not found", ErrorType.NotFound);
 
             await ValidateMenuItemAsync(menuItem);
       
@@ -377,12 +387,12 @@ public class MenuItemService(
         catch (Exception ex) when (ex is NotFoundException || ex is ValidationException)
         {
             var errorType = ex is NotFoundException ? ErrorType.NotFound : ErrorType.Validation;
-            return ServiceResult.Fail($"The item was not found: {ex.Message}", errorType);
+            return ServiceResult.Fail(ex.Message, errorType);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while updating the menu item.");
-            return ServiceResult.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -396,7 +406,7 @@ public class MenuItemService(
             }
             var menuItem = await repository.GetByKeyAsync(mi => mi.PlaceId == placeId && mi.ProductId == productId);
             if (menuItem == null) {
-                return ServiceResult.Fail($"MenutItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
+                return ServiceResult.Fail($"MenuItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
             }
 
             menuItem.IsAvailable = isAvailable;
@@ -407,7 +417,7 @@ public class MenuItemService(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while updating the menu item.");
-            return ServiceResult.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -421,7 +431,7 @@ public class MenuItemService(
             var menuItem = await repository.GetByKeyAsync(mi => mi.PlaceId == placeId && mi.ProductId == productId);
 
             if (menuItem == null)
-                return ServiceResult.Fail($"MenutItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
+                return ServiceResult.Fail($"MenuItem with place id {placeId} and product id {productId} not found", ErrorType.NotFound);
 
             await repository.DeleteAsync(menuItem);
 
@@ -431,7 +441,7 @@ public class MenuItemService(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while deleting the menu item.");
-            return ServiceResult.Fail("An unexpected error occurred. Please try again later.", ErrorType.Unknown);
+            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
@@ -447,7 +457,8 @@ public class MenuItemService(
 
             var menu = await repository
                 .QueryIncluding(mi => mi.Product!, mi => mi.Place!, mi => mi.Product!.Category)
-                .Where(mi => mi.PlaceId == placeId && mi.Product != null && mi.Product.Name.ToLower().Contains(searchProduct.ToLower()))
+                .Where(mi => mi.PlaceId == placeId && mi.Product != null &&
+                EF.Functions.ILike(mi.Product.Name, $"%{searchProduct}%"))
             .ToListAsync();
 
             if (!menu.Any())
@@ -458,8 +469,8 @@ public class MenuItemService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred while retrieving the menu items.");
-            return ServiceResult<List<MenuItemBaseDto>>.Fail("An error occurred while retrieving the menu items. Please try again later.", ErrorType.Unknown);
+            logger.LogError(ex, "An unexpected error occurred while retrieving the menu items.");
+            return ServiceResult<List<MenuItemBaseDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
         }
     }
 
