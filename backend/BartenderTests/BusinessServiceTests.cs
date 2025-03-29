@@ -107,7 +107,6 @@ public class BusinessServiceTests
         var business = CreateValidBusiness(1);
         var dto = CreateBusinessDtoFromEntity(business);
         var staff = CreateValidStaff(placeId: 10);
-        staff.Place.BusinessId = 1;
 
         _repository.GetByIdAsync(1, true).Returns(business);
         _currentUser.GetCurrentUserAsync().Returns(staff);
@@ -120,8 +119,12 @@ public class BusinessServiceTests
         Assert.Multiple(() =>
         {
             Assert.That(result.Success, Is.True);
+            Assert.That(result.Data, Is.Not.Null);
+            Assert.That(result.Data, Is.TypeOf<BusinessDto>());
             Assert.That(result.Data?.OIB, Is.EqualTo(dto.OIB));
+            //TODO: check for places integrity
         });
+        await _repository.Received(1).GetByIdAsync(1, true);
     }
 
     [Test]
@@ -130,7 +133,6 @@ public class BusinessServiceTests
         // Arrange
         var business = CreateValidBusiness(2);
         var staff = CreateValidStaff(placeId: 99);
-        staff.Place.BusinessId = 1;
 
         _repository.GetByIdAsync(2, true).Returns(business);
         _currentUser.GetCurrentUserAsync().Returns(staff);
@@ -138,9 +140,13 @@ public class BusinessServiceTests
         // Act
         var result = await _businessService.GetByIdAsync(2);
 
-        // Assert
-        Assert.That(result.Success, Is.False);
-        Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Data, Is.Null);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        });
     }
 
     [Test]
@@ -158,6 +164,7 @@ public class BusinessServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Validation));
         });
+        await _repository.DidNotReceive().AddAsync(Arg.Any<Businesses>());
     }
 
     [Test]
@@ -181,7 +188,6 @@ public class BusinessServiceTests
     {
         // Arrange
         var staff = CreateValidStaff();
-        staff.Place.BusinessId = 1;
         var business = CreateValidBusiness(1);
 
         _currentUser.GetCurrentUserAsync().Returns(staff);
@@ -207,9 +213,13 @@ public class BusinessServiceTests
         // Act
         var result = await _businessService.UpdateSubscriptionAsync(SubscriptionTier.premium);
 
-        // Assert
-        Assert.That(result.Success, Is.False);
-        Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
+        });
+        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Businesses>());
     }
 
 
@@ -253,8 +263,12 @@ public class BusinessServiceTests
         // Act
         var result = await _businessService.DeleteAsync(1);
 
-        // Assert
-        Assert.That(result.Success, Is.False);
-        Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        });
+        await _repository.DidNotReceive().DeleteAsync(Arg.Any<Businesses>());
     }
 }
