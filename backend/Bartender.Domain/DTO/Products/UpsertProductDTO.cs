@@ -1,0 +1,13 @@
+﻿
+using System.ComponentModel.DataAnnotations;
+
+namespace Bartender.Domain.DTO.Products;
+
+public class UpsertProductDto
+{
+    [Required]
+    public required string Name { get; set; }
+    public string? Volume {  get; set; }
+    [Required]
+    public int CategoryId { get; set; }
+}

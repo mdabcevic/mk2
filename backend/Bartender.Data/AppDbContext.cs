@@ -1,5 +1,6 @@
 ﻿using Bartender.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Bartender.Data;
 
@@ -15,6 +16,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ProductsPerOrder> ProductsPerOrders { get; set; }
     public DbSet<Customers> Customers { get; set; }
     public DbSet<Reviews> Reviews { get; set; }
+    public DbSet<ProductCategory> ProductCategory { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
