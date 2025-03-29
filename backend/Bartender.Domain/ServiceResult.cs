@@ -16,8 +16,8 @@ public record ServiceResult<T>(
     ErrorType? errorType = null)
 {
     public static ServiceResult<T> Ok(T data) => new(true, data);
-    public static ServiceResult<T> Fail(string error, ErrorType errorType = ErrorType.Unknown)
-        => new(false, default, error, errorType);
+    public static ServiceResult<T> Fail(string error, ErrorType errorType = ErrorType.Unknown, T? data = default)
+        => new(false, data, error, errorType);
 }
 
 public record ServiceResult(

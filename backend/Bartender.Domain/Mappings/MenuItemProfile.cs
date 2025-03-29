@@ -1,16 +1,22 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.MenuItems;
 
 namespace Bartender.Domain.Mappings;
 
 public class MenuItemProfile : Profile
 {
-    public MenuItemProfile()
-    {
+    public MenuItemProfile() {
         CreateMap<MenuItems, MenuItemDto>()
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Product!.Name))
-            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
-            //.ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Product!.Category));
+            .ForMember(dest => dest.Place, opt => opt.MapFrom(src => src.Place))
+            .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
+
+        CreateMap<MenuItems, MenuItemBaseDto>()
+             .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product))
+             .ForMember(dest => dest.FormattedPrice, opt => opt.Ignore());
+
+        CreateMap<UpsertMenuItemDto, MenuItems>();
+
+        CreateMap<MenuItems, UpsertMenuItemDto>();
     }
 }
