@@ -11,11 +11,10 @@ public interface ITableService
     Task<ServiceResult> UpdateAsync(int id, UpsertTableDto dto); // Managers only
     Task<ServiceResult> DeleteAsync(int id); // Managers only
 
-    Task<ServiceResult<TableDto>> GetBySaltAsync(string salt);
+    Task<ServiceResult<TableScanDto>> GetBySaltAsync(string salt);
     Task<ServiceResult> ChangeStatusAsync(int id, TableStatus newStatus); // Guest/Waiter/Manager
     Task<ServiceResult> RegenerateSaltAsync(int id); // Managers only
-    Task<ServiceResult> EnableAsync(int id); // Managers only
-    Task<ServiceResult> DisableAsync(int id); // Managers only
+    Task<ServiceResult> SwitchDisabledAsync(int id, bool flag);
 
     // Optional future additions
     // Task<ServiceResult> StartSessionAsync(int tableId); 

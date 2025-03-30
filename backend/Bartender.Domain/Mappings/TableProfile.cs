@@ -11,6 +11,9 @@ public class TableProfile : Profile
         CreateMap<Tables, TableDto>()
             .ForMember(dest => dest.Token, opt => opt.MapFrom(src => src.QrSalt));
 
+        CreateMap<Tables, TableScanDto>()
+            .ForMember(dest => dest.GuestToken, opt => opt.Ignore()); // set manually
+
         CreateMap<UpsertTableDto, Tables>();
     }
 }
