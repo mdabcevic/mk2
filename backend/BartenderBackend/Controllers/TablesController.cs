@@ -58,10 +58,10 @@ public class TablesController(ITableService tableService) : ControllerBase
         return result.ToActionResult();
     }
 
-    [HttpPatch("{id:int}/status")]
-    public async Task<IActionResult> ChangeStatus(int id, [FromBody] TableStatus status)
+    [HttpPatch("{token}/status")]
+    public async Task<IActionResult> ChangeStatus(string token, [FromBody] TableStatus status)
     {
-        var result = await tableService.ChangeStatusAsync(id, status);
+        var result = await tableService.ChangeStatusAsync(token, status);
         return result.ToActionResult();
     }
 

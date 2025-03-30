@@ -184,52 +184,52 @@ public class TableService(
     /// <summary>
     /// Changes the current state of table.
     /// </summary>
-    /// <param name="id">Database-generated table id.</param>
+    /// <param name="token">Currently active token for accessing table.</param>
     /// <param name="newStatus"></param>
     /// <returns></returns>
-    public async Task<ServiceResult> ChangeStatusAsync(int id, TableStatus newStatus)
+    public async Task<ServiceResult> ChangeStatusAsync(string token, TableStatus newStatus)
     {
-        var table = await repository.GetByIdAsync(id);
+        var table = await repository.GetByKeyAsync(t => t.QrSalt == token);
         if (table is null)
         {
-            logger.LogWarning("ChangeStatus failed: Table {Id} not found", id);
+            logger.LogWarning("ChangeStatus failed: Table {Token} not found", token);
             return ServiceResult.Fail("Table not found", ErrorType.NotFound);
         }
 
         if (currentUser.IsGuest)
         {
-            var token = currentUser.GetRawToken();
-            if (string.IsNullOrWhiteSpace(token))
+            var accesstoken = currentUser.GetRawToken();
+            if (string.IsNullOrWhiteSpace(accesstoken))
             {
-                logger.LogWarning("Guest attempted to change table {Id} without token", id);
+                logger.LogWarning("Guest attempted to change table {Id} without token", token);
                 return ServiceResult.Fail("Missing authentication token.", ErrorType.Unauthorized);
             }
 
             var session = await guestSessionRepo.GetByKeyAsync(s =>
-                s.TableId == id && s.Token == token);
+                s.TableId == table.Id && s.Token == accesstoken);
 
             if (session is null || session.ExpiresAt < DateTime.UtcNow)
             {
-                logger.LogWarning("Invalid or expired session for guest trying to change status on Table {Id}", id);
+                logger.LogWarning("Invalid or expired session for guest trying to change status on Table {Id}", table.Id);
                 return ServiceResult.Fail("Unauthorized or expired session.", ErrorType.Unauthorized);
             }
 
             if (newStatus != TableStatus.empty)
             {
-                logger.LogWarning("Guest tried to set status to {Status} on Table {Id} — only 'empty' is allowed", newStatus, id);
+                logger.LogWarning("Guest tried to set status to {Status} on Table {Id} — only 'empty' is allowed", newStatus, table.Id);
                 return ServiceResult.Fail("Guests can only free tables.", ErrorType.Unauthorized);
             }
-            logger.LogInformation("Guest freed Table {Id} via valid session", id);
+            logger.LogInformation("Guest freed Table {Id} via valid session", table.Id);
         }
         else
         {
             var user = await currentUser.GetCurrentUserAsync();
             if (!await IsSameBusinessAsync(table.PlaceId))
             {
-                logger.LogWarning("Unauthorized staff (User {UserId}) tried to change status of Table {Id}", user.Id, id);
+                logger.LogWarning("Unauthorized staff (User {UserId}) tried to change status of Table {Id}", user!.Id, table.Id);
                 return ServiceResult.Fail("Unauthorized", ErrorType.Unauthorized);
             }
-            logger.LogInformation("User {UserId} changed Table {Id} status to {NewStatus}", user.Id, id, newStatus);
+            logger.LogInformation("User {UserId} changed Table {Id} status to {NewStatus}", user!.Id, table.Id, newStatus);
         }
 
         table.Status = newStatus;
@@ -251,7 +251,7 @@ public class TableService(
         table.QrSalt = Guid.NewGuid().ToString("N");
         await repository.UpdateAsync(table);
 
-        logger.LogInformation("Salt regenerated for Table {Id}", id);
+        logger.LogInformation("Salt regenerated for Table {Id}", table.Id);
         return ServiceResult.Ok();
     }
 
