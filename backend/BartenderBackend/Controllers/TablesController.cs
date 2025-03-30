@@ -12,28 +12,6 @@ namespace BartenderBackend.Controllers;
 [Authorize]
 public class TablesController(ITableService tableService) : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var result = await tableService.GetAllAsync();
-        return result.ToActionResult();
-    }
-
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
-    {
-        var result = await tableService.GetByIdAsync(id);
-        return result.ToActionResult();
-    }
-
-    [HttpGet("lookup")]
-    [AllowAnonymous] // guests scan QR
-    public async Task<IActionResult> GetBySalt([FromQuery] string salt)
-    {
-        var result = await tableService.GetBySaltAsync(salt);
-        return result.ToActionResult();
-    }
-
     [HttpPost]
     [Authorize(Roles = "manager")]
     public async Task<IActionResult> Add([FromBody] UpsertTableDto dto)
@@ -58,6 +36,29 @@ public class TablesController(ITableService tableService) : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var result = await tableService.GetByIdAsync(id);
+        return result.ToActionResult();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await tableService.GetAllAsync();
+        return result.ToActionResult();
+    }
+
+    [HttpGet("lookup")]
+    [AllowAnonymous] // guests scan QR
+    public async Task<IActionResult> GetBySalt([FromQuery] string salt)
+    {
+        var result = await tableService.GetBySaltAsync(salt);
+        return result.ToActionResult();
+    }
+
+    
     [HttpPatch("{token}/status")]
     public async Task<IActionResult> ChangeStatus(string token, [FromBody] TableStatus status)
     {
@@ -65,7 +66,7 @@ public class TablesController(ITableService tableService) : ControllerBase
         return result.ToActionResult();
     }
 
-    [HttpPost("{id:int}/resalt")]
+    [HttpPost("{id:int}/rotate-token")]
     [Authorize(Roles = "manager")]
     public async Task<IActionResult> RegenerateSalt(int id)
     {
