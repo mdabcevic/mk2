@@ -73,19 +73,11 @@ public class TablesController(ITableService tableService) : ControllerBase
         return result.ToActionResult();
     }
 
-    [HttpPost("{id:int}/enable")]
+    [HttpPatch("{id:int}/toggle-disabled")]
     [Authorize(Roles = "manager")]
-    public async Task<IActionResult> Enable(int id)
+    public async Task<IActionResult> SetDisabled(int id, [FromBody] bool disable)
     {
-        var result = await tableService.EnableAsync(id);
-        return result.ToActionResult();
-    }
-
-    [HttpPost("{id:int}/disable")]
-    [Authorize(Roles = "manager")]
-    public async Task<IActionResult> Disable(int id)
-    {
-        var result = await tableService.DisableAsync(id);
+        var result = await tableService.SwitchDisabledAsync(id, disable);
         return result.ToActionResult();
     }
 }

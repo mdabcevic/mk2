@@ -2,7 +2,6 @@
 using Bartender.Domain.Interfaces;
 using Bartender.Data;
 using System.Linq.Expressions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Bartender.Domain.Repositories;
 
