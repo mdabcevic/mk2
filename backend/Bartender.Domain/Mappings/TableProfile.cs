@@ -8,7 +8,9 @@ public class TableProfile : Profile
 {
     public TableProfile()
     {
-        CreateMap<Tables, TableDto>();
+        CreateMap<Tables, TableDto>()
+            .ForMember(dest => dest.Token, opt => opt.MapFrom(src => src.QrSalt));
+
         CreateMap<UpsertTableDto, Tables>();
     }
 }

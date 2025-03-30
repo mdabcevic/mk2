@@ -54,7 +54,15 @@ public class TableService(
 
     public async Task<ServiceResult> AddAsync(UpsertTableDto dto)
     {
+        //TODO: label should be unique per place.
         var user = await currentUser.GetCurrentUserAsync();
+        if (await repository.ExistsAsync(t =>
+            t.PlaceId == user.PlaceId &&
+            t.Label.Equals(dto.Label, StringComparison.CurrentCultureIgnoreCase)))
+        {
+            return ServiceResult.Fail("This table label is already in use for your place.", ErrorType.Conflict);
+        }
+
         var entity = mapper.Map<Tables>(dto);
 
         entity.PlaceId = user.PlaceId;
