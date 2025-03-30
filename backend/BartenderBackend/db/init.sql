@@ -9,7 +9,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'employeerole') THEN
-    CREATE TYPE EmployeeRole AS ENUM ('admin', 'manager', 'regular');
+    CREATE TYPE EmployeeRole AS ENUM ('owner', 'admin', 'manager', 'regular');
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tablestatus') THEN
@@ -175,6 +175,36 @@ INSERT INTO Staff (place_id, OIB, username, password, fullName, role) VALUES
 (9, '98765432109', 'sunset_admin', 'hashed_password', 'Tom Smith', 'manager'),
 (10, '98765432110', 'moonlight_admin', 'hashed_password', 'Samantha Lee', 'manager'),
 (11, '98765432111', 'cloud9_admin', 'hashed_password', 'James Chen', 'manager');
+
+-- Dodajmo novo poduzeće namijenjeno kao "vlastito"
+INSERT INTO Businesses (OIB, name, headquarters, subscriptionTier) VALUES
+('55555678901', 'Bartender Testing Owner Of Solution', 'Whatever Address Fits', 'premium');
+
+-- Dodajmo fiktivni lokal za to poduzeće (pretpostavljamo da je novi business_id = 8)
+INSERT INTO Places (business_id, city_id, address, opensAt, closesAt)
+VALUES (8, 1, 'Whatever Address Fits', '08:00', '22:00');
+
+-- Dodajmo četiri zaposlenika s različitim ulogama (pretpostavljamo da je novi place_id = 12)
+-- vlasnik
+INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
+VALUES (12, '99999999901', 'vlasnik', 'hashed_password', 'Ivan Vlasnić', 'owner');
+
+-- administrator
+INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
+VALUES (12, '99999999902', 'admin', 'hashed_password', 'Ana Adminić', 'admin');
+
+-- voditelj
+INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
+VALUES (12, '99999999903', 'voditelj', 'hashed_password', 'Marko Menadžer', 'manager');
+
+-- konobar (obični zaposlenik)
+INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
+VALUES (12, '99999999904', 'konobar', 'hashed_password', 'Petra Konobarić', 'regular');
+
+-- Dodajmo dodatnog admina za lokaciju Vivas (pretpostavljamo place_id = 1)
+INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
+VALUES (1, '99999999905', 'vivas_admin', 'hashed_password', 'Luka Vivasović', 'admin');
+
 
 -- Insert ProductCategory
 INSERT INTO ProductCategory(name, parentcategory_id) VALUES
