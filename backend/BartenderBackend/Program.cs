@@ -57,6 +57,8 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<ITableService, TableService>();
 
+builder.Services.AddScoped<IJwtService, JwtService>();
+
 builder.Services.AddHttpContextAccessor(); // required!
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 

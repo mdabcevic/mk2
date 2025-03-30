@@ -69,8 +69,18 @@ CREATE TABLE IF NOT EXISTS Tables (
     seats INTEGER NOT NULL DEFAULT 2,
     status TableStatus NOT NULL DEFAULT 'empty',
     qrsalt text NOT NULL,
-    isdisabled boolean DEFAULT false
+    isdisabled boolean DEFAULT false,
+    UNIQUE (place_id, label) -- ensures table tags are unique per place
+);
 
+-- Table: GuestSessions
+CREATE TABLE IF NOT EXISTS guestSessions (
+    id UUID PRIMARY KEY,
+    table_id INTEGER NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    token TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMP NOT NULL,
+    UNIQUE (table_id) -- only one active session per table
 );
 
 -- Table: ProductCategory
@@ -208,6 +218,14 @@ VALUES (12, '99999999904', 'konobar', 'hashed_password', 'Petra Konobarić', 're
 INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
 VALUES (1, '99999999905', 'vivas_admin', 'hashed_password', 'Luka Vivasović', 'admin');
 
+INSERT INTO Tables (id, place_id, label, seats, status, qrsalt, isdisabled) VALUES
+(1, 1, '1', 2, 'empty', '5036144c6f5d41aeb0e332ea0029e073', false),
+(2, 1, '2', 2, 'empty', 'f8b4d726faf1436089415d0e453d33a3', false),
+(3, 1, '3', 2, 'empty', '766f575f7bf042ccb79e9df9da4e9ca5', true),
+(4, 1, '4', 4, 'empty', '768e63c7ab2b44a482b2a825645aaabb', false),
+(5, 1, '5', 4, 'empty', '1b3593e63a6a4fef8f2e5eae19840165', false),
+(6, 1, '6', 4, 'empty', 'ef9bf913754048b083a8571b740fb112', false),
+(7, 1, '7', 4, 'empty', '52206960508e41a797f546dd4106cf45', false);
 
 -- Insert ProductCategory
 INSERT INTO ProductCategory(name, parentcategory_id) VALUES
