@@ -24,7 +24,7 @@ public class BusinessService(
 
     public async Task<ServiceResult<BusinessDto>> GetByIdAsync(int id)
     {
-        if (!await IsSameBusinessAsync(id))
+        if (!await IsAccessAllowedAsync(id))
         {
             logger.LogWarning("Cross-entity request detected.");
             return ServiceResult<BusinessDto>.Fail($"Failure fetching business with requested id.", ErrorType.NotFound);
@@ -101,9 +101,13 @@ public class BusinessService(
         return ServiceResult.Ok();
     }
 
-    private async Task<bool> IsSameBusinessAsync(int targetBusinessId)
+    private async Task<bool> IsAccessAllowedAsync(int targetBusinessId)
     {
         var user = await currentUser.GetCurrentUserAsync();
+
+        if (user.Role == EmployeeRole.owner)
+            return true;
+
         return user.Place.BusinessId == targetBusinessId;
     }
 
