@@ -34,18 +34,23 @@ public class TableService(
     }
 
     /// <summary>
-    /// Fetches a table by ID.
+    /// Fetches a table by label assigned by staff (unique per place).
     /// </summary>
     /// <param name="id">Table ID managed by database.</param>
     /// <returns></returns>
-    public async Task<ServiceResult<TableDto>> GetByIdAsync(int id)
+    public async Task<ServiceResult<TableDto>> GetByLabelAsync(string label)
     {
-        var table = await repository.GetByIdAsync(id);
-        if (table is null)
-            return ServiceResult<TableDto>.Fail("Table not found", ErrorType.NotFound);
+        var user = await currentUser.GetCurrentUserAsync();
 
-        if (!await IsSameBusinessAsync(table.PlaceId))
-            return ServiceResult<TableDto>.Fail("Unauthorized", ErrorType.Unauthorized);
+        var table = await repository.GetByKeyAsync(t =>
+            t.PlaceId == user!.PlaceId &&
+            t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
+
+        if (table is null)
+        {
+            logger.LogWarning("Table with label '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
+            return ServiceResult<TableDto>.Fail("Table not found", ErrorType.NotFound);
+        }
 
         return ServiceResult<TableDto>.Ok(mapper.Map<TableDto>(table));
     }
@@ -136,48 +141,42 @@ public class TableService(
     /// <summary>
     /// Updates a table info based on provided details.
     /// </summary>
-    /// <param name="id">Database-managed ID.</param>
+    /// <param name="label">label assigned by staff (unique per place).</param>
     /// <param name="dto">Contains data for modification.</param>
     /// <returns></returns>
-    public async Task<ServiceResult> UpdateAsync(int id, UpsertTableDto dto)
+    public async Task<ServiceResult> UpdateAsync(string label, UpsertTableDto dto)
     {
-        //TODO: label can't get updated. Consider patch or different DTO.
-        var table = await repository.GetByIdAsync(id);
+        var user = await currentUser.GetCurrentUserAsync();
+        var table = await repository.GetByKeyAsync(t =>
+            t.PlaceId == user!.PlaceId &&
+            t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
+
         if (table is null)
         {
-            logger.LogWarning("Update failed: Table {Id} not found", id);
+            logger.LogWarning("Update failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
             return ServiceResult.Fail("Table not found", ErrorType.NotFound);
         }
-
-        if (!await IsSameBusinessAsync(table.PlaceId))
-        {
-            logger.LogWarning("Unauthorized update attempt by user {UserId} on Table {TableId}", currentUser.UserId, id);
-            return ServiceResult.Fail("Unauthorized", ErrorType.Unauthorized);
-        }
-
         table.Seats = dto.Seats;
         await repository.UpdateAsync(table);
-        logger.LogInformation("Table {Id} updated by user {UserId}", id, currentUser.UserId);
+        logger.LogInformation("Table '{Label}' updated by User {UserId}", label, user!.Id);
         return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult> DeleteAsync(int id)
+    public async Task<ServiceResult> DeleteAsync(string label)
     {
-        var table = await repository.GetByIdAsync(id);
+        var user = await currentUser.GetCurrentUserAsync();
+
+        var table = await repository.GetByKeyAsync(t =>
+            t.PlaceId == user!.PlaceId &&
+            t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
+
         if (table is null)
         {
-            logger.LogWarning("Attempted to delete Table {Id}, but it was not found", id);
+            logger.LogWarning("Delete failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
             return ServiceResult.Fail("Table not found", ErrorType.NotFound);
         }
-
-        if (!await IsSameBusinessAsync(table.PlaceId))
-        {
-            logger.LogWarning("Unauthorized delete attempt on Table {Id} by User {UserId}", id, currentUser.UserId);
-            return ServiceResult.Fail("Unauthorized", ErrorType.Unauthorized);
-        }
-
         await repository.DeleteAsync(table);
-        logger.LogInformation("Table {Id} deleted by User {UserId}", id, currentUser.UserId);
+        logger.LogInformation("Table '{Label}' deleted by User {UserId}", label, user!.Id);
         return ServiceResult.Ok();
     }
 
@@ -239,42 +238,43 @@ public class TableService(
 
 
 
-    public async Task<ServiceResult> RegenerateSaltAsync(int id)
+    public async Task<ServiceResult> RegenerateSaltAsync(string label)
     {
-        var table = await repository.GetByIdAsync(id);
-        if (table is null)
-            return ServiceResult.Fail("Table not found", ErrorType.NotFound);
+        var user = await currentUser.GetCurrentUserAsync();
+        var table = await repository.GetByKeyAsync(t =>
+            t.PlaceId == user!.PlaceId &&
+            t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
 
-        if (!await IsSameBusinessAsync(table.PlaceId))
-            return ServiceResult.Fail("Unauthorized", ErrorType.Unauthorized);
+        if (table is null)
+        {
+            logger.LogWarning("Resalt failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
+            return ServiceResult.Fail("Table not found", ErrorType.NotFound);
+        }
 
         table.QrSalt = Guid.NewGuid().ToString("N");
         await repository.UpdateAsync(table);
-
-        logger.LogInformation("Salt regenerated for Table {Id}", table.Id);
+        logger.LogInformation("Salt rotated for Table '{Label}' by User {UserId}", label, user!.Id);
         return ServiceResult.Ok();
     }
 
 
-    public async Task<ServiceResult> SwitchDisabledAsync(int id, bool flag)
+    public async Task<ServiceResult> SwitchDisabledAsync(string label, bool flag)
     {
-        var table = await repository.GetByIdAsync(id);
+        var user = await currentUser.GetCurrentUserAsync();
+
+        var table = await repository.GetByKeyAsync(t =>
+            t.PlaceId == user!.PlaceId &&
+            t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
+
         if (table is null)
         {
-            logger.LogWarning("Failed to change disabled state: Table {Id} not found", id);
+            logger.LogWarning("Disable toggle failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
             return ServiceResult.Fail("Table not found", ErrorType.NotFound);
-        }
-
-        if (!await IsSameBusinessAsync(table.PlaceId))
-        {
-            logger.LogWarning("Unauthorized attempt to change disabled state of Table {Id} by User {UserId}", id, currentUser.UserId);
-            return ServiceResult.Fail("Unauthorized", ErrorType.Unauthorized);
         }
 
         table.IsDisabled = flag;
         await repository.UpdateAsync(table);
-
-        logger.LogInformation("Table {Id} set to disabled = {Flag} by User {UserId}", id, flag, currentUser.UserId);
+        logger.LogInformation("Table '{Label}' disabled state set to {Flag} by User {UserId}", label, flag, user!.Id);
         return ServiceResult.Ok();
     }
 

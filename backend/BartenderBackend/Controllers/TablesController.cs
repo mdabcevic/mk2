@@ -20,26 +20,26 @@ public class TablesController(ITableService tableService) : ControllerBase
         return result.ToActionResult();
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut("{label}")]
     [Authorize(Roles = "manager")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpsertTableDto dto)
+    public async Task<IActionResult> Update(string label, [FromBody] UpsertTableDto dto)
     {
-        var result = await tableService.UpdateAsync(id, dto);
+        var result = await tableService.UpdateAsync(label, dto);
         return result.ToActionResult();
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{label}")]
     [Authorize(Roles = "manager")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(string label)
     {
-        var result = await tableService.DeleteAsync(id);
+        var result = await tableService.DeleteAsync(label);
         return result.ToActionResult();
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpGet("{label}")]
+    public async Task<IActionResult> GetById(string label)
     {
-        var result = await tableService.GetByIdAsync(id);
+        var result = await tableService.GetByLabelAsync(label);
         return result.ToActionResult();
     }
 
@@ -58,27 +58,26 @@ public class TablesController(ITableService tableService) : ControllerBase
         return result.ToActionResult();
     }
 
-    
+    [HttpPost("{label}/rotate-token")]
+    [Authorize(Roles = "manager")]
+    public async Task<IActionResult> RegenerateSalt(string label)
+    {
+        var result = await tableService.RegenerateSaltAsync(label);
+        return result.ToActionResult();
+    }
+
+    [HttpPatch("{label}/toggle-disabled")]
+    [Authorize(Roles = "manager")]
+    public async Task<IActionResult> SetDisabled(string label, [FromBody] bool disable)
+    {
+        var result = await tableService.SwitchDisabledAsync(label, disable);
+        return result.ToActionResult();
+    }
+
     [HttpPatch("{token}/status")]
     public async Task<IActionResult> ChangeStatus(string token, [FromBody] TableStatus status)
     {
         var result = await tableService.ChangeStatusAsync(token, status);
-        return result.ToActionResult();
-    }
-
-    [HttpPost("{id:int}/rotate-token")]
-    [Authorize(Roles = "manager")]
-    public async Task<IActionResult> RegenerateSalt(int id)
-    {
-        var result = await tableService.RegenerateSaltAsync(id);
-        return result.ToActionResult();
-    }
-
-    [HttpPatch("{id:int}/toggle-disabled")]
-    [Authorize(Roles = "manager")]
-    public async Task<IActionResult> SetDisabled(int id, [FromBody] bool disable)
-    {
-        var result = await tableService.SwitchDisabledAsync(id, disable);
         return result.ToActionResult();
     }
 }
