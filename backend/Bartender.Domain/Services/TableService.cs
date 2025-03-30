@@ -76,6 +76,7 @@ public class TableService(
 
     public async Task<ServiceResult> UpdateAsync(int id, UpsertTableDto dto)
     {
+        //TODO: label can't get updated.
         var table = await repository.GetByIdAsync(id);
         if (table is null)
             return ServiceResult.Fail("Table not found", ErrorType.NotFound);
@@ -85,7 +86,6 @@ public class TableService(
 
         table.Label = dto.Label;
         table.Seats = dto.Seats;
-        //table.IsDisabled = dto.IsDisabled;
 
         await repository.UpdateAsync(table);
         logger.LogInformation("Table {Id} updated by user {UserId}", id, currentUser.UserId);
@@ -142,15 +142,15 @@ public class TableService(
 
     public async Task<ServiceResult> EnableAsync(int id)
     {
-        return await ChangeDisabledAsync(id, true);
+        return await ChangeDisabledAsync(id, false);
     }
 
     public async Task<ServiceResult> DisableAsync(int id)
     {
-        return await ChangeDisabledAsync(id, false);
+        return await ChangeDisabledAsync(id, true);
     }
 
-    private async Task<ServiceResult> ChangeDisabledAsync(int id, bool enabled)
+    private async Task<ServiceResult> ChangeDisabledAsync(int id, bool flag)
     {
         var table = await repository.GetByIdAsync(id);
         if (table is null)
@@ -159,10 +159,10 @@ public class TableService(
         if (!await IsSameBusinessAsync(table.PlaceId))
             return ServiceResult.Fail("Unauthorized", ErrorType.Unauthorized);
 
-        table.IsDisabled = enabled;
+        table.IsDisabled = flag;
         await repository.UpdateAsync(table);
 
-        logger.LogInformation("Table {Id} set to enabled = {Enabled}", id, enabled);
+        logger.LogInformation("Table {Id} set to disabled = {Flag}", id, flag);
         return ServiceResult.Ok();
     }
 
