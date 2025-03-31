@@ -27,7 +27,7 @@ public class Products
     public ProductCategory Category { get; set; }
 
     [Column("business_id")]
-    public int BusinessId { get; set; }
+    public int? BusinessId { get; set; }
 
     [ForeignKey("BusinessId")]
     public Businesses? Business { get; set; }

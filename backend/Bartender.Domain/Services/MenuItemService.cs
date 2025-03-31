@@ -77,6 +77,7 @@ public class MenuItemService(
                     })
                     .ToList()
                 })
+                .Where(g => g.Items.Any())
                 .ToList();
         
             return ServiceResult<List<GroupedCategoryMenuDto>>.Ok(groupedMenu);
@@ -103,9 +104,6 @@ public class MenuItemService(
 
         if (onlyAvailable)
             query = query.Where(mi => mi.IsAvailable);
-
-        if (!await query.AnyAsync())
-            throw new NotFoundException("This place does not have any products on the menu at the moment");
 
         return query;
     }
@@ -203,9 +201,12 @@ public class MenuItemService(
             logger.LogInformation($"User {currentUser.UserId} added product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
             return ServiceResult.Ok();
         }
-        catch (Exception ex) when (ex is NotFoundException || ex is ValidationException)
+        catch (Exception ex) when (ex is NotFoundException || ex is ValidationException || ex is UnauthorizedAccessException)
         {
-            var errorType = ex is NotFoundException ? ErrorType.NotFound : ErrorType.Validation;
+            var errorType = ex is NotFoundException ? ErrorType.NotFound :
+               ex is ValidationException ? ErrorType.Validation :
+               ErrorType.Unauthorized;
+
             return ServiceResult.Fail(ex.Message, errorType);
         }
         catch (Exception ex)
@@ -352,21 +353,6 @@ public class MenuItemService(
 
     }
 
-    public async Task ValidateMenuItemAsync(UpsertMenuItemDto menuItem)
-    {
-        bool existingPlace = await placeRepository.ExistsAsync(p => p.Id == menuItem.PlaceId);
-        if (!existingPlace) 
-            throw new NotFoundException($"Place with id {menuItem.PlaceId} not found");
-
-        bool existingProduct = await productRepository.ExistsAsync(p => p.Id == menuItem.ProductId);
-        if (!existingProduct) 
-            throw new NotFoundException($"Product with id {menuItem.PlaceId} not found");
-
-        if (menuItem.Price <= 0)
-            throw new ValidationException("Price must be greater than zero.");
-
-    }
-
     public async Task<ServiceResult> UpdateAsync(UpsertMenuItemDto menuItem)
     {
         try {
@@ -384,9 +370,12 @@ public class MenuItemService(
             logger.LogInformation($"User {currentUser.UserId} updated product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
             return ServiceResult.Ok();
         }
-        catch (Exception ex) when (ex is NotFoundException || ex is ValidationException)
+        catch (Exception ex) when (ex is NotFoundException || ex is ValidationException || ex is UnauthorizedAccessException)
         {
-            var errorType = ex is NotFoundException ? ErrorType.NotFound : ErrorType.Validation;
+            var errorType = ex is NotFoundException ? ErrorType.NotFound :
+               ex is ValidationException ? ErrorType.Validation :
+               ErrorType.Unauthorized;
+
             return ServiceResult.Fail(ex.Message, errorType);
         }
         catch (Exception ex)
@@ -461,9 +450,6 @@ public class MenuItemService(
                 EF.Functions.ILike(mi.Product.Name, $"%{searchProduct}%"))
             .ToListAsync();
 
-            if (!menu.Any())
-                return ServiceResult<List<MenuItemBaseDto>>.Fail("This place does not have any products that match the criteria", ErrorType.NotFound);
-
             var dto = mapper.Map<List<MenuItemBaseDto>>(menu);
             return ServiceResult<List<MenuItemBaseDto>>.Ok(dto);
         }
@@ -474,11 +460,30 @@ public class MenuItemService(
         }
     }
 
+    public async Task ValidateMenuItemAsync(UpsertMenuItemDto menuItem)
+    {
+        bool existingPlace = await placeRepository.ExistsAsync(p => p.Id == menuItem.PlaceId);
+        if (!existingPlace)
+            throw new NotFoundException($"Place with id {menuItem.PlaceId} not found");
+
+        var existingProduct = await productRepository.GetByIdAsync(menuItem.ProductId, true);
+        if (existingProduct == null)
+            throw new NotFoundException($"Product with id {menuItem.PlaceId} not found");
+
+        if (menuItem.Price <= 0)
+            throw new ValidationException("Price must be greater than zero.");
+
+        var user = await currentUser.GetCurrentUserAsync();
+        if (existingProduct.BusinessId != null && existingProduct.BusinessId != user!.Place!.BusinessId)
+            throw new UnauthorizedAccessException($"Access to product with id {menuItem.ProductId} denied");
+
+    }
+
     private async Task<bool> VerifyUserPlaceAccess(int targetPlaceId)
     {
         var user = await currentUser.GetCurrentUserAsync();
         
-        if (user.Role == EmployeeRole.admin) // TODO: Add Owner role check when implemented
+        if (user!.Role == EmployeeRole.admin) // TODO: Add Owner role check when implemented
             return true;
 
         return targetPlaceId == user.PlaceId;
@@ -488,7 +493,7 @@ public class MenuItemService(
     {
         var user = await currentUser.GetCurrentUserAsync();
 
-        if (user.Role == EmployeeRole.admin)
+        if (user!.Role == EmployeeRole.admin)
             return true;
 
         var place1BusinessId = await placeRepository.Query()

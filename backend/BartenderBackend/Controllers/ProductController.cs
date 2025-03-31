@@ -7,7 +7,7 @@ namespace BartenderBackend.Controllers;
 
 [Route("api/product")]
 [ApiController]
-[Authorize(Roles ="admin, manager")]
+[Authorize(Roles ="admin, manager, owner")]
 public class ProductController(IProductService productsService) : ControllerBase
 {
     [HttpGet("{id}")]
@@ -17,14 +17,12 @@ public class ProductController(IProductService productsService) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] bool group = false)
+    public async Task<IActionResult> GetAll([FromQuery] bool group = false, [FromQuery] bool? exclusive = null)
     {
-
         if (group) { 
-            return (await productsService.GetAllGroupedAsync()).ToActionResult();
+            return (await productsService.GetAllGroupedAsync(exclusive)).ToActionResult();
         }
-
-        return (await productsService.GetAllAsync()).ToActionResult();
+        return (await productsService.GetAllAsync(exclusive)).ToActionResult();
     }
 
     [HttpGet("categories")]
@@ -55,7 +53,6 @@ public class ProductController(IProductService productsService) : ControllerBase
         return (await productsService.UpdateAsync(id, product)).ToActionResult();
     }
 
-    [Authorize(Roles = "admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

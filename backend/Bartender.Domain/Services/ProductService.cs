@@ -1,12 +1,11 @@
 ﻿using AutoMapper;
+using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Products;
-using Bartender.Domain.Exceptions;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
 
 namespace Bartender.Domain.Services;
 
@@ -14,6 +13,7 @@ public class ProductService(
     IRepository<Products> repository, 
     IRepository<ProductCategory> categoryRepository,
     ILogger<ProductService> logger,
+    ICurrentUserContext currentUser,
     IMapper mapper) : IProductService
 {
     private const string GenericErrorMessage = "An unexpected error occurred. Please try again later.";
@@ -21,9 +21,14 @@ public class ProductService(
     {
         try
         {
+            var user = await currentUser.GetCurrentUserAsync();
             var product = await repository.GetByIdAsync(id, true);
+
             if (product == null)
                 return ServiceResult<ProductDto?>.Fail($"Product with id {id} not found", ErrorType.NotFound);
+
+            if (!VerifyProductAccess(user!, product.BusinessId, false))
+                return ServiceResult<ProductDto?>.Fail($"Cross-business access denied.", ErrorType.NotFound);
 
             var dto = mapper.Map<ProductDto>(product);
             return ServiceResult<ProductDto?>.Ok(dto);
@@ -35,14 +40,32 @@ public class ProductService(
         }
     }
 
-    public async Task<ServiceResult<List<ProductDto>>> GetAllAsync()
+    public async Task<ServiceResult<List<ProductDto>>> GetAllAsync(bool? exclusive = null)
     {
         try
         {
-            var products = await repository.GetAllAsync(true, p => p.Name);
+            var user = await currentUser.GetCurrentUserAsync();
 
-            if (!products.Any())
-                return ServiceResult<List<ProductDto>>.Fail("There are currently no products", ErrorType.NotFound);
+            Expression<Func<Products, bool>>? filter = null;
+
+            if (user!.Role != EmployeeRole.admin && exclusive == null)
+                filter = p => p.BusinessId == user.Place!.BusinessId || p.BusinessId == null;
+
+            else if (exclusive == true)
+            {
+                if (user!.Role == EmployeeRole.admin)
+                    filter = p => p.BusinessId != null;
+                else
+                    filter = p => p.BusinessId == user.Place!.BusinessId;
+            }
+
+            else if (exclusive == false)
+                filter = p => p.BusinessId == null;    
+
+            var products = await repository.GetFilteredAsync(
+                includeNavigations: true,
+                filterBy: filter,
+                orderBy: p => p.Name);
 
             var dto = mapper.Map<List<ProductDto>>(products);
             return ServiceResult<List<ProductDto>>.Ok(dto);
@@ -54,29 +77,36 @@ public class ProductService(
         }
     }
 
-    public async Task<ServiceResult<List<GroupedProductsDto>>> GetAllGroupedAsync()
+    public async Task<ServiceResult<List<GroupedProductsDto>>> GetAllGroupedAsync(bool? exclusive = null)
     {
         try
         {
-            var groupedProducts = await categoryRepository.GetAllAsync(true);
+            var user = await currentUser.GetCurrentUserAsync();
 
-            if (!groupedProducts.Any())
-                return ServiceResult<List<GroupedProductsDto>>.Fail("There are currently no products", ErrorType.NotFound);
-
-            var sortedProducts = groupedProducts
-                .Select(gp => new GroupedProductsDto
+            var groupedProducts = await categoryRepository.QueryIncluding()
+                .Select(g => new GroupedProductsDto
                 {
-                    Category = gp.Name ?? "Uncategorized",
-                    Products = gp.Products != null
-                    ? gp.Products
+                    Category = g.Name,
+                    Products = g.Products
+                        .Where(p =>
+                            (exclusive == null && user!.Role == EmployeeRole.admin) ||
+                            (exclusive == null && (p.BusinessId == user.Place!.BusinessId || p.BusinessId == null)) ||
+                            (exclusive == true && user!.Role == EmployeeRole.admin && p.BusinessId != null) ||
+                            (exclusive == true && p.BusinessId == user.Place!.BusinessId) ||
+                            (exclusive == false && p.BusinessId == null)
+                        )
                         .OrderBy(p => p.Name)
-                        .Select(p => mapper.Map<ProductBaseDto>(p))
+                        .Select(p => new ProductBaseDto
+                        {
+                            Name = p.Name,
+                            Volume = p.Volume != null ? p.Volume : "None"
+                        })
                         .ToList()
-                    : new List<ProductBaseDto>()
                 })
-                .ToList();
+                .Where(g => g.Products.Any())
+                .ToListAsync();
 
-            return ServiceResult<List<GroupedProductsDto>>.Ok(sortedProducts);
+            return ServiceResult<List<GroupedProductsDto>>.Ok(groupedProducts);
         }
         catch (Exception ex)
         {
@@ -89,7 +119,13 @@ public class ProductService(
     {
         try
         {
+            var user = await currentUser.GetCurrentUserAsync();
+
             var query = repository.QueryIncluding(p => p.Category);
+
+
+            if (user!.Role != EmployeeRole.admin)
+                query = query.Where(p => p.BusinessId == null || p.BusinessId == user!.Place!.BusinessId);
 
             if (name != null)
                 query = query.Where(x => EF.Functions.ILike(x.Name, $"%{name}%"));
@@ -98,9 +134,6 @@ public class ProductService(
                 query = query.Where(x => EF.Functions.ILike(x.Category.Name, $"%{category}%"));
 
             var products = await query.ToListAsync();
-
-            if (!products.Any())
-                return ServiceResult<List<ProductBaseDto>>.Fail("No products found matching the criteria", ErrorType.NotFound);
 
             var dto = mapper.Map<List<ProductBaseDto>>(products);
             return ServiceResult<List<ProductBaseDto>>.Ok(dto);
@@ -116,25 +149,21 @@ public class ProductService(
     {
         try
         {
-            await ValidateProductAsync(product);
-        
-            var existingProduct = await repository.ExistsAsync(p =>
-                p.Name.ToLower() == product.Name.ToLower() &&
-                (p.Volume == null && product.Volume == null ||
-                 p.Volume != null && product.Volume != null && p.Volume.ToLower() == product.Volume.ToLower())
-            );
+            var user = await currentUser.GetCurrentUserAsync();
 
-            if (existingProduct)
-                return ServiceResult.Fail($"Product with name '{product.Name}' and volume '{product.Volume}' already exists.", ErrorType.Conflict);
+            if (user!.Role != EmployeeRole.admin)
+                product.BusinessId = user!.Place!.BusinessId;
+
+            var validationResult = await ValidateProductAsync(product);
+
+            if (!validationResult.Success)
+                return validationResult;
 
             var newProduct = mapper.Map<Products>(product);
+
             await repository.AddAsync(newProduct);
+            logger.LogInformation($"Product created: {product.Name} {product.Volume}, BusinessId: {product.BusinessId}");
             return ServiceResult.Ok();
-        }
-        catch (Exception ex) when (ex is NotFoundException or ValidationException)
-        {
-            var errorType = ex is NotFoundException ? ErrorType.NotFound : ErrorType.Validation;
-            return ServiceResult.Fail(ex.Message, errorType);
         }
         catch (Exception ex) {
             logger.LogError(ex, "An unexpected error occurred while adding a product.");
@@ -146,28 +175,29 @@ public class ProductService(
     {
         try
         {
-            await ValidateProductAsync(product);
+            var user = await currentUser.GetCurrentUserAsync();
 
-            var updateProduct = await GetProductByIdAsync(id);
+            var updateProduct = await repository.GetByIdAsync(id);
+            if (updateProduct == null)
+                return ServiceResult.Fail($"Product with id {id} not found", ErrorType.NotFound);
 
-            var existingProduct = await repository.ExistsAsync(p =>
-                p.Id != id &&
-                p.Name.ToLower() == product.Name.ToLower() &&
-                (p.Volume == null && product.Volume == null ||
-                 p.Volume != null && product.Volume != null && p.Volume.ToLower() == product.Volume.ToLower())
-            );
+            if (product.BusinessId != updateProduct.BusinessId && user!.Role != EmployeeRole.admin)
+                product.BusinessId = updateProduct.BusinessId;
 
-            if (existingProduct)
-                return ServiceResult.Fail($"Product with name '{product.Name}' and volume '{product.Volume}' already exists.", ErrorType.Conflict);
+            if (!VerifyProductAccess(user!, product.BusinessId, true))
+                return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+
+            var validationResult = await ValidateProductAsync(product,id);
+
+            if (!validationResult.Success)
+                return validationResult;
+    
 
             mapper.Map(product, updateProduct);
+
             await repository.UpdateAsync(updateProduct);
+            logger.LogInformation($"Product updated with ID: {id}");
             return ServiceResult.Ok();
-        }
-        catch (Exception ex) when (ex is NotFoundException or ValidationException)
-        {
-            var errorType = ex is NotFoundException ? ErrorType.NotFound : ErrorType.Validation;
-            return ServiceResult.Fail(ex.Message, errorType);
         }
         catch (Exception ex)
         {
@@ -180,14 +210,20 @@ public class ProductService(
     {
         try
         {
-            var product = await GetProductByIdAsync(id);
-      
+            var product = await repository.GetByIdAsync(id);
+            if (product == null)
+                return ServiceResult.Fail($"Product with id {id} not found", ErrorType.NotFound);
+
+            var user = await currentUser.GetCurrentUserAsync();
+            if (user!.Role != EmployeeRole.admin && product.BusinessId != user!.Place!.BusinessId)
+            {
+                logger.LogWarning("User {UserId} attempted to delete product {ProductId} without permission.", user.Id, id);
+                return ServiceResult.Fail("You don't have permission to delete this product.", ErrorType.Unknown);
+            }
+
             await repository.DeleteAsync(product);
+            logger.LogInformation($"Product deleted with ID: {id}");
             return ServiceResult.Ok();
-        }
-        catch (NotFoundException ex)
-        {
-            return ServiceResult.Fail(ex.Message, ErrorType.NotFound);
         }
         catch (Exception ex)
         {
@@ -211,22 +247,33 @@ public class ProductService(
         }
     }
 
-    private async Task ValidateProductAsync(UpsertProductDto product)
+    private async Task<ServiceResult> ValidateProductAsync(UpsertProductDto product, int? id = null)
     {
         bool categoryExists = await categoryRepository.ExistsAsync(c => c.Id == product.CategoryId);
         if (!categoryExists)
-        {
-            throw new ValidationException($"Product category id {product.CategoryId} doesn't exist");
-        }
+            return ServiceResult.Fail($"Product category id {product.CategoryId} doesn't exist", ErrorType.Validation);
+
+        var existingProduct = await repository.ExistsAsync(p =>
+            (id == null || p.Id != id) &&
+            (p.BusinessId == null || p.BusinessId == product.BusinessId) &&
+            p.Name.ToLower() == product.Name.ToLower() &&
+            (p.Volume == null && product.Volume == null ||
+             p.Volume != null && product.Volume != null && p.Volume.ToLower() == product.Volume.ToLower()));
+
+        if (existingProduct)
+            return ServiceResult.Fail($"Product with name '{product.Name}' and volume '{product.Volume}' already exists.", ErrorType.Conflict);
+
+        return ServiceResult.Ok();
     }
 
-    private async Task<Products> GetProductByIdAsync(int id)
+    private bool VerifyProductAccess(Staff user, int? businessId, bool upsert)
     {
-        var product = await repository.GetByIdAsync(id);
-        if (product == null)
-        {
-            throw new NotFoundException($"Product with id {id} not found");
-        }
-        return product;
+        if (user.Role == EmployeeRole.admin)
+            return true;
+
+        if (businessId == null && !upsert)
+            return true;
+
+        return user!.Place!.BusinessId == businessId;
     }
 }

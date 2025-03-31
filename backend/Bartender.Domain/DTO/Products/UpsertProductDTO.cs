@@ -10,4 +10,5 @@ public class UpsertProductDto
     public string? Volume {  get; set; }
     [Required]
     public int CategoryId { get; set; }
+    public int? BusinessId { get; set; }
 }
