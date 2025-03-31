@@ -82,7 +82,8 @@ CREATE TABLE IF NOT EXISTS Products (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL,
 	volume VARCHAR NULL,
-    category_id INTEGER DEFAULT 1 REFERENCES ProductCategory(id) ON DELETE SET DEFAULT
+    category_id INTEGER NOT NULL REFERENCES ProductCategory(id),
+	business_id INTEGER REFERENCES Businesses(id) ON DELETE CASCADE
 );
 
 -- Table: MenuItems
@@ -178,7 +179,6 @@ INSERT INTO Staff (place_id, OIB, username, password, fullName, role) VALUES
 
 -- Insert ProductCategory
 INSERT INTO ProductCategory(name, parentcategory_id) VALUES
-('Ostalo', null),
 ('Kave', null),
 ('Bezalkoholna pića', null),
 ('Topli napitci', null),
@@ -193,7 +193,8 @@ INSERT INTO ProductCategory(name, parentcategory_id) VALUES
 ('Cider', 12),
 ('Hrana', null),
 ('Deserti', 14),
-('Specijalna ponuda', null);
+('Specijalna ponuda', null),
+('Ostalo', null);
 
 -- Insert products
 INSERT INTO Products(name, volume, category_id) VALUES
