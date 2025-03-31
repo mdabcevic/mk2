@@ -1,0 +1,29 @@
+import axios from "axios";
+
+const API_BASE_URL = "";
+
+const httpClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+const sendRequest = async (method:string, url:string, data = null, params = {}) => {
+  try {
+    const response = await httpClient({ method, url, data, params });
+    return response.data;
+  } catch (error:any) {
+    console.error("API Error:", error.response?.data || error.message);
+    throw error.response?.data || error.message;
+  }
+};
+
+const api = {
+  get: (url:string, params?:{}) => sendRequest("get", url, null, params),
+  post: (url:string, data:any) => sendRequest("post", url, data),
+  put: (url:string, data:any) => sendRequest("put", url, data),
+  delete: (url:string) => sendRequest("delete", url),
+};
+
+export default api;
