@@ -237,6 +237,7 @@ public class TableService(
                 return ServiceResult.Fail("Missing authentication token.", ErrorType.Unauthorized);
             }
 
+            // check if valid session is provided for table before any changes
             var session = await guestSessionRepo.GetByKeyAsync(s =>
                 s.TableId == table.Id && s.Token == accesstoken);
 
@@ -251,6 +252,13 @@ public class TableService(
                 logger.LogWarning("Guest tried to set status to {Status} on Table {Id} — only 'empty' is allowed", newStatus, table.Id);
                 return ServiceResult.Fail("Guests can only free tables.", ErrorType.Unauthorized);
             }
+
+            if (table.Status == TableStatus.empty)
+            {
+                logger.LogInformation("Guest attempted to free an already empty Table {Id}", table.Id);
+                return ServiceResult.Ok(); // or a NoOp result
+            }
+
             logger.LogInformation("Guest freed Table {Id} via valid session", table.Id);
             await guestSessionRepo.DeleteAsync(session);
             logger.LogInformation("Session {Id} was deleted.", session.Id);
