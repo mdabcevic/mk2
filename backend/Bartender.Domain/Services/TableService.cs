@@ -4,11 +4,12 @@ using Bartender.Data.Enums;
 using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace Bartender.Domain.Services;
 
 public class TableService(
-    IRepository<Tables> repository,
+    IRepository<Tables> repository, //TODO: consider separate repository for table - many queries and validation.
     IRepository<GuestSession> guestSessionRepo,
     ILogger<TableService> logger,
     IJwtService jwtService,
@@ -36,7 +37,7 @@ public class TableService(
     /// <summary>
     /// Fetches a table by label assigned by staff (unique per place).
     /// </summary>
-    /// <param name="id">Table ID managed by database.</param>
+    /// <param name="label">Staff assigned label for table in a place.</param>
     /// <returns></returns>
     public async Task<ServiceResult<TableDto>> GetByLabelAsync(string label)
     {
@@ -51,7 +52,6 @@ public class TableService(
             logger.LogWarning("Table with label '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
             return ServiceResult<TableDto>.Fail("Table not found", ErrorType.NotFound);
         }
-
         return ServiceResult<TableDto>.Ok(mapper.Map<TableDto>(table));
     }
 
@@ -60,8 +60,9 @@ public class TableService(
     /// </summary>
     /// <param name="salt">Rotation token used in QR generation.</param>
     /// <returns>Table information and JWT for guest session.</returns>
-    public async Task<ServiceResult<TableScanDto>> GetBySaltAsync(string salt)
+    public async Task<ServiceResult<TableScanDto>> GetBySaltAsync(string salt) //TODO: staff has to make an order instead of user? 
     {
+        //on manager scan - mark as empty + occupy? to clear out latest session? mark order as staff-placed?
         // look whether Token from QR matches the table.
         var table = await repository.GetByKeyAsync(t => t.QrSalt == salt && !t.IsDisabled);
         if (table is null)
@@ -87,6 +88,24 @@ public class TableService(
             {
                 logger.LogWarning("QR scan denied for Table {TableId} — session already active (until {Expires})", table.Id, activeSession.ExpiresAt);
                 return ServiceResult<TableScanDto>.Fail("This table is currently in use.", ErrorType.Conflict);
+            }
+
+            // Table is marked as occupied, but no active session — might be expired.
+            var latestExpired = await guestSessionRepo.Query()
+                .Where(s => s.TableId == table.Id)
+                .OrderByDescending(s => s.ExpiresAt)
+                .FirstOrDefaultAsync();
+
+            var presentedToken = currentUser.GetRawToken();
+            if (latestExpired != null && latestExpired.Token == presentedToken)
+            {
+                logger.LogInformation("Guest at Table {TableId} is resuming session after expiry", table.Id);
+                // Allow session to resume — continue below
+            }
+            else
+            {
+                logger.LogWarning("QR scan denied — expired session exists but token does not match. Table {TableId}", table.Id);
+                return ServiceResult<TableScanDto>.Fail("Table is still in use.", ErrorType.Conflict);
             }
         }
 
@@ -186,7 +205,7 @@ public class TableService(
     /// <param name="token">Currently active token for accessing table.</param>
     /// <param name="newStatus"></param>
     /// <returns></returns>
-    public async Task<ServiceResult> ChangeStatusAsync(string token, TableStatus newStatus)
+    public async Task<ServiceResult> ChangeStatusAsync(string token, TableStatus newStatus) //TODO: consider separating api for user to free table.
     {
         var table = await repository.GetByKeyAsync(t => t.QrSalt == token);
         if (table is null)
@@ -219,6 +238,8 @@ public class TableService(
                 return ServiceResult.Fail("Guests can only free tables.", ErrorType.Unauthorized);
             }
             logger.LogInformation("Guest freed Table {Id} via valid session", table.Id);
+            await guestSessionRepo.DeleteAsync(session);
+            logger.LogInformation("Session {Id} was deleted.", session.Id);
         }
         else
         {
@@ -235,8 +256,6 @@ public class TableService(
         await repository.UpdateAsync(table);
         return ServiceResult.Ok();
     }
-
-
 
     public async Task<ServiceResult> RegenerateSaltAsync(string label)
     {
@@ -256,7 +275,6 @@ public class TableService(
         logger.LogInformation("Salt rotated for Table '{Label}' by User {UserId}", label, user!.Id);
         return ServiceResult.Ok();
     }
-
 
     public async Task<ServiceResult> SwitchDisabledAsync(string label, bool flag)
     {
@@ -278,6 +296,7 @@ public class TableService(
         return ServiceResult.Ok();
     }
 
+    //TODO: have an API /call-waiter that pushes a notification to SignalR group of entire place for waiters to see.
 
     private async Task<bool> IsSameBusinessAsync(int placeId)
     {
