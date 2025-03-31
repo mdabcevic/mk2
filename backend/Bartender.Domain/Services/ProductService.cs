@@ -115,7 +115,7 @@ public class ProductService(
         }
     }
 
-    public async Task<ServiceResult<List<ProductBaseDto>>> GetFilteredAsync(string? name = null, string? category = null)
+    public async Task<ServiceResult<List<ProductBaseDto>>> GetFilteredAsync(bool? exclusive = null, string? name = null, string? category = null)
     {
         try
         {
@@ -124,14 +124,28 @@ public class ProductService(
             var query = repository.QueryIncluding(p => p.Category);
 
 
-            if (user!.Role != EmployeeRole.admin)
-                query = query.Where(p => p.BusinessId == null || p.BusinessId == user!.Place!.BusinessId);
+            Expression<Func<Products, bool>>? filter = null;
 
-            if (name != null)
-                query = query.Where(x => EF.Functions.ILike(x.Name, $"%{name}%"));
+            if (exclusive == null && user!.Role != EmployeeRole.admin)
+                filter = p => p.BusinessId == user.Place!.BusinessId || p.BusinessId == null;
 
-            if (category != null)
-                query = query.Where(x => EF.Functions.ILike(x.Category.Name, $"%{category}%"));
+            else if (exclusive == true)
+            {
+                if (user!.Role == EmployeeRole.admin)
+                    filter = p => p.BusinessId != null;
+                else
+                    filter = p => p.BusinessId == user.Place!.BusinessId;
+            }
+
+            else if (exclusive == false)
+                filter = p => p.BusinessId == null;
+
+            if (filter != null)
+                query = query.Where(filter);
+
+            query = query.Where(p =>
+                (name == null || EF.Functions.ILike(p.Name, $"%{name}%")) &&
+                (category == null || EF.Functions.ILike(p.Category.Name, $"%{category}%")));
 
             var products = await query.ToListAsync();
 

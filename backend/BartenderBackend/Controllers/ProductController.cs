@@ -33,9 +33,9 @@ public class ProductController(IProductService productsService) : ControllerBase
     }
 
     [HttpGet("search")]
-    public async Task<IActionResult> GetFilteredList([FromQuery] string? name = null,[FromQuery] string? category = null)
+    public async Task<IActionResult> GetFilteredList([FromQuery] bool? exclusive = null, [FromQuery] string? name = null,[FromQuery] string? category = null)
     {
-        var result = await productsService.GetFilteredAsync(name, category);
+        var result = await productsService.GetFilteredAsync(exclusive, name, category);
         return result.ToActionResult();
     }
 
