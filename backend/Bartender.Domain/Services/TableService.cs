@@ -60,10 +60,9 @@ public class TableService(
     /// </summary>
     /// <param name="salt">Rotation token used in QR generation.</param>
     /// <returns>Table information and JWT for guest session.</returns>
-    public async Task<ServiceResult<TableScanDto>> GetBySaltAsync(string salt) //TODO: staff has to make an order instead of user? 
+    public async Task<ServiceResult<TableScanDto>> GetBySaltAsync(string salt) //TODO: one-time code for other people to join table and order?
     {
-        //on manager scan - mark as empty + occupy? to clear out latest session? mark order as staff-placed?
-        // look whether Token from QR matches the table.
+        
         var table = await repository.GetByKeyAsync(t => t.QrSalt == salt && !t.IsDisabled);
         if (table is null)
         {
@@ -71,6 +70,28 @@ public class TableService(
             return ServiceResult<TableScanDto>.Fail("Invalid QR code", ErrorType.NotFound);
         }
 
+        //on manager scan - mark as empty + occupy? to clear out latest session? mark order as staff-placed?
+        // look whether Token from QR matches the table.
+        // Check if the request comes from STAFF
+        if (!currentUser.IsGuest)
+        {
+            // Only set status if table was empty
+            //if (table.Status == TableStatus.empty)
+            //{
+                table.Status = TableStatus.occupied;
+                await repository.UpdateAsync(table);
+
+                logger.LogInformation("Table {Id} marked as occupied by staff.", table.Id);
+            //}
+
+            // Just return table info (no session)
+            var result = mapper.Map<TableScanDto>(table);
+            //result.GuestToken = null;
+            //result.Staff = true; // optional field to flag it on frontend
+            return ServiceResult<TableScanDto>.Ok(result);
+        }
+
+        // Else: continue with guest logic (session creation etc.)
         if (table.IsDisabled)
         {
             logger.LogWarning("QR scan blocked for disabled Table {TableId}", table.Id);
