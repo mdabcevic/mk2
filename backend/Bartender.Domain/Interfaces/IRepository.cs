@@ -10,13 +10,16 @@ public interface IRepository<T> where T : class
     /// <param name="id">Primary key in database.</param>
     /// <returns>Entity from table.</returns>
     Task<T?> GetByIdAsync(int id, bool includeNavigations = false);
-    Task<List<T>> GetAllAsync();
+    Task<T?> GetByKeyAsync(Expression<Func<T, bool>> key, bool includeNavigations = false, params Expression<Func<T, object>>[]? includes);
+    Task<List<T>> GetAllAsync(bool? includeNavigations = false, params Expression<Func<T, object>>[]? orderBy);
     Task AddAsync(T entity);
+    Task AddMultipleAsync(IEnumerable<T> entities);
     Task UpdateAsync(T entity);
     Task DeleteAsync(T entity);
 
     // Querying
     //IQueryable<T> Find(Expression<Func<T, bool>> predicate);
+    IQueryable<T> Query();
     IQueryable<T> QueryIncluding(params Expression<Func<T, object>>[] includes);
 
     // Additional helpers
