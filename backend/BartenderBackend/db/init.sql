@@ -9,7 +9,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'employeerole') THEN
-    CREATE TYPE EmployeeRole AS ENUM ('admin', 'manager', 'regular');
+    CREATE TYPE EmployeeRole AS ENUM ('owner', 'admin', 'manager', 'regular');
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tablestatus') THEN
@@ -65,9 +65,22 @@ CREATE TABLE IF NOT EXISTS Staff (
 CREATE TABLE IF NOT EXISTS Tables (
     id SERIAL PRIMARY KEY,
     place_id INTEGER NOT NULL REFERENCES Places(id) ON DELETE CASCADE,
+    label VARCHAR not null,
     seats INTEGER NOT NULL DEFAULT 2,
     status TableStatus NOT NULL DEFAULT 'empty',
-    qrcode VARCHAR NULL
+    qrsalt text NOT NULL,
+    isdisabled boolean DEFAULT false,
+    UNIQUE (place_id, label) -- ensures table tags are unique per place
+);
+
+-- Table: GuestSessions
+CREATE TABLE IF NOT EXISTS guestSessions (
+    id UUID PRIMARY KEY,
+    table_id INTEGER NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    token TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMP NOT NULL,
+    UNIQUE (table_id) -- only one active session per table
 );
 
 -- Table: ProductCategory
@@ -176,6 +189,44 @@ INSERT INTO Staff (place_id, OIB, username, password, fullName, role) VALUES
 (9, '98765432109', 'sunset_admin', 'hashed_password', 'Tom Smith', 'manager'),
 (10, '98765432110', 'moonlight_admin', 'hashed_password', 'Samantha Lee', 'manager'),
 (11, '98765432111', 'cloud9_admin', 'hashed_password', 'James Chen', 'manager');
+
+-- Dodajmo novo poduzeće namijenjeno kao "vlastito"
+INSERT INTO Businesses (OIB, name, headquarters, subscriptionTier) VALUES
+('55555678901', 'Bartender Testing Owner Of Solution', 'Whatever Address Fits', 'premium');
+
+-- Dodajmo fiktivni lokal za to poduzeće (pretpostavljamo da je novi business_id = 8)
+INSERT INTO Places (business_id, city_id, address, opensAt, closesAt)
+VALUES (8, 1, 'Whatever Address Fits', '08:00', '22:00');
+
+-- Dodajmo četiri zaposlenika s različitim ulogama (pretpostavljamo da je novi place_id = 12)
+-- vlasnik
+INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
+VALUES (12, '99999999901', 'vlasnik', 'hashed_password', 'Ivan Vlasnić', 'owner');
+
+-- administrator
+INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
+VALUES (12, '99999999902', 'admin', 'hashed_password', 'Ana Adminić', 'admin');
+
+-- voditelj
+INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
+VALUES (12, '99999999903', 'voditelj', 'hashed_password', 'Marko Menadžer', 'manager');
+
+-- konobar (obični zaposlenik)
+INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
+VALUES (12, '99999999904', 'konobar', 'hashed_password', 'Petra Konobarić', 'regular');
+
+-- Dodajmo dodatnog admina za lokaciju Vivas (pretpostavljamo place_id = 1)
+INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
+VALUES (1, '99999999905', 'vivas_admin', 'hashed_password', 'Luka Vivasović', 'admin');
+
+INSERT INTO Tables (id, place_id, label, seats, status, qrsalt, isdisabled) VALUES
+(1, 1, '1', 2, 'empty', '5036144c6f5d41aeb0e332ea0029e073', false),
+(2, 1, '2', 2, 'empty', 'f8b4d726faf1436089415d0e453d33a3', false),
+(3, 1, '3', 2, 'empty', '766f575f7bf042ccb79e9df9da4e9ca5', true),
+(4, 1, '4', 4, 'empty', '768e63c7ab2b44a482b2a825645aaabb', false),
+(5, 1, '5', 4, 'empty', '1b3593e63a6a4fef8f2e5eae19840165', false),
+(6, 1, '6', 4, 'empty', 'ef9bf913754048b083a8571b740fb112', false),
+(7, 1, '7', 4, 'empty', '52206960508e41a797f546dd4106cf45', false);
 
 -- Insert ProductCategory
 INSERT INTO ProductCategory(name, parentcategory_id) VALUES

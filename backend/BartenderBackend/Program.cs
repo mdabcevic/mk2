@@ -7,7 +7,6 @@ using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Serilog;
@@ -38,7 +37,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
         };
     });
-IdentityModelEventSource.ShowPII = true;
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -58,10 +56,14 @@ builder.Services.AddScoped<IPlacesService, PlacesService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
+builder.Services.AddScoped<IJwtService, JwtService>();
+
 builder.Services.AddHttpContextAccessor(); // required!
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
-// Clearly add AutoMapper here:
-builder.Services.AddAutoMapper(typeof(StaffMappingProfile)); //TODO: find easier way to register all mappings
+
+builder.Services.AddAutoMapper(
+    typeof(BusinessProfile).Assembly
+);
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
