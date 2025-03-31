@@ -60,7 +60,7 @@ public class TableService(
     /// </summary>
     /// <param name="salt">Rotation token used in QR generation.</param>
     /// <returns>Table information and JWT for guest session.</returns>
-    public async Task<ServiceResult<TableScanDto>> GetBySaltAsync(string salt) //TODO: one-time code for other people to join table and order?
+    public async Task<ServiceResult<TableScanDto>> GetBySaltAsync(string salt)
     {
         
         var table = await repository.GetByKeyAsync(t => t.QrSalt == salt && !t.IsDisabled);
@@ -70,24 +70,16 @@ public class TableService(
             return ServiceResult<TableScanDto>.Fail("Invalid QR code", ErrorType.NotFound);
         }
 
-        //on manager scan - mark as empty + occupy? to clear out latest session? mark order as staff-placed?
-        // look whether Token from QR matches the table.
-        // Check if the request comes from STAFF
+        // Check if the request comes from STAFF on behalf of user
         if (!currentUser.IsGuest)
         {
-            // Only set status if table was empty
-            //if (table.Status == TableStatus.empty)
-            //{
-                table.Status = TableStatus.occupied;
-                await repository.UpdateAsync(table);
-
-                logger.LogInformation("Table {Id} marked as occupied by staff.", table.Id);
-            //}
+            //TODO: clean prev. session
+            table.Status = TableStatus.occupied;
+            await repository.UpdateAsync(table);
+            logger.LogInformation("Table {Id} marked as occupied by staff.", table.Id);
 
             // Just return table info (no session)
             var result = mapper.Map<TableScanDto>(table);
-            //result.GuestToken = null;
-            //result.Staff = true; // optional field to flag it on frontend
             return ServiceResult<TableScanDto>.Ok(result);
         }
 
@@ -98,13 +90,13 @@ public class TableService(
             return ServiceResult<TableScanDto>.Fail("QR for this table is currently unavailable. Waiter is coming.", ErrorType.Unauthorized);
         }
 
-        // if table is "still" in use, stop new requests from "hijacking" the table.
+        // if table is still in use, stop new requests from "hijacking" the table.
         if (table.Status == TableStatus.occupied)
         {
             var activeSession = await guestSessionRepo.GetByKeyAsync(s =>
                 s.TableId == table.Id && s.ExpiresAt > DateTime.UtcNow);
 
-            // for simplicity purpose - only 1 session per table is allowed.
+            // for simplicity purpose - only 1 session per table is allowed. //TODO: one-time code for other people to join table and order?
             if (activeSession is not null)
             {
                 logger.LogWarning("QR scan denied for Table {TableId} — session already active (until {Expires})", table.Id, activeSession.ExpiresAt);
@@ -134,7 +126,7 @@ public class TableService(
         table.Status = TableStatus.occupied;
         await repository.UpdateAsync(table);
 
-        // start new session for user who scanned the QR
+        // start new session for user who scanned the QR //TODO: move to service / repository
         var sessionId = Guid.NewGuid();
         var expiresAt = DateTime.UtcNow.AddMinutes(30);
         var token = jwtService.GenerateGuestToken(table.Id, sessionId, expiresAt); // string returned to user - session validation
@@ -158,13 +150,14 @@ public class TableService(
 
     public async Task<ServiceResult> AddAsync(UpsertTableDto dto)
     {
-        //TODO: label should be unique per place.
         var user = await currentUser.GetCurrentUserAsync();
         if (await repository.ExistsAsync(t =>
             t.PlaceId == user!.PlaceId &&
             t.Label.Equals(dto.Label, StringComparison.CurrentCultureIgnoreCase)))
         {
-            return ServiceResult.Fail("This table label is already in use for your place.", ErrorType.Conflict);
+            logger.LogWarning("Failed to add table: Label '{Label}' already exists for Place {PlaceId} by User {UserId}",
+            dto.Label, user!.PlaceId, user.Id);
+            return ServiceResult.Fail("Cannot create table with that label - it already exists.", ErrorType.Conflict);
         }
 
         var entity = mapper.Map<Tables>(dto);
@@ -313,7 +306,7 @@ public class TableService(
 
         table.IsDisabled = flag;
         await repository.UpdateAsync(table);
-        logger.LogInformation("Table '{Label}' disabled state set to {Flag} by User {UserId}", label, flag, user!.Id);
+        logger.LogInformation("Table '{Label}' disabled state set to {Flag} by Staff {UserId}", label, flag, user!.Id);
         return ServiceResult.Ok();
     }
 
