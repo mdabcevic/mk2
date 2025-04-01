@@ -26,7 +26,7 @@ function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const options = ["Zagreb", "Rijeka", "Karlovac", "Osijek"];
   const [loading,setLoading] = useState<boolean>(false);
-  const [places,setPlaces] = useState<PlaceItem[]>([]);
+  const [places,setPlaces] = useState<IPlaceItem[]>([]);
 
   const fetchPlaces = async () =>{
     let _places = await PlaceService.getPlaces();
@@ -34,7 +34,7 @@ function Home() {
     setPlaces(_places);
   }
 
-  const setImageUrls = (places: PlaceItem[]) => {
+  const setImageUrls = (places: IPlaceItem[]) => {
     for(var i = 0; i < places.length; i++){
       let randomIndex = Math.floor(Math.random() * imgUrls.length);
       places[i].imageUrl = imgUrls[randomIndex]
