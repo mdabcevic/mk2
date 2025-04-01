@@ -9,6 +9,7 @@ import MenuViewPage from "./admin/pages/menu-view";
 import ProductsViewPage from "./admin/pages/products-view";
 import TableViewPage from "./admin/pages/tables-view";
 import BarDetails from "./pages/bar-details";
+import Menu from "./components/menu";
 
 
 function AppRoutes(){
@@ -20,6 +21,7 @@ function AppRoutes(){
           <Route index element={<Home />} />
           <Route path="aboutus" element={<AboutUs />} />
           <Route path="bar/:id" element={<BarDetails />} />
+          <Route path="bar/:id/menu" element={<Menu />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 
