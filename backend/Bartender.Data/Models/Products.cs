@@ -19,11 +19,19 @@ public class Products
     [Column("volume")]
     public string? Volume { get; set; }
 
+    [Required]
     [Column("category_id")]
     public int CategoryId { get; set; }
 
     [ForeignKey("CategoryId")]
     public ProductCategory Category { get; set; }
+
+    [Column("business_id")]
+    public int? BusinessId { get; set; }
+
+    [ForeignKey("BusinessId")]
+    public Businesses? Business { get; set; }
+
     public ICollection<MenuItems>? MenuItems { get; set; }
     public ICollection<Reviews>? Reviews { get; set; }
 }

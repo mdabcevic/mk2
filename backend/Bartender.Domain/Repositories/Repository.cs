@@ -3,6 +3,7 @@ using Bartender.Domain.Interfaces;
 using Bartender.Data;
 using System.Linq.Expressions;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Linq;
 
 namespace Bartender.Domain.Repositories;
 
@@ -86,6 +87,25 @@ public class Repository<T> : IRepository<T> where T : class
         {
             query = ApplyOrdering(query, orderBy);
         }
+
+        return await query.ToListAsync();
+    }
+
+    public async Task<List<T>> GetFilteredAsync(
+        bool? includeNavigations = false, 
+        Expression<Func<T, bool>>? filterBy = null, 
+        params Expression<Func<T, object>>[]? orderBy)
+    {
+        var query = _dbSet.AsQueryable();
+
+        if (includeNavigations != null && includeNavigations == true)
+            query = IncludeNavigations(query);
+
+        if (filterBy != null)
+            query = query.Where(filterBy);
+
+        if (orderBy != null)
+            query = ApplyOrdering(query, orderBy);
 
         return await query.ToListAsync();
     }
