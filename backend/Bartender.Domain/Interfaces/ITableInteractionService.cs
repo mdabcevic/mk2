@@ -3,7 +3,7 @@ using Bartender.Domain.DTO;
 
 namespace Bartender.Domain.Interfaces;
 
-public interface ITableService
+public interface ITableInteractionService
 {
     Task<ServiceResult<TableDto>> GetByLabelAsync(string label);
 

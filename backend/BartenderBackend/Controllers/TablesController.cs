@@ -10,13 +10,15 @@ namespace BartenderBackend.Controllers;
 [ApiController]
 [Route("api/tables")]
 [Authorize]
-public class TablesController(ITableService tableService) : ControllerBase
+public class TablesController(
+    ITableInteractionService tableInteractionService,
+    ITableManagementService tableManagementService) : ControllerBase
 {
     [HttpPost]
     [Authorize(Roles = "manager")]
     public async Task<IActionResult> Add([FromBody] UpsertTableDto dto)
     {
-        var result = await tableService.AddAsync(dto);
+        var result = await tableManagementService.AddAsync(dto);
         return result.ToActionResult();
     }
 
@@ -24,7 +26,7 @@ public class TablesController(ITableService tableService) : ControllerBase
     [Authorize(Roles = "manager")]
     public async Task<IActionResult> Update(string label, [FromBody] UpsertTableDto dto)
     {
-        var result = await tableService.UpdateAsync(label, dto);
+        var result = await tableManagementService.UpdateAsync(label, dto);
         return result.ToActionResult();
     }
 
@@ -32,21 +34,21 @@ public class TablesController(ITableService tableService) : ControllerBase
     [Authorize(Roles = "manager")]
     public async Task<IActionResult> Delete(string label)
     {
-        var result = await tableService.DeleteAsync(label);
+        var result = await tableManagementService.DeleteAsync(label);
         return result.ToActionResult();
     }
 
     [HttpGet("{label}")]
     public async Task<IActionResult> GetById(string label)
     {
-        var result = await tableService.GetByLabelAsync(label);
+        var result = await tableInteractionService.GetByLabelAsync(label);
         return result.ToActionResult();
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var result = await tableService.GetAllAsync();
+        var result = await tableManagementService.GetAllAsync();
         return result.ToActionResult();
     }
 
@@ -54,7 +56,7 @@ public class TablesController(ITableService tableService) : ControllerBase
     [AllowAnonymous] // guests scan QR
     public async Task<IActionResult> GetBySalt([FromQuery] string salt)
     {
-        var result = await tableService.GetBySaltAsync(salt);
+        var result = await tableInteractionService.GetBySaltAsync(salt);
         return result.ToActionResult();
     }
 
@@ -62,7 +64,7 @@ public class TablesController(ITableService tableService) : ControllerBase
     [Authorize(Roles = "manager")]
     public async Task<IActionResult> RegenerateSalt(string label)
     {
-        var result = await tableService.RegenerateSaltAsync(label);
+        var result = await tableManagementService.RegenerateSaltAsync(label);
         return result.ToActionResult();
     }
 
@@ -70,14 +72,14 @@ public class TablesController(ITableService tableService) : ControllerBase
     [Authorize(Roles = "manager")]
     public async Task<IActionResult> SetDisabled(string label, [FromBody] bool disable)
     {
-        var result = await tableService.SwitchDisabledAsync(label, disable);
+        var result = await tableManagementService.SwitchDisabledAsync(label, disable);
         return result.ToActionResult();
     }
 
     [HttpPatch("{token}/status")]
     public async Task<IActionResult> ChangeStatus(string token, [FromBody] TableStatus status)
     {
-        var result = await tableService.ChangeStatusAsync(token, status);
+        var result = await tableInteractionService.ChangeStatusAsync(token, status);
         return result.ToActionResult();
     }
 }
