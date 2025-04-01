@@ -438,4 +438,114 @@ public class TableInteractionServiceTests
 
         await _tableRepo.DidNotReceive().UpdateAsync(table);
     }
+
+    [Test]
+    public async Task ChangeStatusAsync_ShouldReturnNotFound_WhenTableDoesNotExist()
+    {
+        // Arrange
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>())
+            .Returns((Tables?)null);
+
+        // Act
+        var result = await _service.ChangeStatusAsync("missing-token", TableStatus.empty);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        });
+
+        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
+    }
+
+    [Test]
+    public async Task GetBySaltAsync_ShouldResumeActiveSession_WhenTokenMatches()
+    {
+        // Arrange
+        var table = CreateTable("salt", TableStatus.occupied);
+        var token = "active.jwt.token";
+
+        _userContext.IsGuest.Returns(true);
+        _userContext.GetRawToken().Returns(token);
+
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
+        _tableSession.HasActiveSessionAsync(table.Id).Returns(true);
+        _tableSession.IsSameTokenAsActiveAsync(table.Id, token).Returns(true);
+
+        // Act
+        var result = await _service.GetBySaltAsync("salt");
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Data, Is.Not.Null);
+            Assert.That(result.Data?.GuestToken, Is.EqualTo(token));
+        });
+
+        await _guestSession.DidNotReceive().CreateSessionAsync(table.Id);
+        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
+    }
+
+    [Test]
+    public async Task GetBySaltAsync_ShouldResumeExpiredSession_WhenTokenMatches()
+    {
+        // Arrange
+        var table = CreateTable("salt123", TableStatus.occupied);
+        var token = "expired.jwt.token";
+
+        _userContext.IsGuest.Returns(true);
+        _userContext.GetRawToken().Returns(token);
+
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
+        _tableSession.HasActiveSessionAsync(table.Id).Returns(false);
+        _tableSession.CanResumeExpiredSessionAsync(table.Id, token).Returns(true);
+
+        _guestSession.CreateSessionAsync(table.Id).Returns("new.token");
+
+        // Act
+        var result = await _service.GetBySaltAsync("salt123");
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Data, Is.Not.Null);
+            Assert.That(result.Data!.GuestToken, Is.EqualTo("new.token"));
+            Assert.That(table.Status, Is.EqualTo(TableStatus.occupied));
+        });
+
+        await _tableRepo.Received().UpdateAsync(table);
+    }
+
+    [Test]
+    public async Task GetBySaltAsync_ShouldFail_WhenTokenCannotResumeExpiredSession()
+    {
+        // Arrange
+        var table = CreateTable("stale", TableStatus.occupied);
+        var token = "wrong.expired.token";
+
+        _userContext.IsGuest.Returns(true);
+        _userContext.GetRawToken().Returns(token);
+
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
+        _tableSession.HasActiveSessionAsync(table.Id).Returns(false);
+        _tableSession.CanResumeExpiredSessionAsync(table.Id, token).Returns(false);
+
+        // Act
+        var result = await _service.GetBySaltAsync("stale");
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.Conflict));
+            Assert.That(result.Data, Is.Null);
+        });
+
+        await _guestSession.DidNotReceive().CreateSessionAsync(Arg.Any<int>());
+        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
+    }
+
 }
