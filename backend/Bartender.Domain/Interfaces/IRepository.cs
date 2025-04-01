@@ -12,6 +12,7 @@ public interface IRepository<T> where T : class
     Task<T?> GetByIdAsync(int id, bool includeNavigations = false);
     Task<T?> GetByKeyAsync(Expression<Func<T, bool>> key, bool includeNavigations = false, params Expression<Func<T, object>>[]? includes);
     Task<List<T>> GetAllAsync(bool? includeNavigations = false, params Expression<Func<T, object>>[]? orderBy);
+    Task<List<T>> GetFilteredAsync(bool? includeNavigations = false, Expression<Func<T, bool>>? filterBy = null, params Expression<Func<T, object>>[]? orderBy);
     Task AddAsync(T entity);
     Task AddMultipleAsync(IEnumerable<T> entities);
     Task UpdateAsync(T entity);

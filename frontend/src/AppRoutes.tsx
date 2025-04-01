@@ -8,7 +8,8 @@ import Dashboard from "./admin/pages/dashboard";
 import MenuViewPage from "./admin/pages/menu-view";
 import ProductsViewPage from "./admin/pages/products-view";
 import TableViewPage from "./admin/pages/tables-view";
-import BarDetails from "./pages/bar-details";
+import PlaceDetails from "./pages/place-details";
+import Menu from "./components/menu";
 
 
 function AppRoutes(){
@@ -19,7 +20,8 @@ function AppRoutes(){
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="aboutus" element={<AboutUs />} />
-          <Route path="bar/:id" element={<BarDetails />} />
+          <Route path="bar/:id" element={<PlaceDetails />} />
+          <Route path="bar/:placeId/menu" element={<Menu />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 

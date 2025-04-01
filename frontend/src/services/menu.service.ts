@@ -1,10 +1,10 @@
 import { ApiUrl } from "../client/api-urls"
 import api from "../client/client";
 
-export const MenuService = () => {
+export const menuService = {
 
-    const getMenuById = async () => {
-        const response = await api.get(ApiUrl.GetMenuById);
+    getMenuByPlaceId: async (placeId:string) => {
+        const response = await api.get(ApiUrl.GetMenuByPlaceId.replace("{placeId}",placeId));
         return response;
     }
 

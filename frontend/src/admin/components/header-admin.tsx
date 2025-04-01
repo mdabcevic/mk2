@@ -18,7 +18,7 @@ const HeaderAdminComponent = () => {
       <nav className="flex justify-between items-center text-[1.2rem] bg-black p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2
 ">
       <h1 className="">Mk2</h1>
-      <div className="Hamburger-Cross-Icons" onClick={openNavbar}>
+      <div className="hamburger-cross-icons" onClick={openNavbar}>
         <Menu size={24} />
       </div>
       <ul className={open ? "menu-items active" : "menu-items"}>

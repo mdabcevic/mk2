@@ -5,5 +5,9 @@
     "logout": "Logout",
     "lang_option_cro":"Hrvatski",
     "lang_option_eng":"Engleski",
-    "a":"asas"
+    "quantity_text":"Količina",
+    "price_text":"Cijena",
+    "total_price_text":"Ukupno",
+    "edit_text":"Uredi",
+    "delete_text":"Izbriši"
 }

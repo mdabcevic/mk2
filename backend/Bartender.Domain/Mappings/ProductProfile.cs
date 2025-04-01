@@ -12,7 +12,8 @@ public class ProductProfile : Profile
             .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
 
         CreateMap<Products, ProductDto>()
-        .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category));
+        .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
+        .ForMember(dest => dest.Exclusive, opt => opt.MapFrom(src => src.BusinessId != null));
 
         CreateMap<ProductCategory, ProductCategoryDto>();
 

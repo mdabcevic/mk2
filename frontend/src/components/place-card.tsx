@@ -1,23 +1,23 @@
-import { IBarItem } from "../interfaces/bar-item";
 import { useNavigate } from "react-router-dom";
+import { IPlaceItem } from "../interfaces/place-item";
 
-function BarCard( { bar, index }: { bar: IBarItem, index: number }) {
+function PlaceCard( { place, index }: { place: IPlaceItem, index: number }) {
   const navigate = useNavigate();
-  console.log(index)
+
     return (
       <div 
         className={`flex md:block items-center max-h-[60px] md:max-h-none w-full bg-white p-2 md:p-4 rounded shadow-[0px_4px_10px_rgb(0,0,0,0)] `}
-        onClick={() => navigate(`/bar/${bar.id}`)}>
+        onClick={() => navigate(`/bar/${place.id}`)}>
         
         <img 
-          src={bar.imgUrl} 
-          alt={bar.name} 
+          src={place.imageUrl} 
+          alt={place.name} 
           className="w-10 h-10 md:w-[90%] md:h-45 md:mx-auto rounded object-cover"
         />
 
         <div className="flex flex-col justify-center ml-3 md:ml-0 flex-1 overflow-hidden">
-          <h3 className="text-sm md:text-xl text-black font-semibold truncate">{bar.name}</h3>
-          <p className="text-xs text-black truncate">{bar.address}</p>
+          <h3 className="text-sm md:text-xl text-black font-semibold truncate">{place.name}</h3>
+          <p className="text-xs text-black truncate">{place.address}</p>
         </div>
 
         <button className="bg-orange-300 text-white text-xs md:text-base py-1 px-3 rounded hover:bg-orange-100 ml-auto md:ml-0 md:mt-4">
@@ -29,6 +29,6 @@ function BarCard( { bar, index }: { bar: IBarItem, index: number }) {
     );
   };
   
-  export default BarCard;
+  export default PlaceCard;
   
   

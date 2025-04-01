@@ -43,7 +43,7 @@ main{
 }
 .nav-links {
   text-decoration: none;
-  color: rgb(230, 230, 230);
+  color: rgb(53, 53, 53);
   padding: 10px 12px;
 }
 
@@ -52,7 +52,7 @@ main{
   transition: all 0.2s ease-in-out;
 }
 
-.Hamburger-Cross-Icons {
+.hamburger-cross-icons {
   display: none;
 }
 
@@ -65,7 +65,7 @@ main{
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    background-color: #222222cb;
+    background-color: #ffffffcb;
     width: 100%;
     height: auto;
     backdrop-filter: blur(5px);
@@ -86,7 +86,7 @@ main{
     width: 100%;
     padding: 1.5rem 0px 1.5rem 15px;
   }
-  .Hamburger-Cross-Icons {
+  .hamburger-cross-icons {
     display: block;
   }
 

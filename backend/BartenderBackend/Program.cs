@@ -16,6 +16,20 @@ using System.Text.Json.Serialization; // <-- ensure this namespace is included
 
 var builder = WebApplication.CreateBuilder(args);
 
+var allowedOrigins = "AllowedOrigins";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: allowedOrigins,
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        });
+});
+
 // Initialize Serilog 
 builder.Logging.ClearProviders();
 builder.Host.UseSerilog((context, services, config) => config
@@ -93,6 +107,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowedOrigins");
 app.UseAuthentication(); // <--- MUST come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();

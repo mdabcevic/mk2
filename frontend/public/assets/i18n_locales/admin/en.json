@@ -4,5 +4,10 @@
     "products_link_text": "Products",
     "logout": "Logout",
     "lang_option_cro":"Croatian",
-    "lang_option_eng":"English"
+    "lang_option_eng":"English",
+    "quantity_text":"Quantity",
+    "price_text":"Price",
+    "total_price_text":"Total price",
+    "edit_text":"Edit",
+    "delete_text":"Delete"
 }
