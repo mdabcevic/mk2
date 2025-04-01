@@ -231,8 +231,7 @@ public class ProductService(
             var user = await currentUser.GetCurrentUserAsync();
             if (user!.Role != EmployeeRole.admin && product.BusinessId != user!.Place!.BusinessId)
             {
-                logger.LogWarning("User {UserId} attempted to delete product {ProductId} without permission.", user.Id, id);
-                return ServiceResult.Fail("You don't have permission to delete this product.", ErrorType.Unknown);
+                return ServiceResult.Fail("Product can only be deleted by owning business or administrators.", ErrorType.Unknown);
             }
 
             await repository.DeleteAsync(product);

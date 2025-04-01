@@ -99,19 +99,14 @@ public class Repository<T> : IRepository<T> where T : class
         var query = _dbSet.AsQueryable();
 
         if (includeNavigations != null && includeNavigations == true)
-        {
             query = IncludeNavigations(query);
-        }
 
         if (filterBy != null)
-        {
             query = query.Where(filterBy);
-        }
 
         if (orderBy != null)
-        {
             query = ApplyOrdering(query, orderBy);
-        }
+
         return await query.ToListAsync();
     }
 
