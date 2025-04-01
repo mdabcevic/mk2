@@ -1,88 +1,49 @@
-import { useState } from "react";
-import BarCard from "../components/bar-card";
+import { useEffect, useState } from "react";
+import PlaceCard from "../components/place-card";
 import { IBarItem } from "../interfaces/bar-item";
-import BarDetails from "./bar-details";
+import PlaceDetails from "./place-details";
+import { IPlaceItem } from "../interfaces/place-item";
+import { PlaceService } from "../services/place.service";
 
 function Home() {
 
-  const bars = [
-    {
-      id: 1,
-      name: "Bar 1",
-      imgUrl: "https://www.foodandwine.com/thmb/8rtGtUmtC0KiJCDxAUXP_cfwgM8=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GTM-Best-US-Bars-Katana-Kitten-FT-BLOG0423-fa9f2ba9925c47abb4afb0abd25d915a.jpg",
-      address: "123 Main St, City, Country",
-    },
-    {
-      id: 2,
-      name: "Bar 2",
-      imgUrl: "https://media.cnn.com/api/v1/images/stellar/prod/221004154233-01-world-best-bars-2022.jpg?c=original",
-      address: "456 Side St, City, Country",
-    },
-    {
-      id: 3,
-      name: "Bar 3",
-      imgUrl: "https://www.telegraph.co.uk/content/dam/Travel/Destinations/Europe/Spain/Barcelona/nightlife/bar_drink_14_dry_martini3.jpg?imwidth=680",
-      address: "789 High St, City, Country",
-    },
-    {
-      id: 4, // ✅ Added missing ID
-      name: "Bar 4",
-      imgUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPwoVSAa6odttTg4kEfFFs0VeWBQekSFwbGw&s",
-      address: "1010 Low St, City, Country",
-    },
-    {
-      id: 5, // ✅ Added missing ID
-      name: "Bar 5",
-      imgUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1KO2rnFIWT2FBjsElCCQKzYdvakJKmUOKU5SDM6tjVF34pgLBk70AKdx0fgMGaQAXOP4&usqp=CAU",
-      address: "2020 Park Ave, City, Country",
-    },
-    {
-      id: 6, // ✅ Added missing ID
-      name: "Bar 6",
-      imgUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf4ERnSb8biMalV5cHLRxx93JcbXpG0G2IQw&s",
-      address: "3030 River Rd, City, Country",
-    },
-    {
-      id: 7, 
-      name: "Bar 1",
-      imgUrl: "https://www.foodandwine.com/thmb/8rtGtUmtC0KiJCDxAUXP_cfwgM8=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GTM-Best-US-Bars-Katana-Kitten-FT-BLOG0423-fa9f2ba9925c47abb4afb0abd25d915a.jpg",
-      address: "123 Main St, City, Country",
-    },
-    {
-      id: 8, 
-      name: "Bar 2",
-      imgUrl: "https://media.cnn.com/api/v1/images/stellar/prod/221004154233-01-world-best-bars-2022.jpg?c=original",
-      address: "456 Side St, City, Country",
-    },
-    {
-      id: 9, 
-      name: "Bar 3",
-      imgUrl: "https://www.telegraph.co.uk/content/dam/Travel/Destinations/Europe/Spain/Barcelona/nightlife/bar_drink_14_dry_martini3.jpg?imwidth=680",
-      address: "789 High St, City, Country",
-    },
-    {
-      id: 10, 
-      name: "Bar 4",
-      imgUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPwoVSAa6odttTg4kEfFFs0VeWBQekSFwbGw&s",
-      address: "1010 Low St, City, Country",
-    },
-    {
-      id: 11, 
-      name: "Bar 5",
-      imgUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1KO2rnFIWT2FBjsElCCQKzYdvakJKmUOKU5SDM6tjVF34pgLBk70AKdx0fgMGaQAXOP4&usqp=CAU",
-      address: "2020 Park Ave, City, Country",
-    },
-    {
-      id: 12, 
-      name: "Bar 6",
-      imgUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf4ERnSb8biMalV5cHLRxx93JcbXpG0G2IQw&s",
-      address: "3030 River Rd, City, Country",
-    },
-  ] as IBarItem[];
+  const imgUrls = [
+    "https://www.foodandwine.com/thmb/8rtGtUmtC0KiJCDxAUXP_cfwgM8=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GTM-Best-US-Bars-Katana-Kitten-FT-BLOG0423-fa9f2ba9925c47abb4afb0abd25d915a.jpg",
+    "https://media.cnn.com/api/v1/images/stellar/prod/221004154233-01-world-best-bars-2022.jpg?c=original",
+    "https://www.telegraph.co.uk/content/dam/Travel/Destinations/Europe/Spain/Barcelona/nightlife/bar_drink_14_dry_martini3.jpg?imwidth=680",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPwoVSAa6odttTg4kEfFFs0VeWBQekSFwbGw&s",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1KO2rnFIWT2FBjsElCCQKzYdvakJKmUOKU5SDM6tjVF34pgLBk70AKdx0fgMGaQAXOP4&usqp=CAU",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf4ERnSb8biMalV5cHLRxx93JcbXpG0G2IQw&s",
+    "https://www.foodandwine.com/thmb/8rtGtUmtC0KiJCDxAUXP_cfwgM8=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GTM-Best-US-Bars-Katana-Kitten-FT-BLOG0423-fa9f2ba9925c47abb4afb0abd25d915a.jpg",
+    "https://media.cnn.com/api/v1/images/stellar/prod/221004154233-01-world-best-bars-2022.jpg?c=original",
+    "https://www.telegraph.co.uk/content/dam/Travel/Destinations/Europe/Spain/Barcelona/nightlife/bar_drink_14_dry_martini3.jpg?imwidth=680",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPwoVSAa6odttTg4kEfFFs0VeWBQekSFwbGw&s",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1KO2rnFIWT2FBjsElCCQKzYdvakJKmUOKU5SDM6tjVF34pgLBk70AKdx0fgMGaQAXOP4&usqp=CAU",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf4ERnSb8biMalV5cHLRxx93JcbXpG0G2IQw&s"
+]
   
   const [selectedOption, setSelectedOption] = useState("Zagreb");
   const [isOpen, setIsOpen] = useState(false);
   const options = ["Zagreb", "Rijeka", "Karlovac", "Osijek"];
+  const [loading,setLoading] = useState<boolean>(false);
+  const [places,setPlaces] = useState<PlaceItem[]>([]);
+
+  const fetchPlaces = async () =>{
+    let _places = await PlaceService.getPlaces();
+    _places = setImageUrls(_places);
+    setPlaces(_places);
+  }
+
+  const setImageUrls = (places: PlaceItem[]) => {
+    for(var i = 0; i < places.length; i++){
+      let randomIndex = Math.floor(Math.random() * imgUrls.length);
+      places[i].imageUrl = imgUrls[randomIndex]
+    }
+  }
+
+  useEffect(()=>{
+    fetchPlaces();
+  },[]);
   return (
     <div className="p-4">
       <div className="flex items-center space-x-2">
@@ -128,7 +89,6 @@ function Home() {
         )}
       </div>
 
-      {/* Search Input */}
       <input
         type="text"
         placeholder="Pretraži..."
@@ -137,8 +97,8 @@ function Home() {
     </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-3">
-        {bars.map((bar, index) => (
-          <BarCard key={index} bar={bar} index={index} 
+        {places.map((place, index) => (
+          <PlaceCard key={index} place={place} index={index} 
           />
         ))}
       </div>
