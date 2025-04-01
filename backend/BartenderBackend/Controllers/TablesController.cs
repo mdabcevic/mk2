@@ -1,7 +1,6 @@
 ﻿using Bartender.Data.Enums;
 using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
-using BartenderBackend;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -41,7 +40,7 @@ public class TablesController(
     [HttpGet("{label}")]
     public async Task<IActionResult> GetById(string label)
     {
-        var result = await tableInteractionService.GetByLabelAsync(label);
+        var result = await tableManagementService.GetByLabelAsync(label);
         return result.ToActionResult();
     }
 
@@ -76,6 +75,7 @@ public class TablesController(
         return result.ToActionResult();
     }
 
+    [AllowAnonymous] // TODO: check if this is needed
     [HttpPatch("{token}/status")]
     public async Task<IActionResult> ChangeStatus(string token, [FromBody] TableStatus status)
     {

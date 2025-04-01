@@ -32,6 +32,22 @@ public class TableManagementService(
         return ServiceResult<List<TableDto>>.Ok(filtered);
     }
 
+    public async Task<ServiceResult<TableDto>> GetByLabelAsync(string label)
+    {
+        var user = await currentUser.GetCurrentUserAsync();
+
+        var table = await repository.GetByKeyAsync(t =>
+            t.PlaceId == user!.PlaceId &&
+            t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
+
+        if (table is null)
+        {
+            logger.LogWarning("Table with label '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
+            return ServiceResult<TableDto>.Fail("Table not found", ErrorType.NotFound);
+        }
+        return ServiceResult<TableDto>.Ok(mapper.Map<TableDto>(table));
+    }
+
     public async Task<ServiceResult> AddAsync(UpsertTableDto dto)
     {
         var user = await currentUser.GetCurrentUserAsync();
