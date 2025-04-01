@@ -10,5 +10,5 @@ public class PlaceWithMenuDto
     public required string CityName { get; set; }
     public required string WorkHours { get; set; }
 
-    public List<MenuItemDto> MenuItems { get; set; } = [];
+    public List<MenuItemBaseDto> Menu { get; set; } = [];
 }
