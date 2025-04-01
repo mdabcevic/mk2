@@ -28,7 +28,10 @@ public class ProductService(
                 return ServiceResult<ProductDto?>.Fail($"Product with id {id} not found", ErrorType.NotFound);
 
             if (!VerifyProductAccess(user!, product.BusinessId, false))
+            {
+                logger.LogWarning($"Access denied: User {user.Id} (Business: {user.Place!.BusinessId}) attempted to access product from Business {product.BusinessId}.");
                 return ServiceResult<ProductDto?>.Fail($"Cross-business access denied.", ErrorType.NotFound);
+            }
 
             var dto = mapper.Map<ProductDto>(product);
             return ServiceResult<ProductDto?>.Ok(dto);
@@ -96,11 +99,7 @@ public class ProductService(
                             (exclusive == false && p.BusinessId == null)
                         )
                         .OrderBy(p => p.Name)
-                        .Select(p => new ProductBaseDto
-                        {
-                            Name = p.Name,
-                            Volume = p.Volume != null ? p.Volume : "None"
-                        })
+                        .Select(p => mapper.Map<ProductBaseDto>(p))
                         .ToList()
                 })
                 .Where(g => g.Products.Any())
@@ -199,7 +198,10 @@ public class ProductService(
                 product.BusinessId = updateProduct.BusinessId;
 
             if (!VerifyProductAccess(user!, product.BusinessId, true))
+            {
+                logger.LogWarning($"Access denied: User {user.Id} (Business: {user.Place!.BusinessId}) attempted to update product from Business {product.BusinessId}.");
                 return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            }
 
             var validationResult = await ValidateProductAsync(product,id);
 
@@ -231,6 +233,7 @@ public class ProductService(
             var user = await currentUser.GetCurrentUserAsync();
             if (user!.Role != EmployeeRole.admin && product.BusinessId != user!.Place!.BusinessId)
             {
+                logger.LogWarning($"Access denied: User {user.Id} (Business: {user.Place!.BusinessId}) attempted to delete product from Business {product.BusinessId}.");
                 return ServiceResult.Fail("Product can only be deleted by owning business or administrators.", ErrorType.Unknown);
             }
 
