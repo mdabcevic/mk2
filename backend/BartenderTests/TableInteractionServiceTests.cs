@@ -72,24 +72,23 @@ public class TableInteractionServiceTests
     }
 
     [Test]
-    public async Task GetBySaltAsync_ReturnsNotFound_IfTableDoesNotExist()
+    public async Task GetBySaltAsync_ShouldReturnNotFound_IfTableNotExists()
     {
         // Arrange
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>())
-            .Returns((Tables?)null);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns((Tables?)null);
 
         // Act
-        var result = await _service.GetBySaltAsync("invalid_salt");
+        var result = await _service.GetBySaltAsync("salt");
 
         // Assert
         Assert.Multiple(() =>
         {
             Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
             Assert.That(result.Data, Is.Null);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
         });
         await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
-        //await _sessionRepo.DidNotReceive().GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>());
+        await _guestSession.DidNotReceive().CreateSessionAsync(Arg.Any<int>());
     }
 
     [Test]
@@ -108,11 +107,11 @@ public class TableInteractionServiceTests
         {
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Data, Is.Null); //TODO: should reroute to menu
+            Assert.That(result.Data, Is.Null);
         });
 
         await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
-        //await _sessionRepo.DidNotReceive().AddAsync(Arg.Any<GuestSession>());
+        await _guestSession.DidNotReceive().CreateSessionAsync(Arg.Any<int>());
     }
 
     [Test]
@@ -134,10 +133,11 @@ public class TableInteractionServiceTests
             Assert.That(result.Data, Is.Not.Null);
             Assert.That(result.Data, Is.TypeOf<TableScanDto>());
             Assert.That(result.Data!.GuestToken, Is.Empty); // no token for staff
+            Assert.That(table.Status, Is.EqualTo(TableStatus.occupied));
         });
 
         await _tableRepo.Received().UpdateAsync(table);
-        //await _sessionRepo.DidNotReceive().AddAsync(Arg.Any<GuestSession>());
+        await _guestSession.DidNotReceive().CreateSessionAsync(Arg.Any<int>());
     }
 
     [Test]
@@ -145,17 +145,14 @@ public class TableInteractionServiceTests
     {
         // Arrange
         var table = new Tables { Id = 1, QrSalt = "salt", IsDisabled = false, Status = TableStatus.occupied };
-        var activeSession = new GuestSession
-        {
-            TableId = 1,
-            Token = "existing.token",
-            ExpiresAt = DateTime.UtcNow.AddMinutes(30)
-        };
 
         _userContext.IsGuest.Returns(true);
-        _userContext.GetRawToken().Returns("another.user.token"); // not matching
+        _userContext.GetRawToken().Returns("another.user.token");
+
         _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
-        //_sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(activeSession);
+
+        _tableSession.HasActiveSessionAsync(table.Id).Returns(true);
+        _tableSession.IsSameTokenAsActiveAsync(table.Id, "another.user.token").Returns(false);
 
         // Act
         var result = await _service.GetBySaltAsync("salt");
@@ -165,10 +162,11 @@ public class TableInteractionServiceTests
         {
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Conflict));
+            Assert.That(result.Data, Is.Null);
         });
 
-        // Ensure session was not updated/added
-        //await _sessionRepo.DidNotReceive().AddAsync(Arg.Any<GuestSession>());
+        await _guestSession.DidNotReceive().CreateSessionAsync(Arg.Any<int>());
+        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
     }
 
     //[Test]
@@ -242,7 +240,7 @@ public class TableInteractionServiceTests
         var table = new Tables { Id = 1, QrSalt = "salt123", Status = TableStatus.empty };
         _userContext.IsGuest.Returns(true);
         _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
-        //_jwtService.GenerateGuestToken(Arg.Any<int>(), Arg.Any<Guid>(), Arg.Any<DateTime>()).Returns("generated.token");
+        _guestSession.CreateSessionAsync(table.Id).Returns("generated.token");
 
         // Act
         var result = await _service.GetBySaltAsync("salt123");
@@ -256,10 +254,10 @@ public class TableInteractionServiceTests
             Assert.That(result.Data!.GuestToken, Is.EqualTo("generated.token"));
             Assert.That(table.Status, Is.EqualTo(TableStatus.occupied));
         });
+
         await _tableRepo.Received(1).UpdateAsync(table);
-        //await _sessionRepo.Received(1).AddAsync(Arg.Any<GuestSession>());
-        //await _sessionRepo.DidNotReceive().GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>());
     }
+
 
     [Test]
     public async Task ChangeStatusAsync_GuestCanFreeTableWithValidSession()
@@ -267,18 +265,19 @@ public class TableInteractionServiceTests
         // Arrange
         var table = CreateTable("valid");
         var token = "guest-token";
+
         var session = new GuestSession
         {
-            TableId = 1,
+            Id = Guid.NewGuid(),
+            TableId = table.Id,
             Token = token,
             ExpiresAt = DateTime.UtcNow.AddMinutes(5)
         };
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>())
-            .Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
         _userContext.IsGuest.Returns(true);
         _userContext.GetRawToken().Returns(token);
-        //_sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(session);
+        _guestSession.GetByTokenAsync(table.Id, token).Returns(session);
 
         // Act
         var result = await _service.ChangeStatusAsync("valid", TableStatus.empty);
@@ -286,11 +285,11 @@ public class TableInteractionServiceTests
         // Assert
         Assert.Multiple(() =>
         {
-
             Assert.That(result.Success, Is.True);
             Assert.That(table.Status, Is.EqualTo(TableStatus.empty));
         });
-        //await _sessionRepo.Received().DeleteAsync(session);
+
+        await _guestSession.Received().DeleteSessionAsync(session.Id);
         await _tableRepo.Received().UpdateAsync(table);
     }
 
@@ -300,18 +299,18 @@ public class TableInteractionServiceTests
         // Arrange
         var table = CreateTable("expired");
         var token = "guest-token";
-        var session = new GuestSession
+        var expiredSession = new GuestSession
         {
-            TableId = 1,
+            Id = Guid.NewGuid(),
+            TableId = table.Id,
             Token = token,
             ExpiresAt = DateTime.UtcNow.AddMinutes(-10)
         };
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>())
-            .Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
         _userContext.IsGuest.Returns(true);
         _userContext.GetRawToken().Returns(token);
-        //_sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(session);
+        _guestSession.GetByTokenAsync(table.Id, token).Returns(expiredSession);
 
         // Act
         var result = await _service.ChangeStatusAsync("expired", TableStatus.empty);
@@ -322,7 +321,8 @@ public class TableInteractionServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
         });
-        //await _sessionRepo.DidNotReceive().DeleteAsync(Arg.Any<GuestSession>());
+
+        await _guestSession.DidNotReceive().DeleteSessionAsync(Arg.Any<Guid>());
         await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
     }
 
@@ -334,25 +334,26 @@ public class TableInteractionServiceTests
         var token = "guest-token";
         var session = new GuestSession
         {
-            TableId = 1,
+            Id = Guid.NewGuid(),
+            TableId = table.Id,
             Token = token,
             ExpiresAt = DateTime.UtcNow.AddMinutes(5)
         };
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>())
-            .Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
         _userContext.IsGuest.Returns(true);
         _userContext.GetRawToken().Returns(token);
-        //_sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(session);
+        _guestSession.GetByTokenAsync(table.Id, token).Returns(session);
 
         // Act
         var result = await _service.ChangeStatusAsync("noop", TableStatus.empty);
 
         // Assert
         Assert.That(result.Success, Is.True);
-        //await _sessionRepo.DidNotReceive().DeleteAsync(session);
-        await _tableRepo.DidNotReceive().UpdateAsync(table); // because it's already empty
+        await _guestSession.DidNotReceive().DeleteSessionAsync(session.Id);
+        await _tableRepo.DidNotReceive().UpdateAsync(table); // nothing changed, table already empty
     }
+
 
     [Test]
     public async Task ChangeStatusAsync_GuestFailsWhenTryingToSetNonEmptyStatus()
@@ -362,16 +363,16 @@ public class TableInteractionServiceTests
         var token = "guest-token";
         var session = new GuestSession
         {
-            TableId = 1,
+            Id = Guid.NewGuid(),
+            TableId = table.Id,
             Token = token,
             ExpiresAt = DateTime.UtcNow.AddMinutes(5)
         };
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>())
-            .Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
         _userContext.IsGuest.Returns(true);
         _userContext.GetRawToken().Returns(token);
-        //_sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(session);
+        _guestSession.GetByTokenAsync(table.Id, token).Returns(session);
 
         // Act
         var result = await _service.ChangeStatusAsync("bad", TableStatus.reserved);
@@ -382,21 +383,22 @@ public class TableInteractionServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
         });
+
         await _tableRepo.DidNotReceive().UpdateAsync(table);
-        //await _sessionRepo.DidNotReceive().UpdateAsync(session);
+        await _guestSession.DidNotReceive().DeleteSessionAsync(session.Id);
     }
+
 
     [Test]
     public async Task ChangeStatusAsync_StaffCanChangeStatusIfAuthorized()
     {
         // Arrange
-        var table = CreateTable("testtabletoken");
-        var user = CreateStaff(1);
+        var table = CreateTable("testtabletoken", TableStatus.empty);
+        var user = CreateStaff(1, placeId: 1); // Place must match
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>())
-            .Returns(table);
         _userContext.IsGuest.Returns(false);
         _userContext.GetCurrentUserAsync().Returns(user);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
 
         // Act
         var result = await _service.ChangeStatusAsync("testtabletoken", TableStatus.reserved);
@@ -407,21 +409,21 @@ public class TableInteractionServiceTests
             Assert.That(result.Success, Is.True);
             Assert.That(table.Status, Is.EqualTo(TableStatus.reserved));
         });
+
         await _tableRepo.Received().UpdateAsync(table);
-        //await _sessionRepo.DidNotReceive().AddAsync(Arg.Any<GuestSession>());
     }
+
 
     [Test]
     public async Task ChangeStatusAsync_StaffFailsWhenFromOtherPlace()
     {
         // Arrange
-        var table = CreateTable("wrong-place");
-        var user = CreateStaff(10, 99);
+        var table = CreateTable("wrong-place", TableStatus.occupied); // Current status ≠ empty
+        var user = CreateStaff(id: 10, placeId: 99); // Different place than table.PlaceId
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>())
-            .Returns(table);
         _userContext.IsGuest.Returns(false);
         _userContext.GetCurrentUserAsync().Returns(user);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
 
         // Act
         var result = await _service.ChangeStatusAsync("wrong-place", TableStatus.empty);
@@ -431,7 +433,9 @@ public class TableInteractionServiceTests
         {
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(table.Status, Is.Not.EqualTo(TableStatus.empty));
+            Assert.That(table.Status, Is.EqualTo(TableStatus.occupied)); // should remain unchanged
         });
+
+        await _tableRepo.DidNotReceive().UpdateAsync(table);
     }
 }
