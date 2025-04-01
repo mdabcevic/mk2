@@ -97,10 +97,18 @@ public class TableService(
                 s.TableId == table.Id && s.ExpiresAt > DateTime.UtcNow);
 
             // for simplicity purpose - only 1 session per table is allowed. //TODO: one-time code for other people to join table and order?
-            if (activeSession is not null)
+            if (activeSession is not null) //occupied & null = staff created order.
             {
-                logger.LogWarning("QR scan denied for Table {TableId} — session already active (until {Expires})", table.Id, activeSession.ExpiresAt);
-                return ServiceResult<TableScanDto>.Fail("This table is currently in use.", ErrorType.Conflict);
+                if (activeSession.Token == currentUser.GetRawToken())
+                {
+                    logger.LogInformation("Guest resumed active session for Table {TableId}", table.Id);
+                    // Allow continuation (no need to generate new session)
+                }
+                else
+                {
+                    logger.LogWarning("QR scan denied for Table {TableId} — session already active (until {Expires})", table.Id, activeSession.ExpiresAt);
+                    return ServiceResult<TableScanDto>.Fail("This table is currently in use.", ErrorType.Conflict);
+                }
             }
 
             // Table is marked as occupied, but no active session — might be expired.
@@ -233,7 +241,7 @@ public class TableService(
             var accesstoken = currentUser.GetRawToken();
             if (string.IsNullOrWhiteSpace(accesstoken))
             {
-                logger.LogWarning("Guest attempted to change table {Id} without token", token);
+                logger.LogWarning("Guest attempted to change table {Id} without token", token); //sanity check - this should never happen?
                 return ServiceResult.Fail("Missing authentication token.", ErrorType.Unauthorized);
             }
 
