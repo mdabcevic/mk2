@@ -20,10 +20,10 @@ public class TableServiceTests
     private IMapper _mapper;
     private IRepository<Tables> _tableRepo;
     private IRepository<GuestSession> _sessionRepo;
-    private ILogger<TableService> _logger;
+    private ILogger<TableInteractionService> _logger;
     private IJwtService _jwtService;
     private ICurrentUserContext _userContext;
-    private TableService _service;
+    private TableInteractionService _service;
 
     [SetUp]
     public void SetUp()
@@ -38,7 +38,7 @@ public class TableServiceTests
         _mapper = config.CreateMapper();
         _tableRepo = Substitute.For<IRepository<Tables>>();
         _sessionRepo = Substitute.For<IRepository<GuestSession>>();
-        _logger = Substitute.For<ILogger<TableService>>();
+        _logger = Substitute.For<ILogger<TableInteractionService>>();
         _jwtService = Substitute.For<IJwtService>();
         _userContext = Substitute.For<ICurrentUserContext>();
         _userContext.IsGuest.Returns(true);

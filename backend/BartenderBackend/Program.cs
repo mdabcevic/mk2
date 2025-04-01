@@ -69,7 +69,7 @@ builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IPlacesService, PlacesService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
-builder.Services.AddScoped<ITableService, TableService>();
+builder.Services.AddScoped<ITableInteractionService, TableService>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 
