@@ -34,6 +34,10 @@ public class Orders
     public OrderStatus Status { get; set; } = OrderStatus.created;
 
     [Required]
+    [Column("total_price", TypeName = "decimal(10,2)")]
+    public decimal TotalPrice { get; set; } = 0.0m;
+
+    [Required]
     [Column("paymenttype")]
     [EnumDataType(typeof(PaymentType))]
     public PaymentType PaymentType { get; set; } = PaymentType.cash;
