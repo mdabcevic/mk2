@@ -11,12 +11,12 @@ function PlaceCard( { place, index }: { place: IPlaceItem, index: number }) {
         
         <img 
           src={place.imageUrl} 
-          alt={place.name} 
+          alt={place.businessName} 
           className="w-10 h-10 md:w-[90%] md:h-45 md:mx-auto rounded object-cover"
         />
 
         <div className="flex flex-col justify-center ml-3 md:ml-0 flex-1 overflow-hidden">
-          <h3 className="text-sm md:text-xl text-black font-semibold truncate">{place.name}</h3>
+          <h3 className="text-sm md:text-xl text-black font-semibold truncate">{place.businessName}</h3>
           <p className="text-xs text-black truncate">{place.address}</p>
         </div>
 

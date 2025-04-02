@@ -1,7 +1,7 @@
 import { ApiUrl } from "../client/api-urls"
 import api from "../client/client";
 
-export const PlaceService = {
+export const placeService = {
 
     getPlaces: async () => {
         const response = await api.get(ApiUrl.GetPlaces);
@@ -10,7 +10,7 @@ export const PlaceService = {
 
     getPlaceDetailsById: async (id:number) =>{
 
-        const response = await api.get(ApiUrl.GetPlaceById);
+        const response = await api.get(ApiUrl.GetPlaceById.replace("{id}",id.toString()));
         return response;
     }
 }

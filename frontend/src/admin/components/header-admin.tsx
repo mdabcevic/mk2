@@ -59,7 +59,7 @@ const HeaderAdminComponent = () => {
           value={i18n.language}
           className="bg-gray-800 text-white border border-gray-700 p-2 rounded"
         >
-          <option value="en"><img src="../assets/images/flag_uk.png" width="50px" height="30px" /></option>
+          <option value="en"><img src="../assets/images/uk_flag.png" width="50px" height="30px" /></option>
           <option value="hr"><img src="../assets/images/cro_flag.png" width="50px" height="30px" /></option>
         </select>
       </ul>

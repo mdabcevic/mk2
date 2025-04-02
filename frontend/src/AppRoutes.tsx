@@ -21,7 +21,7 @@ function AppRoutes(){
           <Route index element={<Home />} />
           <Route path="aboutus" element={<AboutUs />} />
           <Route path="bar/:id" element={<PlaceDetails />} />
-          <Route path="bar/:placeId/menu" element={<Menu />} />
+          <Route path="place/:placeId/menu" element={<Menu />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 

@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import PlaceCard from "../components/place-card";
-import { IBarItem } from "../interfaces/bar-item";
-import PlaceDetails from "./place-details";
 import { IPlaceItem } from "../interfaces/place-item";
-import { PlaceService } from "../services/place.service";
+import { placeService } from "../services/place.service";
+import { randomImages } from "./random-images";
 
 function Home() {
 
@@ -29,16 +28,8 @@ function Home() {
   const [places,setPlaces] = useState<IPlaceItem[]>([]);
 
   const fetchPlaces = async () =>{
-    let _places = await PlaceService.getPlaces();
-    _places = setImageUrls(_places);
-    setPlaces(_places);
-  }
-
-  const setImageUrls = (places: IPlaceItem[]) => {
-    for(var i = 0; i < places.length; i++){
-      let randomIndex = Math.floor(Math.random() * imgUrls.length);
-      places[i].imageUrl = imgUrls[randomIndex]
-    }
+    let _places = await placeService.getPlaces() as IPlaceItem[];
+    setPlaces(randomImages(_places));
   }
 
   useEffect(()=>{
@@ -97,10 +88,11 @@ function Home() {
     </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-3">
-        {places.map((place, index) => (
-          <PlaceCard key={index} place={place} index={index} 
-          />
-        ))}
+        {places.length > 0 && (
+          places.map((place, index) => (
+            <PlaceCard key={index} place={place} index={index} 
+            />
+        ) ))}
       </div>
     </div>
   );

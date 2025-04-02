@@ -3,5 +3,11 @@
     "aboutus_link_text": "Promijeni jezik",
     "bars_link_text": "Kafići",
     "logout": "Logout",
-    "menu_text": "Menu"
+    "menu_text": "Menu",
+    "quantity_text":"Količina",
+    "price_text":"Cijena",
+    "total_price_text":"Ukupno",
+    "edit_text":"Uredi",
+    "delete_text":"Izbriši",
+    "selected_items":"Odabrani proizvodi"
 }

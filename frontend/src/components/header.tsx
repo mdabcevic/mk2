@@ -15,7 +15,7 @@ const HeaderComponent = () => {
 
   const [selectedLang, setSelectedLang] = useState(i18n.language);
   const languages = [
-    { code: "en", label: "English", flag: "/assets/images/flag_uk.png" },
+    { code: "en", label: "English", flag: "/assets/images/uk_flag.png" },
     { code: "hr", label: "Hrvatski", flag: "/assets/images/cro_flag.png" },
   ];
 

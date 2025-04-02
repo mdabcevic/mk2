@@ -1,8 +1,9 @@
 export interface IPlaceItem{
     id:number,
-    name:string,
+    businessName:string,
     address:string,
     imageUrl:string,
-    workingHours?:string,
-    images?:string[];
+    cityName:string,
+    workHours?:string,
+    images:string[];
 }
