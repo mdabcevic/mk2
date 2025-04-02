@@ -65,6 +65,35 @@ public class TableManagementServiceTests
     }
 
     [Test]
+    public async Task GetAllAsync_ShouldReturnOnlyTablesFromUsersPlace()
+    {
+        // Arrange
+        var user = CreateStaff(placeId: 1);
+        var allTables = new List<Tables>
+    {
+        new() { Id = 1, Label = "T1", PlaceId = 1 },
+        new() { Id = 2, Label = "T2", PlaceId = 1 },
+        new() { Id = 3, Label = "T3", PlaceId = 99 } // belongs to another place
+    };
+
+        _userContext.GetCurrentUserAsync().Returns(user);
+        _tableRepo.GetAllAsync().Returns(allTables);
+
+        // Act
+        var result = await _service.GetAllAsync();
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Data, Is.Not.Null);
+            Assert.That(result.Data?.Count, Is.EqualTo(2));
+            Assert.That(result.Data!.All(t => t.Label is "T1" or "T2"));
+        });
+    }
+
+
+    [Test]
     public async Task AddAsync_ShouldFail_WhenLabelAlreadyExists()
     {
         // Arrange
