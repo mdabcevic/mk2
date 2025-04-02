@@ -21,27 +21,24 @@ public class OrderService(
     private const string GenericErrorMessage = "An unexpected error occurred. Please try again later.";
     public async Task<ServiceResult> AddAsync(UpsertOrderDto order)
     {
-        // retrieve related data - table information and menu items
-        var (table, menuItems) = await GetOrderDependenciesAsync(order);
-
         // validate order requirements
         // - table exists and is occupied
         // - order contains at least one item
         // - all menu items exist and are available
-        var validationResult = await ValidateOrderAsync(order, table, menuItems);
+        var validationResult = await ValidateOrderAsync(order);
         if (!validationResult.Success)
-            return validationResult;        
+            return validationResult;    
 
         // combine duplicate items (same MenuItemId) by summing their quantities
         order.Items = CombineDuplicateItems(order.Items);
 
         var newOrderItems = mapper.Map<List<ProductsPerOrder>>(order.Items);
 
-        // calculate total order price
-        var (totalPrice, updatedItems) = CalculateTotalPriceWithUpdates(newOrderItems, menuItems);
+        var menuItems = await GetOrderItemsAsync(order);
+        newOrderItems.Select(o => o.Price = menuItems.FirstOrDefault(mi => mi.Id == o.MenuItemId).Price);
 
-        order.TotalPrice = totalPrice;
-        newOrderItems = updatedItems;
+        // calculate total order price
+        order.TotalPrice = CalculateTotalPriceWithUpdates(newOrderItems);
 
         order.Status = OrderStatus.created;
 
@@ -77,11 +74,8 @@ public class OrderService(
         if (currentUser.IsGuest && existingOrder.Status != OrderStatus.created)
             return ServiceResult.Fail("Order cannot be changed anymore", ErrorType.Validation);
 
-        // retrieve related data - table information and menu items
-        var (table, menuItems) = await GetOrderDependenciesAsync(order);
-
         // validate order requirements
-        var validationResult = await ValidateOrderAsync(order, table, menuItems);
+        var validationResult = await ValidateOrderAsync(order);
         if (!validationResult.Success)
             return validationResult;
 
@@ -90,10 +84,11 @@ public class OrderService(
 
         var newOrderItems = mapper.Map<List<ProductsPerOrder>>(order.Items);
 
-        var (totalPrice, updatedItems) = CalculateTotalPriceWithUpdates(newOrderItems, menuItems);
+        var menuItems = await GetOrderItemsAsync(order);
+        newOrderItems.Select(o => o.Price = menuItems.FirstOrDefault(mi => mi.Id == o.MenuItemId).Price);
 
-        order.TotalPrice = totalPrice;
-        newOrderItems = updatedItems;
+        order.TotalPrice = CalculateTotalPriceWithUpdates(newOrderItems);
+
         order.Status = existingOrder.Status;
 
         using var transaction = await repository.BeginTransactionAsync();
@@ -153,8 +148,11 @@ public class OrderService(
 
     
 
-    private async Task<ServiceResult> ValidateOrderAsync(UpsertOrderDto order, Tables table, List<MenuItems> menuItems)
+    private async Task<ServiceResult> ValidateOrderAsync(UpsertOrderDto order)
     {
+        var table = await tableRepository.GetByIdAsync(order.TableId);
+        var menuItems = await GetOrderItemsAsync(order);
+
         if (!order.Items.Any())
             return ServiceResult.Fail("Cannot create an order with no items", ErrorType.Validation);
 
@@ -180,15 +178,14 @@ public class OrderService(
         return ServiceResult.Ok();
     }
 
-    private async Task<(Tables Table, List<MenuItems> MenuItems)> GetOrderDependenciesAsync(UpsertOrderDto order)
+    private async Task<List<MenuItems>> GetOrderItemsAsync(UpsertOrderDto order)
     {
-        var table = await tableRepository.GetByIdAsync(order.TableId);
         var menuItemIds = order.Items.Select(i => i.MenuItemId).Distinct();
         var menuItems = await menuItemRepository.GetFilteredAsync(
             includeNavigations: true,
             filterBy: it => menuItemIds.Contains(it.Id));
 
-        return (table, menuItems);
+        return menuItems;
     }
 
     private List<UpsertOrderMenuItemDto> CombineDuplicateItems(List<UpsertOrderMenuItemDto> items)
@@ -203,24 +200,14 @@ public class OrderService(
             .ToList();
     }
 
-    private (decimal TotalPrice, List<ProductsPerOrder> UpdatedItems) CalculateTotalPriceWithUpdates(
-        List<ProductsPerOrder> items, 
-        List<MenuItems> menuItems)
+    private decimal CalculateTotalPriceWithUpdates(List<ProductsPerOrder> items)
     {
         decimal totalPrice = 0m;
-        var updatedItems = new List<ProductsPerOrder>();
 
         foreach (var item in items)
         {
-            var menuItem = menuItems.First(x => x.Id == item.MenuItemId);
-
-            item.Price = menuItem.Price;
-            // TODO - discount
-            // item.Discount = menuItem.Discount
-
             totalPrice += item.Price * item.Count * (1 - item.Discount / 100m);
-            updatedItems.Add(item);
         }
-        return (totalPrice, updatedItems);
+        return totalPrice;
     }
 }

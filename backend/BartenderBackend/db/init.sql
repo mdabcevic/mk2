@@ -17,7 +17,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'orderstatus') THEN
-    CREATE TYPE OrderStatus AS ENUM ('created', 'approved', 'delivered', 'paid', 'closed', 'cancelled');
+    CREATE TYPE OrderStatus AS ENUM ('created', 'approved', 'delivered', 'payment_requested', 'paid', 'closed', 'cancelled');
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'paymenttype') THEN
