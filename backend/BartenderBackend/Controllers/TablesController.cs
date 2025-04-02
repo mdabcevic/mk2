@@ -1,0 +1,85 @@
+﻿using Bartender.Data.Enums;
+using Bartender.Domain.DTO;
+using Bartender.Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace BartenderBackend.Controllers;
+
+[ApiController]
+[Route("api/tables")]
+[Authorize]
+public class TablesController(
+    ITableInteractionService tableInteractionService,
+    ITableManagementService tableManagementService) : ControllerBase
+{
+    [HttpPost]
+    [Authorize(Roles = "manager")]
+    public async Task<IActionResult> Add([FromBody] UpsertTableDto dto)
+    {
+        var result = await tableManagementService.AddAsync(dto);
+        return result.ToActionResult();
+    }
+
+    [HttpPut("{label}")]
+    [Authorize(Roles = "manager")]
+    public async Task<IActionResult> Update(string label, [FromBody] UpsertTableDto dto)
+    {
+        var result = await tableManagementService.UpdateAsync(label, dto);
+        return result.ToActionResult();
+    }
+
+    [HttpDelete("{label}")]
+    [Authorize(Roles = "manager")]
+    public async Task<IActionResult> Delete(string label)
+    {
+        var result = await tableManagementService.DeleteAsync(label);
+        return result.ToActionResult();
+    }
+
+    [HttpGet("{label}")]
+    public async Task<IActionResult> GetById(string label)
+    {
+        var result = await tableManagementService.GetByLabelAsync(label);
+        return result.ToActionResult();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await tableManagementService.GetAllAsync();
+        return result.ToActionResult();
+    }
+
+    [HttpGet("lookup")]
+    [AllowAnonymous] // guests scan QR
+    public async Task<IActionResult> GetBySalt([FromQuery] string salt)
+    {
+        var result = await tableInteractionService.GetBySaltAsync(salt);
+        return result.ToActionResult();
+    }
+
+    [HttpPost("{label}/rotate-token")]
+    [Authorize(Roles = "manager")]
+    public async Task<IActionResult> RegenerateSalt(string label)
+    {
+        var result = await tableManagementService.RegenerateSaltAsync(label);
+        return result.ToActionResult();
+    }
+
+    [HttpPatch("{label}/toggle-disabled")]
+    [Authorize(Roles = "manager")]
+    public async Task<IActionResult> SetDisabled(string label, [FromBody] bool disable)
+    {
+        var result = await tableManagementService.SwitchDisabledAsync(label, disable);
+        return result.ToActionResult();
+    }
+
+    [AllowAnonymous] // TODO: check if this is needed
+    [HttpPatch("{token}/status")]
+    public async Task<IActionResult> ChangeStatus(string token, [FromBody] TableStatus status)
+    {
+        var result = await tableInteractionService.ChangeStatusAsync(token, status);
+        return result.ToActionResult();
+    }
+}

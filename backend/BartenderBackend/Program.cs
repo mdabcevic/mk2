@@ -69,6 +69,11 @@ builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IPlacesService, PlacesService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
+builder.Services.AddScoped<ITableInteractionService, TableInteractionService>();
+builder.Services.AddScoped<ITableManagementService, TableManagementService>();
+builder.Services.AddScoped<IGuestSessionService, GuestSessionService>();
+builder.Services.AddScoped<ITableSessionService, GuestSessionService>();
+
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 
@@ -83,7 +88,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        //options.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
+        //options.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter()); //TODO: add for better time serialization / deserialization
     });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
