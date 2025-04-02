@@ -4,6 +4,7 @@ using Bartender.Data;
 using System.Linq.Expressions;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Linq;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Bartender.Domain.Repositories;
 
@@ -110,6 +111,11 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.ToListAsync();
     }
 
+    public async Task<IDbContextTransaction> BeginTransactionAsync()
+    {
+        return await context.Database.BeginTransactionAsync();
+    }
+
     public IQueryable<T> IncludeNavigations(IQueryable<T> query)
     {
         var navigationProperties = context.Model.FindEntityType(typeof(T))?.GetNavigations();
@@ -195,6 +201,12 @@ public class Repository<T> : IRepository<T> where T : class
     public async Task DeleteAsync(T entity)
     {
         _dbSet.Remove(entity);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task DeleteRangeAsync(IEnumerable<T> entities)
+    {
+        _dbSet.RemoveRange(entities);
         await context.SaveChangesAsync();
     }
 

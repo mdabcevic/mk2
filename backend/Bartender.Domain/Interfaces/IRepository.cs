@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using System.Linq.Expressions;
 
 namespace Bartender.Domain.Interfaces;
 
@@ -17,6 +18,7 @@ public interface IRepository<T> where T : class
     Task AddMultipleAsync(IEnumerable<T> entities);
     Task UpdateAsync(T entity);
     Task DeleteAsync(T entity);
+    Task DeleteRangeAsync(IEnumerable<T> entities);
 
     // Querying
     //IQueryable<T> Find(Expression<Func<T, bool>> predicate);
@@ -28,4 +30,7 @@ public interface IRepository<T> where T : class
     Task<int> CountAsync(Expression<Func<T, bool>> predicate);
 
     //void Detach(T entity);
+
+    Task<IDbContextTransaction> BeginTransactionAsync();
 }
+
