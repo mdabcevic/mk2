@@ -2,9 +2,9 @@
 
 export class ApiUrl{
 
-    static GetBars = "/places";
-    static GetBarById = "/places/{id}";
+    static GetPlaces = "/api/places";
+    static GetPlaceById = "/api/places/{id}";
 
-    static GetMenuById = "/menu/{id}";
+    static GetMenuByPlaceId = "/api/menu/{placeId}";
 
 }
