@@ -101,12 +101,13 @@ CREATE TABLE IF NOT EXISTS Products (
 
 -- Table: MenuItems
 CREATE TABLE IF NOT EXISTS MenuItems (
+	id SERIAL PRIMARY KEY,
     place_id INTEGER NOT NULL REFERENCES Places(id) ON DELETE CASCADE,
     product_id INTEGER NOT NULL REFERENCES Products(id) ON DELETE CASCADE,
     price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    isAvailable BOOLEAN NOT NULL,
+    isAvailable BOOLEAN NOT NULL DEFAULT false,
     description VARCHAR NULL,
-    PRIMARY KEY (place_id, product_id)
+    UNIQUE(place_id, product_id)
 );
 
 -- Table: Customers
@@ -119,19 +120,22 @@ CREATE TABLE IF NOT EXISTS Customers (
 -- Table: Orders
 CREATE TABLE IF NOT EXISTS Orders (
     id SERIAL PRIMARY KEY,
-    table_id INTEGER NOT NULL UNIQUE REFERENCES Tables(id) ON DELETE CASCADE,
+    table_id INTEGER NOT NULL REFERENCES Tables(id) ON DELETE CASCADE,
     customer_id INTEGER REFERENCES Customers(id) ON DELETE SET NULL,
     createdAt TIMESTAMP DEFAULT now(),
     status OrderStatus NOT NULL DEFAULT 'created',
+	total_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     paymentType PaymentType NOT NULL DEFAULT 'cash'
 );
 
 -- Table: ProductsPerOrder
 CREATE TABLE IF NOT EXISTS ProductsPerOrder (
     order_id INTEGER NOT NULL REFERENCES Orders(id) ON DELETE CASCADE,
-    product_id INTEGER NOT NULL REFERENCES Products(id) ON DELETE CASCADE,
+    menuitem_id INTEGER NOT NULL REFERENCES MenuItems(id) ON DELETE CASCADE,
+	item_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+	discount DECIMAL(5,2) DEFAULT 0.00,
     count INTEGER DEFAULT 1,
-    PRIMARY KEY (order_id, product_id)
+    PRIMARY KEY (order_id, menuitem_id)
 );
 
 -- Table: Reviews
