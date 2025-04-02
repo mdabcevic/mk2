@@ -13,25 +13,24 @@ public class GuestSessionService(
 {
     public async Task<bool> HasActiveSessionAsync(int tableId)
     {
-        var active = await guestSessionRepo.GetByKeyAsync(s =>
-            s.TableId == tableId && s.ExpiresAt > DateTime.UtcNow);
-        return active != null;
+        return await GetActiveSessionAsync(tableId) is not null;
     }
 
     public async Task<bool> IsSameTokenAsActiveAsync(int tableId, string token)
     {
-        var active = await guestSessionRepo.GetByKeyAsync(s =>
-            s.TableId == tableId && s.ExpiresAt > DateTime.UtcNow);
+        var active = await GetActiveSessionAsync(tableId);
         return active?.Token == token;
+    }
+
+    private async Task<GuestSession?> GetActiveSessionAsync(int tableId)
+    {
+        return await guestSessionRepo.GetByKeyAsync(s =>
+            s.TableId == tableId && s.ExpiresAt > DateTime.UtcNow);
     }
 
     public async Task<bool> CanResumeExpiredSessionAsync(int tableId, string token)
     {
-        var latestExpired = await guestSessionRepo.Query()
-            .Where(s => s.TableId == tableId)
-            .OrderByDescending(s => s.ExpiresAt)
-            .FirstOrDefaultAsync();
-
+        var latestExpired = await GetLatestExpiredSessionAsync(tableId);
         return latestExpired?.Token == token;
     }
 
@@ -79,4 +78,3 @@ public class GuestSessionService(
         return await guestSessionRepo.GetByKeyAsync(s => s.TableId == tableId && s.Token == token);
     }
 }
-

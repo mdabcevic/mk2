@@ -8,10 +8,7 @@ using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
-using System;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 namespace BartenderTests;
 
@@ -320,6 +317,7 @@ public class TableInteractionServiceTests
         {
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
+            Assert.That(table.Status, Is.EqualTo(TableStatus.occupied));
         });
 
         await _guestSession.DidNotReceive().DeleteSessionAsync(Arg.Any<Guid>());
@@ -350,6 +348,7 @@ public class TableInteractionServiceTests
 
         // Assert
         Assert.That(result.Success, Is.True);
+        Assert.That(table.Status, Is.EqualTo(TableStatus.empty));
         await _guestSession.DidNotReceive().DeleteSessionAsync(session.Id);
         await _tableRepo.DidNotReceive().UpdateAsync(table); // nothing changed, table already empty
     }

@@ -28,27 +28,34 @@ public class GuestSessionServiceTests
     [Test]
     public async Task HasActiveSessionAsync_ShouldReturnTrue_WhenActiveExists()
     {
+        // Arrange
         var session = new GuestSession { TableId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(10) };
         _sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(session);
 
+        // Act
         var result = await _service.HasActiveSessionAsync(1);
 
+        // Assert
         Assert.That(result, Is.True);
     }
 
     [Test]
     public async Task HasActiveSessionAsync_ShouldReturnFalse_WhenNoActiveSession()
     {
+        // Arrange
         _sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns((GuestSession?)null);
 
+        // Act
         var result = await _service.HasActiveSessionAsync(1);
 
+        // Assert
         Assert.That(result, Is.False);
     }
 
     [Test]
     public async Task IsSameTokenAsActiveAsync_ShouldReturnTrue_WhenTokenMatches()
     {
+        // Arrange
         var session = new GuestSession
         {
             TableId = 1,
@@ -57,14 +64,17 @@ public class GuestSessionServiceTests
         };
         _sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(session);
 
+        // Act
         var result = await _service.IsSameTokenAsActiveAsync(1, "match");
 
+        // Assert
         Assert.That(result, Is.True);
     }
 
     [Test]
     public async Task IsSameTokenAsActiveAsync_ShouldReturnFalse_WhenTokenDiffers()
     {
+        // Arrange
         var session = new GuestSession
         {
             TableId = 1,
@@ -73,8 +83,10 @@ public class GuestSessionServiceTests
         };
         _sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(session);
 
+        // Act
         var result = await _service.IsSameTokenAsActiveAsync(1, "wrong");
 
+        // Assert
         Assert.That(result, Is.False);
     }
 
@@ -115,11 +127,14 @@ public class GuestSessionServiceTests
     [Test]
     public async Task CreateSessionAsync_ShouldCreateSessionAndReturnToken()
     {
+        // Arrange
         _jwtService.GenerateGuestToken(1, Arg.Any<Guid>(), Arg.Any<DateTime>())
             .Returns("mock.token");
 
+        // Act
         string token = await _service.CreateSessionAsync(1);
 
+        // Assert
         Assert.That(token, Is.EqualTo("mock.token"));
         await _sessionRepo.Received().AddAsync(Arg.Is<GuestSession>(s =>
             s.TableId == 1 &&
@@ -131,23 +146,29 @@ public class GuestSessionServiceTests
     [Test]
     public async Task DeleteSessionAsync_ShouldRemoveSession_WhenExists()
     {
+        // Arrange
         var sessionId = Guid.NewGuid();
         var session = new GuestSession { Id = sessionId };
 
         _sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(session);
 
+        // Act
         await _service.DeleteSessionAsync(sessionId);
 
+        // Assert
         await _sessionRepo.Received().DeleteAsync(session);
     }
 
     [Test]
     public async Task DeleteSessionAsync_ShouldDoNothing_WhenSessionMissing()
     {
+        // Arrange
         _sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns((GuestSession?)null);
 
+        // Act
         await _service.DeleteSessionAsync(Guid.NewGuid());
 
+        // Assert
         await _sessionRepo.DidNotReceive().DeleteAsync(Arg.Any<GuestSession>());
     }
 
@@ -166,11 +187,14 @@ public class GuestSessionServiceTests
     [Test]
     public async Task GetByTokenAsync_ShouldReturnMatchingSession()
     {
+        // Arrange
         var session = new GuestSession { TableId = 1, Token = "abc" };
         _sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(session);
 
+        // Act
         var result = await _service.GetByTokenAsync(1, "abc");
 
+        // Assert
         Assert.That(result, Is.EqualTo(session));
     }
 }
