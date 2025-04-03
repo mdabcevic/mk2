@@ -1,5 +1,4 @@
-﻿
-namespace Bartender.Domain.Exceptions;
+﻿namespace Bartender.Domain.utility.Exceptions;
 
 public class NotFoundException : Exception
 {

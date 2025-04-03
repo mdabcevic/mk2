@@ -25,291 +25,225 @@ public class OrderService(
     private const string GenericErrorMessage = "An unexpected error occurred. Please try again later.";
     public async Task<ServiceResult> AddAsync(UpsertOrderDto order)
     {
+        var validUser = await VerifyUserAccess(order.TableId);
+        if (!validUser.Success)
+            return validUser;
+
+        // validate order requirements
+        var validationResult = await ValidateOrderAsync(order);
+        if (!validationResult.Success)
+            return validationResult;
+
+        // combine duplicate items (same MenuItemId) by summing their quantities and add price to each item
+        List<ProductsPerOrder> newOrderItems = await CombineDuplicateItemsAndAddPrices(order);
+
+        // calculate total order price
+        order.TotalPrice = CalculateTotalPrice(newOrderItems);
+        order.Status = OrderStatus.created;
+
+        // create order transaction - either completes both order and items creation or rolls back completely on any failure
+        using var transaction = await repository.BeginTransactionAsync();
+
         try
         {
-            var validUser = await VerifyUserAccess(order.TableId);
-            if (!validUser.Success)
-                return validUser;
+            var newOrder = mapper.Map<Orders>(order);
+            await repository.AddAsync(newOrder);
 
-            // validate order requirements
-            var validationResult = await ValidateOrderAsync(order);
-            if (!validationResult.Success)
-                return validationResult;
+            foreach (var item in newOrderItems)
+                item.OrderId = newOrder.Id;
 
-            // combine duplicate items (same MenuItemId) by summing their quantities and add price to each item
-            List<ProductsPerOrder> newOrderItems = await CombineDuplicateItemsAndAddPrices(order);
-
-            // calculate total order price
-            order.TotalPrice = CalculateTotalPrice(newOrderItems);
-            order.Status = OrderStatus.created;
-
-            // create order transaction - either completes both order and items creation or rolls back completely on any failure
-            using var transaction = await repository.BeginTransactionAsync();
-
-            try
-            {
-                var newOrder = mapper.Map<Orders>(order);
-                await repository.AddAsync(newOrder);
-
-                foreach (var item in newOrderItems)
-                    item.OrderId = newOrder.Id;
-
-                await orderProductsRepo.AddMultipleAsync(newOrderItems);
-                await transaction.CommitAsync();
-                return ServiceResult.Ok();
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                logger.LogError(ex, "Error creating order");
-                return ServiceResult.Fail("Error creating order", ErrorType.Unknown);
-            }
+            await orderProductsRepo.AddMultipleAsync(newOrderItems);
+            await transaction.CommitAsync();
+            return ServiceResult.Ok();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while creating an order.");
-            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
+            await transaction.RollbackAsync();
+            logger.LogError(ex, "Error creating order");
+            return ServiceResult.Fail("Error creating order", ErrorType.Unknown);
         }
     }
 
     public async Task<ServiceResult> UpdateStatusAsync(int id, UpdateOrderStatusDto newStatus)
     {
-        try
+        var existingOrder = await repository.GetByIdAsync(id, true);
+
+        if (existingOrder == null)
         {
-            var existingOrder = await repository.GetByIdAsync(id, true);
+            return ServiceResult.Fail($"Order with id {id} not found", ErrorType.NotFound);
+        }
 
-            if (existingOrder == null)
-            {
-                return ServiceResult.Fail($"Order with id {id} not found", ErrorType.NotFound);
-            }
+        var validUser = await VerifyUserAccess(existingOrder.TableId);
+        if (!validUser.Success)
+            return validUser;
 
-            var validUser = await VerifyUserAccess(existingOrder.TableId);
-            if (!validUser.Success)
-                return validUser;
-
-            if (currentUser.IsGuest)
-            {
-                if (newStatus.Status == OrderStatus.payment_requested && (existingOrder.Status == OrderStatus.delivered || existingOrder.Status == OrderStatus.approved))
-                {
-                    existingOrder.Status = newStatus.Status;
-                    existingOrder.PaymentType = (PaymentType)(newStatus.PaymentType != null ? newStatus.PaymentType : PaymentType.cash);
-                }
-                else
-                    return ServiceResult.Fail($"Order status cannot be changed to {newStatus.Status}", ErrorType.NotFound);
-            }
-            else
+        if (currentUser.IsGuest)
+        {
+            if (newStatus.Status == OrderStatus.payment_requested && (existingOrder.Status == OrderStatus.delivered || existingOrder.Status == OrderStatus.approved))
             {
                 existingOrder.Status = newStatus.Status;
-
-                if (existingOrder.Status == OrderStatus.closed)
-                {
-                    // TODO
-                }
+                existingOrder.PaymentType = (PaymentType)(newStatus.PaymentType != null ? newStatus.PaymentType : PaymentType.cash);
             }
-            await repository.UpdateAsync(existingOrder);
-            return ServiceResult.Ok();
+            else
+                return ServiceResult.Fail($"Order status cannot be changed to {newStatus.Status}", ErrorType.NotFound);
         }
-        catch (Exception ex)
+        else
         {
-            logger.LogError(ex, "An unexpected error occurred while updating order status.");
-            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+            existingOrder.Status = newStatus.Status;
 
+            if (existingOrder.Status == OrderStatus.closed)
+            {
+                // TODO
+            }
+        }
+        await repository.UpdateAsync(existingOrder);
+        return ServiceResult.Ok();      
     }
 
     public async Task<ServiceResult> UpdateAsync(int id, UpsertOrderDto order)
     {
+        var existingOrder = await repository.GetByIdAsync(id, true);
+        if (existingOrder == null)
+        {
+            return ServiceResult.Fail($"Order with id {id} not found", ErrorType.NotFound);
+        }
+
+        var validUser = await VerifyUserAccess(order.TableId);
+        if (!validUser.Success)
+            return validUser;
+
+        // if the order isn't yet approved it can still be changed
+        if (currentUser.IsGuest && existingOrder.Status != OrderStatus.created)
+            return ServiceResult.Fail("Order cannot be changed anymore", ErrorType.Validation);
+
+        // validate order requirements
+        var validationResult = await ValidateOrderAsync(order);
+        if (!validationResult.Success)
+            return validationResult;
+
+        List<ProductsPerOrder> newOrderItems = await CombineDuplicateItemsAndAddPrices(order);
+
+        order.TotalPrice = CalculateTotalPrice(newOrderItems);
+        order.Status = existingOrder.Status;
+
+        using var transaction = await repository.BeginTransactionAsync();
+
+        // create order transaction - either completes both order and items creation or rolls back completely on any failure
         try
         {
-            var existingOrder = await repository.GetByIdAsync(id, true);
-            if (existingOrder == null)
-            {
-                return ServiceResult.Fail($"Order with id {id} not found", ErrorType.NotFound);
-            }
+            mapper.Map(order, existingOrder);
+            await repository.UpdateAsync(existingOrder);
 
-            var validUser = await VerifyUserAccess(order.TableId);
-            if (!validUser.Success)
-                return validUser;
+            var oldItems = await orderProductsRepo.GetFilteredAsync(false, it => it.OrderId == id);
+            await orderProductsRepo.DeleteRangeAsync(oldItems);
 
-            // if the order isn't yet approved it can still be changed
-            if (currentUser.IsGuest && existingOrder.Status != OrderStatus.created)
-                return ServiceResult.Fail("Order cannot be changed anymore", ErrorType.Validation);
+            foreach (var item in newOrderItems)
+                item.OrderId = existingOrder.Id;
 
-            // validate order requirements
-            var validationResult = await ValidateOrderAsync(order);
-            if (!validationResult.Success)
-                return validationResult;
+            await orderProductsRepo.AddMultipleAsync(newOrderItems);
 
-            List<ProductsPerOrder> newOrderItems = await CombineDuplicateItemsAndAddPrices(order);
-
-            order.TotalPrice = CalculateTotalPrice(newOrderItems);
-            order.Status = existingOrder.Status;
-
-            using var transaction = await repository.BeginTransactionAsync();
-
-            // create order transaction - either completes both order and items creation or rolls back completely on any failure
-            try
-            {
-                mapper.Map(order, existingOrder);
-                await repository.UpdateAsync(existingOrder);
-
-                var oldItems = await orderProductsRepo.GetFilteredAsync(false, it => it.OrderId == id);
-                await orderProductsRepo.DeleteRangeAsync(oldItems);
-
-                foreach (var item in newOrderItems)
-                    item.OrderId = existingOrder.Id;
-
-                await orderProductsRepo.AddMultipleAsync(newOrderItems);
-
-                await transaction.CommitAsync();
-                return ServiceResult.Ok();
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                logger.LogError(ex, "Error updating order");
-                return ServiceResult.Fail("Error updating order", ErrorType.Unknown);
-            }
+            await transaction.CommitAsync();
+            return ServiceResult.Ok();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while updating an order.");
-            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+            await transaction.RollbackAsync();
+            logger.LogError(ex, "Error updating order");
+            return ServiceResult.Fail("Error updating order", ErrorType.Unknown);
+        }     
     }
 
     public async Task<ServiceResult> DeleteAsync(int id)
     {
-        try
+        var order = await repository.GetByIdAsync(id);
+        if (order == null)
         {
-            var order = await repository.GetByIdAsync(id);
-            if (order == null)
-            {
-                return ServiceResult.Fail($"Order with ID {id} not found", ErrorType.NotFound);
-            }
-            await repository.DeleteAsync(order);
-            return ServiceResult.Ok();
+            return ServiceResult.Fail($"Order with ID {id} not found", ErrorType.NotFound);
         }
-        catch (Exception ex) {
-            logger.LogError(ex, "An unexpected error occurred while deleting an order.");
-            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+        await repository.DeleteAsync(order);
+        return ServiceResult.Ok();
     }
 
     public async Task<ServiceResult<List<OrderDto>>> GetAllByPlaceIdAsync(int placeId, bool onlyActive = false, bool pending = false)
     {
-        try
-        {
-            var place = await placeRepository.ExistsAsync(p => p.Id == placeId);
-            if (!place)
-                return ServiceResult<List<OrderDto>>.Fail($"Place with id {placeId} not found", ErrorType.NotFound);
+        var place = await placeRepository.ExistsAsync(p => p.Id == placeId);
+        if (!place)
+            return ServiceResult<List<OrderDto>>.Fail($"Place with id {placeId} not found", ErrorType.NotFound);
 
-            if (!await VerifyUserPlaceAccess(null, placeId))
-                return ServiceResult<List<OrderDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+        if (!await VerifyUserPlaceAccess(null, placeId))
+            return ServiceResult<List<OrderDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
 
-            Expression<Func<Orders, bool>>? filter = null;
+        Expression<Func<Orders, bool>>? filter = null;
            
-            if (onlyActive)
-                filter = o => o.Table.PlaceId == placeId && (o.Status != OrderStatus.closed || o.Status == OrderStatus.cancelled);
+        if (onlyActive)
+            filter = o => o.Table.PlaceId == placeId && (o.Status != OrderStatus.closed || o.Status == OrderStatus.cancelled);
             
-            else if (pending)
-                filter = o => o.Table.PlaceId == placeId &&
-                                (o.Status == OrderStatus.created || o.Status == OrderStatus.payment_requested);
-            else
-                filter = o => o.Table.PlaceId == placeId;
+        else if (pending)
+            filter = o => o.Table.PlaceId == placeId &&
+                            (o.Status == OrderStatus.created || o.Status == OrderStatus.payment_requested);
+        else
+            filter = o => o.Table.PlaceId == placeId;
 
 
-            var orders = await repository.GetFilteredAsync(
-                    includeNavigations: true,
-                    filterBy: filter,
-                    orderByDescending: true,
-                    orderBy: o => o.CreatedAt);
+        var orders = await repository.GetFilteredAsync(
+                includeNavigations: true,
+                filterBy: filter,
+                orderByDescending: true,
+                orderBy: o => o.CreatedAt);
 
-            var dto = mapper.Map<List<OrderDto>>(orders);
-            return ServiceResult<List<OrderDto>>.Ok(dto);
-
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An unexpected error occurred while fetching orders.");
-            return ServiceResult<List<OrderDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+        var dto = mapper.Map<List<OrderDto>>(orders);
+        return ServiceResult<List<OrderDto>>.Ok(dto);
     }
 
     public async Task<ServiceResult<List<OrderBaseDto>>> GetAllByBusinessIdAsync(int businessId)
     {
-        try
+        var business = await businessRepository.ExistsAsync(b => b.Id == businessId);
+        if (!business)
+            return ServiceResult<List<OrderBaseDto>>.Fail($"Business with id {businessId} not found", ErrorType.NotFound);
+
+        if (!await VerifyUserBusinessAccess(businessId))
         {
-            var business = await businessRepository.ExistsAsync(b => b.Id == businessId);
-            if (!business)
-                return ServiceResult<List<OrderBaseDto>>.Fail($"Business with id {businessId} not found", ErrorType.NotFound);
-
-            if (!await VerifyUserBusinessAccess(businessId))
-            {
-                return ServiceResult<List<OrderBaseDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
-            }
-
-            var orders = await repository.GetFilteredAsync(
-                    includeNavigations: true,
-                    filterBy: o => o.Table.Place.BusinessId == businessId,
-                    orderByDescending: true,
-                    orderBy: o => o.CreatedAt);
-
-            var dto = mapper.Map<List<OrderBaseDto>>(orders);
-            return ServiceResult<List<OrderBaseDto>>.Ok(dto);
-
+            return ServiceResult<List<OrderBaseDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An unexpected error occurred while fetching orders.");
-            return ServiceResult<List<OrderBaseDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+
+        var orders = await repository.GetFilteredAsync(
+                includeNavigations: true,
+                filterBy: o => o.Table.Place.BusinessId == businessId,
+                orderByDescending: true,
+                orderBy: o => o.CreatedAt);
+
+        var dto = mapper.Map<List<OrderBaseDto>>(orders);
+        return ServiceResult<List<OrderBaseDto>>.Ok(dto);
     }
 
     public async Task<ServiceResult<OrderDto?>> GetByIdAsync(int id)
     {
-        try
-        {
-            var order = await repository.GetByIdAsync(id, true);
+        var order = await repository.GetByIdAsync(id, true);
 
-            if (order == null)
-                return ServiceResult<OrderDto?>.Fail($"Order with id {id} not found", ErrorType.NotFound);
+        if (order == null)
+            return ServiceResult<OrderDto?>.Fail($"Order with id {id} not found", ErrorType.NotFound);
 
-            var verifyUser = await VerifyUserAccess(order.TableId);
-            if (!verifyUser.Success)
-                return ServiceResult<OrderDto?>.Fail(verifyUser.Error!, verifyUser.errorType!.Value);
+        var verifyUser = await VerifyUserAccess(order.TableId);
+        if (!verifyUser.Success)
+            return ServiceResult<OrderDto?>.Fail(verifyUser.Error!, verifyUser.errorType!.Value);
 
-            var dto = mapper.Map<OrderDto>(order);
+        var dto = mapper.Map<OrderDto>(order);
 
-            return ServiceResult<OrderDto?>.Ok(dto);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An unexpected error occurred while fetching the order.");
-            return ServiceResult<OrderDto?>.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+        return ServiceResult<OrderDto?>.Ok(dto);
     }
 
     public async Task<ServiceResult<List<OrderDto>>> GetActiveTableOrdersForUserAsync()
     {
-        try
-        {
-            var guest = await guestSessionRepo.GetByKeyAsync(g => g.Token == currentUser.GetRawToken());
+        var guest = await guestSessionRepo.GetByKeyAsync(g => g.Token == currentUser.GetRawToken());
 
-            var order = await repository.GetByKeyAsync(
-                o => o.TableId == guest.TableId &&
-                (o.Status != OrderStatus.closed || o.Status != OrderStatus.cancelled)
-                && o.CreatedAt.Date == DateTime.UtcNow.Date);
+        var order = await repository.GetByKeyAsync(
+            o => o.TableId == guest.TableId &&
+            (o.Status != OrderStatus.closed || o.Status != OrderStatus.cancelled)
+            && o.CreatedAt.Date == DateTime.UtcNow.Date);
 
-            var dto = mapper.Map<List<OrderDto>>(order);
+        var dto = mapper.Map<List<OrderDto>>(order);
 
-            return ServiceResult< List<OrderDto>>.Ok(dto);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An unexpected error occurred while fetching the order.");
-            return ServiceResult<List<OrderDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+        return ServiceResult< List<OrderDto>>.Ok(dto);
     }
 
     private async Task<ServiceResult> ValidateOrderAsync(UpsertOrderDto order)
@@ -321,7 +255,7 @@ public class OrderService(
             return ServiceResult.Fail("Cannot create an order with no items", ErrorType.Validation);
 
         if (table == null)
-            return ServiceResult.Fail($"Table with ID {order.TableId} not found", ErrorType.NotFound);
+            return ServiceResult.Fail($"Table not found", ErrorType.NotFound);
 
         if (table.Status != TableStatus.occupied)
             return ServiceResult.Fail("Cannot create an order on an unoccupied table", ErrorType.Unauthorized);
