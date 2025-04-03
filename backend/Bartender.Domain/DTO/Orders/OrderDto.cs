@@ -8,7 +8,6 @@ namespace Bartender.Domain.DTO.Orders;
 
 public class OrderDto : OrderBaseDto
 {
-    public int Id { get; set; }
-    // TODO - use dto for ProductsPerOrder
-    public List<ProductsPerOrder> Products { get; set; } = [];
+    public required int Id { get; set; }
+    public required List<OrderItemsDto> Items { get; set; }
 }

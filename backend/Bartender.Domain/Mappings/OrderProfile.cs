@@ -9,6 +9,9 @@ public class OrderProfile : Profile
    public OrderProfile() {
         CreateMap<UpsertOrderDto, Orders>();
         CreateMap<UpsertOrderMenuItemDto, ProductsPerOrder>();
-    
+        CreateMap<Orders, OrderBaseDto>();
+        CreateMap<Orders, OrderDto>();
+        CreateMap<ProductsPerOrder, OrderItemsDto>();
+
     }
 }

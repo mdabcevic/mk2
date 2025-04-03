@@ -7,12 +7,10 @@ namespace Bartender.Domain.DTO.Orders;
 
 public class OrderBaseDto
 {
-    public int TableId { get; set; }
-    // TODO - use dto for Tables
-    public Tables Table { get; set; } = new Tables();
+    public UpsertTableDto Table { get; set; }
     public Customers? Customer { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public OrderStatus Status { get; set; }
-    public decimal TotalPrice { get; set; }
-    public PaymentType PaymentType { get; set; }
+    public required DateTime CreatedAt { get; set; }
+    public required OrderStatus Status { get; set; }
+    public required decimal TotalPrice { get; set; }
+    public required PaymentType PaymentType { get; set; }
 }

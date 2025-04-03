@@ -11,7 +11,7 @@ public class UpsertOrderDto
     [Required]
     public required int TableId { get; set; }
     public int? CustomerId { get; set; }
-    public OrderStatus Status { get; set; }
+    public OrderStatus? Status { get; set; }
     public decimal TotalPrice { get; set; }
     public PaymentType PaymentType { get; set; }
     public required List<UpsertOrderMenuItemDto> Items { get; set; }

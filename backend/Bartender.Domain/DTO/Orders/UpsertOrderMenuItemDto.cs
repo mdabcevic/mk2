@@ -5,7 +5,6 @@ namespace Bartender.Domain.DTO.Orders;
 
 public class UpsertOrderMenuItemDto
 {
-    public int? OrderId { get; set; }
     [Required]
     public required int MenuItemId { get; set; }
     [Required]
