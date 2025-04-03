@@ -16,7 +16,6 @@ public class ProductsPerOrder
 
     [Required]
     [Column("menuitem_id")]
-    [Key]
     public int MenuItemId { get; set; }
 
     [ForeignKey("MenuItemId")]

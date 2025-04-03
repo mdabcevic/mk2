@@ -15,6 +15,7 @@ public class OrderService(
     IRepository<ProductsPerOrder> orderProductsRepo,
     IRepository<Places> placeRepository,
     IRepository<Businesses> businessRepository,
+    IRepository<GuestSession> guestSessionRepo,
     ILogger<OrderService> logger,
     ICurrentUserContext currentUser,
     ITableSessionService tableSessionService,
@@ -289,7 +290,27 @@ public class OrderService(
         }
     }
 
-    
+    public async Task<ServiceResult<List<OrderDto>>> GetActiveTableOrdersForUserAsync()
+    {
+        try
+        {
+            var guest = await guestSessionRepo.GetByKeyAsync(g => g.Token == currentUser.GetRawToken());
+
+            var order = await repository.GetByKeyAsync(
+                o => o.TableId == guest.TableId &&
+                (o.Status != OrderStatus.closed || o.Status != OrderStatus.cancelled)
+                && o.CreatedAt.Date == DateTime.UtcNow.Date);
+
+            var dto = mapper.Map<List<OrderDto>>(order);
+
+            return ServiceResult< List<OrderDto>>.Ok(dto);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while fetching the order.");
+            return ServiceResult<List<OrderDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
+        }
+    }
 
     private async Task<ServiceResult> ValidateOrderAsync(UpsertOrderDto order)
     {

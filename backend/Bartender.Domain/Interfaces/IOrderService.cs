@@ -11,6 +11,7 @@ internal interface IOrderService
     Task<ServiceResult<OrderDto?>> GetByIdAsync(int id);
     Task<ServiceResult<List<OrderBaseDto>>> GetAllByBusinessIdAsync(int businessId);
     Task<ServiceResult<List<OrderDto>>> GetAllByPlaceIdAsync(int placeId, bool onlyActive = false, bool pending = false);
+    Task<ServiceResult<List<OrderDto>>> GetActiveTableOrdersForUserAsync();
     Task<ServiceResult> AddAsync(UpsertOrderDto order);
     Task<ServiceResult> UpdateAsync(int id, UpsertOrderDto order);
     Task<ServiceResult> UpdateStatusAsync(int id, UpdateOrderStatusDto newStatus);
