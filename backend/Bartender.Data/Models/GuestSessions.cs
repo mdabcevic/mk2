@@ -31,4 +31,6 @@ public class GuestSession
 
     [NotMapped]
     public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
+
+    public ICollection<Orders> Orders { get; set; } = [];
 }

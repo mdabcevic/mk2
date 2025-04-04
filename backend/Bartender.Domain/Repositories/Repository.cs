@@ -112,11 +112,6 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.ToListAsync();
     }
 
-    public async Task<IDbContextTransaction> BeginTransactionAsync()
-    {
-        return await context.Database.BeginTransactionAsync();
-    }
-
     public IQueryable<T> IncludeNavigations(IQueryable<T> query)
     {
         var navigationProperties = context.Model.FindEntityType(typeof(T))?.GetNavigations();

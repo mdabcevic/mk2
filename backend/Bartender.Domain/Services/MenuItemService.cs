@@ -3,12 +3,12 @@ using Bartender.Domain.Interfaces;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.MenuItems;
 using Bartender.Domain.DTO.Products;
-using Bartender.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Bartender.Data.Enums;
 using System.ComponentModel.DataAnnotations;
 using Bartender.Domain.DTO;
+using Bartender.Domain.utility.Exceptions;
 
 namespace Bartender.Domain.Services;
 public class MenuItemService(

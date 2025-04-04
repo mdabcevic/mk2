@@ -11,8 +11,10 @@ public class UpsertOrderDto
     [Required]
     public required int TableId { get; set; }
     public int? CustomerId { get; set; }
+    public Guid? GuestSessionId { get; set; }
     public OrderStatus? Status { get; set; }
     public decimal TotalPrice { get; set; }
     public PaymentType PaymentType { get; set; }
+    public string? Note { get; set; }
     public required List<UpsertOrderMenuItemDto> Items { get; set; }
 }

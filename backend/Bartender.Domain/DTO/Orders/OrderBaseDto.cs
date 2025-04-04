@@ -13,4 +13,5 @@ public class OrderBaseDto
     public required OrderStatus Status { get; set; }
     public required decimal TotalPrice { get; set; }
     public required PaymentType PaymentType { get; set; }
+    public string? Note { get; set; }
 }

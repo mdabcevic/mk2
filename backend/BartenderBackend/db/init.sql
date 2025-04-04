@@ -122,10 +122,12 @@ CREATE TABLE IF NOT EXISTS Orders (
     id SERIAL PRIMARY KEY,
     table_id INTEGER NOT NULL REFERENCES Tables(id) ON DELETE CASCADE,
     customer_id INTEGER REFERENCES Customers(id) ON DELETE SET NULL,
+	guest_session_id UUID REFERENCES guestSessions(id) ON DELETE SET NULL,
     createdAt TIMESTAMP DEFAULT now(),
     status OrderStatus NOT NULL DEFAULT 'created',
 	total_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    paymentType PaymentType NOT NULL DEFAULT 'cash'
+    paymentType PaymentType NOT NULL DEFAULT 'cash',
+	note VARCHAR NULL
 );
 
 -- Table: ProductsPerOrder

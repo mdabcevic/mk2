@@ -30,7 +30,5 @@ public interface IRepository<T> where T : class
     Task<int> CountAsync(Expression<Func<T, bool>> predicate);
 
     //void Detach(T entity);
-
-    Task<IDbContextTransaction> BeginTransactionAsync();
 }
 
