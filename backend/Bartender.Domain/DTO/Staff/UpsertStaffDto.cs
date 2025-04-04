@@ -3,7 +3,7 @@ using Bartender.Data.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Bartender.Domain.DTO;
+namespace Bartender.Domain.DTO.Staff;
 
 public class UpsertStaffDto
 {

@@ -1,6 +1,6 @@
 ﻿using Bartender.Data.Enums;
 
-namespace Bartender.Domain.DTO;
+namespace Bartender.Domain.DTO.Staff;
 
 public class StaffDto
 {
