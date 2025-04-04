@@ -178,46 +178,46 @@ INSERT INTO Places (business_id, city_id, address, opensAt, closesAt) VALUES
 
 -- Insert staff (one per place)
 INSERT INTO Staff (place_id, OIB, username, password, fullName, role) VALUES
-(1, '98765432101', 'vivas_ilica', 'hashed_password', 'Petar Horvat', 'manager'),
-(2, '98765432102', 'vivas_trg', 'hashed_password', 'Maja Novak', 'regular'),
-(3, '98765432103', 'leggiero_radnicka', 'hashed_password', 'Ivana Kovač', 'manager'),
-(4, '98765432104', 'leggiero_jarun', 'hashed_password', 'Marko Babić', 'regular'),
-(5, '98765432105', 'bonaca_riva', 'hashed_password', 'Ana Marić', 'manager'),
-(6, '98765432106', 'bonaca_poljicka', 'hashed_password', 'Luka Perić', 'regular'),
-(7, '98765432107', 'elixir_obala', 'hashed_password', 'Lucija Radić', 'manager'),
-(8, '98765432108', 'elixir_stradun', 'hashed_password', 'Nikola Jurić', 'regular'),
-(9, '98765432109', 'sunset_admin', 'hashed_password', 'Tom Smith', 'manager'),
-(10, '98765432110', 'moonlight_admin', 'hashed_password', 'Samantha Lee', 'manager'),
-(11, '98765432111', 'cloud9_admin', 'hashed_password', 'James Chen', 'manager');
+(1, '98765432101', 'vivasmanager', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Petar Horvat', 'manager'), -- pw: test
+(2, '98765432102', 'vivas_trg', '$2a$12$nxTG4512zsE.3g1n5A7Zaudg7gQsM4GNAq6DFEKKDcxWQNO/EbIsy', 'Maja Novak', 'regular'), --pw: authtest
+(3, '98765432103', 'leggiero_radnicka', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Ivana Kovač', 'manager'),
+(4, '98765432104', 'leggiero_jarun', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Marko Babić', 'regular'),
+(5, '98765432105', 'bonaca_riva', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Ana Marić', 'manager'),
+(6, '98765432106', 'bonaca_poljicka', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Luka Perić', 'regular'),
+(7, '98765432107', 'elixir_obala', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Lucija Radić', 'manager'),
+(8, '98765432108', 'elixir_stradun', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Nikola Jurić', 'regular'),
+(9, '98765432109', 'sunset_admin', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Tom Smith', 'manager'),
+(10, '98765432110', 'moonlight_admin', '$2a$12$AUQm5TA61U4mcd3Y3ql2M.avJzZ0625LMxZyeehn7y2FGA7o8vxIW', 'Samantha Lee', 'manager'), --pw: password
+(11, '98765432111', 'cloud9_admin', '$2a$12$saDr9cjeFMH/hLcitmHg2O4xJK7Dtk5hqbb2q0Jm8mgTRatIcSVd2', 'James Chen', 'manager'); --pw: 123456
 
--- Dodajmo novo poduzeće namijenjeno kao "vlastito"
+-- Our own business for testing superuser privileges 
 INSERT INTO Businesses (OIB, name, headquarters, subscriptionTier) VALUES
 ('55555678901', 'Bartender Testing Owner Of Solution', 'Whatever Address Fits', 'premium');
 
--- Dodajmo fiktivni lokal za to poduzeće (pretpostavljamo da je novi business_id = 8)
+-- Imaginary place under our test business
 INSERT INTO Places (business_id, city_id, address, opensAt, closesAt)
 VALUES (8, 1, 'Whatever Address Fits', '08:00', '22:00');
 
--- Dodajmo četiri zaposlenika s različitim ulogama (pretpostavljamo da je novi place_id = 12)
--- vlasnik
+-- Insert 4 employees with different privileges
+-- owner
 INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
-VALUES (12, '99999999901', 'vlasnik', 'hashed_password', 'Ivan Vlasnić', 'owner');
+VALUES (12, '99999999901', 'testowner', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Ivan Vlasnić', 'owner'); -- pw: test
 
 -- administrator
 INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
-VALUES (12, '99999999902', 'admin', 'hashed_password', 'Ana Adminić', 'admin');
+VALUES (12, '99999999902', 'testadmin', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Ana Adminić', 'admin'); -- pw: test
 
--- voditelj
+-- manager
 INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
-VALUES (12, '99999999903', 'voditelj', 'hashed_password', 'Marko Menadžer', 'manager');
+VALUES (12, '99999999903', 'testmanager', '$2a$12$J2dfx2x4Iwqb6Xgbnm5XQurW196fEGal9LvEmrC5wR8M4DFKsPKry', 'Marko Menadžer', 'manager'); -- pw: test123
 
--- konobar (obični zaposlenik)
+-- waiter (regular employee, manages table and marks orders as complete)
 INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
-VALUES (12, '99999999904', 'konobar', 'hashed_password', 'Petra Konobarić', 'regular');
+VALUES (12, '99999999904', 'teststaff', '$2a$12$gZqmOoeAos6cXBVMSeTHge6YSTExR34fyfPcJXmi8WZw3L5Ea1Il6', 'Petra Konobarić', 'regular'); -- pw: 123456
 
--- Dodajmo dodatnog admina za lokaciju Vivas (pretpostavljamo place_id = 1)
+-- admin for Vivas (place_id = 1)
 INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
-VALUES (1, '99999999905', 'vivas_admin', 'hashed_password', 'Luka Vivasović', 'admin');
+VALUES (1, '99999999905', 'vivasadmin', '$2a$12$iF54En7VicKnz3G6eBosf.m5HezRaQ6c2CyZCB.MUowFMzJayK9Dq', 'Luka Vivasović', 'admin'); -- pw: test123
 
 INSERT INTO Tables (id, place_id, label, seats, status, qrsalt, isdisabled) VALUES
 (1, 1, '1', 2, 'empty', '5036144c6f5d41aeb0e332ea0029e073', false),

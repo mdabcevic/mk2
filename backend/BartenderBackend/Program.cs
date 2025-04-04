@@ -73,6 +73,7 @@ builder.Services.AddScoped<ITableInteractionService, TableInteractionService>();
 builder.Services.AddScoped<ITableManagementService, TableManagementService>();
 builder.Services.AddScoped<IGuestSessionService, GuestSessionService>();
 builder.Services.AddScoped<ITableSessionService, GuestSessionService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 
 builder.Services.AddScoped<IJwtService, JwtService>();
