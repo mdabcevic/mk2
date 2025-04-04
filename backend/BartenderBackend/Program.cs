@@ -73,6 +73,9 @@ builder.Services.AddScoped<ITableInteractionService, TableInteractionService>();
 builder.Services.AddScoped<ITableManagementService, TableManagementService>();
 builder.Services.AddScoped<IGuestSessionService, GuestSessionService>();
 builder.Services.AddScoped<ITableSessionService, GuestSessionService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -96,7 +99,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddAutoMapper(
     typeof(ProductProfile),
     typeof(MenuItemProfile),
-    typeof(PlacesProfile)
+    typeof(PlacesProfile),
+    typeof(OrderProfile)
     );
 
 var app = builder.Build();

@@ -11,7 +11,7 @@ public class ValidationService(
     IRepository<Tables> tableRepository,
     IRepository<Places> placeRepository,
     IRepository<Businesses> businessRepository,
-    ILogger logger) : IValidationService
+    ILogger<ValidationService> logger) : IValidationService
 {
     public async Task<ServiceResult> VerifyUserGuestAccess(int orderTableId)
     {
