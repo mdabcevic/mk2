@@ -5,6 +5,7 @@ using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Bartender.Domain.Repositories;
 
 namespace Bartender.Domain.Services;
 
@@ -12,6 +13,7 @@ public class TableInteractionService(
     IRepository<Tables> repository,
     IGuestSessionService guestSessionService,
     ITableSessionService tableSessionService,
+    IOrderRepository orderRepository,
     ILogger<TableInteractionService> logger,
     ICurrentUserContext currentUser,
     IMapper mapper
@@ -134,6 +136,10 @@ public class TableInteractionService(
 
         table.Status = newStatus;
         await repository.UpdateAsync(table);
+
+        // TODO: Re-evaluate this logic when implementing multi-guest table sharing
+        await orderRepository.SetTableOrdersAsClosedAsync(table.Id);
+
         return ServiceResult.Ok();
     }
 
@@ -144,6 +150,12 @@ public class TableInteractionService(
         {
             logger.LogWarning("Unauthorized staff (User {UserId}) tried to change status of Table {Id}", user!.Id, table.Id);
             return ServiceResult.Fail("Unauthorized", ErrorType.Unauthorized);
+        }
+
+        if (newStatus == TableStatus.empty)
+        { 
+            await orderRepository.SetTableOrdersAsClosedAsync(table.Id);
+            logger.LogInformation("Orders set as closed for TableId: {TableId}", table.Id);
         }
 
         logger.LogInformation("User {UserId} changed Table {Id} status to {NewStatus}", user!.Id, table.Id, newStatus);

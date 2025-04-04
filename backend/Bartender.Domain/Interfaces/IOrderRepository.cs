@@ -20,4 +20,5 @@ public interface IOrderRepository : IRepository<Orders>
     Task<List<Orders>> GetActiveOrdersByTableIdAsync(int tableId);
     Task<List<BusinessOrdersDto>> GetAllOrdersByBusinessIdAsync(int businessId);
     Task UpdateOrderWithItemsAsync(Orders existingOrder, List<ProductsPerOrder> newItems);
+    Task SetTableOrdersAsClosedAsync(int tableId);
 }

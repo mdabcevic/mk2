@@ -40,6 +40,22 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
         }
     }
 
+    public async Task SetTableOrdersAsClosedAsync(int tableId)
+    {
+        var orders = await _dbSet
+            .Where(o => o.TableId == tableId && 
+            o.Status != OrderStatus.closed && 
+            o.Status != OrderStatus.cancelled).ToListAsync();
+
+        if (!orders.Any())
+            return;
+
+        foreach (var order in orders)
+            order.Status = OrderStatus.closed;
+
+        await context.SaveChangesAsync();
+    }
+
     public async Task<List<Orders>> GetActiveOrdersByGuestIdAsync(Guid guestSessionId)
     {
         return await _dbSet
