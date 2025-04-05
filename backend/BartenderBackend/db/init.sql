@@ -179,6 +179,7 @@ INSERT INTO Places (business_id, city_id, address, opensAt, closesAt) VALUES
 -- Insert staff (one per place)
 INSERT INTO Staff (place_id, OIB, username, password, fullName, role) VALUES
 (1, '98765432101', 'vivasmanager', '$2a$12$nLebvsyCKkIcVDVmG3cdtO6Ag/6yIX55mVPsky7RBisYBX5/6y9pC', 'Petar Horvat', 'manager'), -- pw: test
+(1, '98765432101', 'vivasilica_reg', '$2a$12$nLebvsyCKkIcVDVmG3cdtO6Ag/6yIX55mVPsky7RBisYBX5/6y9pC', 'M. D.', 'regular'), -- pw: test
 (2, '98765432102', 'vivas_trg', '$2a$12$nxTG4512zsE.3g1n5A7Zaudg7gQsM4GNAq6DFEKKDcxWQNO/EbIsy', 'Maja Novak', 'regular'), --pw: authtest
 (3, '98765432103', 'leggiero_radnicka', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Ivana Kovač', 'manager'),
 (4, '98765432104', 'leggiero_jarun', '$2a$12$fM2YwoCUJ/rm3jtaPc7dwuC/x252uZfzows4m3EAi9fDTyGpt/XJu', 'Marko Babić', 'regular'),
