@@ -1,11 +1,4 @@
-﻿using Bartender.Data.Models;
-using Bartender.Domain.DTO.MenuItems;
-using Bartender.Domain.DTO.Products;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Bartender.Domain.DTO.MenuItems;
 
 namespace Bartender.Domain.Interfaces
 {

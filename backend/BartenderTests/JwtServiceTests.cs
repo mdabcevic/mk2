@@ -2,9 +2,7 @@
 using Bartender.Data.Models;
 using Bartender.Domain.Services;
 using Microsoft.Extensions.Configuration;
-using NUnit.Framework;
 using System.IdentityModel.Tokens.Jwt;
-using System.Collections.Generic;
 
 namespace BartenderTests;
 
