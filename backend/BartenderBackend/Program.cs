@@ -7,6 +7,7 @@ using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Serilog;
@@ -15,6 +16,8 @@ using System.Text;
 using System.Text.Json.Serialization; // <-- ensure this namespace is included
 
 var builder = WebApplication.CreateBuilder(args);
+
+//IdentityModelEventSource.ShowPII = true;
 
 var allowedOrigins = "AllowedOrigins";
 
@@ -48,7 +51,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
         };
     });
 

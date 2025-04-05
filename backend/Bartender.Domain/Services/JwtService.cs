@@ -10,13 +10,11 @@ namespace Bartender.Domain.Services;
 
 public class JwtService(IConfiguration config) : IJwtService
 {
+    //TODO: move to .env?
     private readonly string _key = config["Jwt:Key"]!;
-    //private readonly string _issuer = config["Jwt:Issuer"]!;
-    //private readonly string _audience = config["Jwt:Audience"]!;
+    private readonly string _issuer = config["Jwt:Issuer"]!;
+    private readonly string _audience = config["Jwt:Audience"]!;
 
-    //TODO: remove hardcoded values, use something more secure..
-    private readonly string _issuer = "testissuerbackend";
-    private readonly string _audience = "testissuerfrontend";
 
     public string GenerateGuestToken(int tableId, Guid sessionId, DateTime expiresAt)
     {
@@ -39,7 +37,7 @@ public class JwtService(IConfiguration config) : IJwtService
             new Claim("place_id", staff.PlaceId.ToString())
         };
 
-        return BuildToken(claims, DateTime.UtcNow.AddHours(8));
+        return BuildToken(claims, DateTime.UtcNow.AddHours(9));
     }
 
     private string BuildToken(IEnumerable<Claim> claims, DateTime expiresAt)
