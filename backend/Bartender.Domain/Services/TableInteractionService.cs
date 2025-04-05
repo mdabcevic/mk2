@@ -4,8 +4,6 @@ using Bartender.Data.Enums;
 using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Bartender.Domain.Repositories;
 
 namespace Bartender.Domain.Services;
 
