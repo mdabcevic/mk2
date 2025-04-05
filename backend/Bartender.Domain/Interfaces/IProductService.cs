@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Bartender.Data.Models;
-using Bartender.Domain.DTO.Products;
+﻿using Bartender.Domain.DTO.Products;
 
 namespace Bartender.Domain.Interfaces
 {

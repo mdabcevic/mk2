@@ -1,4 +1,4 @@
-﻿using Bartender.Domain.DTO;
+﻿using Bartender.Domain.DTO.Staff;
 using Bartender.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
