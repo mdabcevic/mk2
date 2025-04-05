@@ -18,7 +18,7 @@ public class AuthService(
         if (staff is null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, staff.Password))
         {
             logger.LogWarning("Invalid login for username: {Username}", loginDto.Username);
-            return ServiceResult<string>.Fail("Invalid username or password.", ErrorType.Unauthorized);
+            return ServiceResult<string>.Fail("Invalid username or password.", ErrorType.Validation);
         }
 
         var token = jwtService.GenerateStaffToken(staff);
