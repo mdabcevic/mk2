@@ -84,7 +84,11 @@ builder.Services.AddHttpContextAccessor(); // required!
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 
 builder.Services.AddAutoMapper(
-    typeof(BusinessProfile).Assembly
+    typeof(BusinessProfile).Assembly,
+    typeof(ProductProfile).Assembly,
+    typeof(MenuItemProfile).Assembly,
+    typeof(PlacesProfile).Assembly,
+    typeof(OrderProfile).Assembly
 );
 
 builder.Services.AddControllers()
@@ -95,13 +99,6 @@ builder.Services.AddControllers()
     });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
-builder.Services.AddAutoMapper(
-    typeof(ProductProfile),
-    typeof(MenuItemProfile),
-    typeof(PlacesProfile),
-    typeof(OrderProfile)
-    );
 
 var app = builder.Build();
 app.UseSerilogRequestLogging(); // Log all HTTP requests automatically

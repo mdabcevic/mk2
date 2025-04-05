@@ -5,6 +5,7 @@ namespace Bartender.Domain.DTO.MenuItems;
 
 public class MenuItemBaseDto
 {
+    public int? id { get; set; }
     public required ProductBaseDto Product { get; set; }
     [JsonIgnore]
     public decimal Price { get; set; }

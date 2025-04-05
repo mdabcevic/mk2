@@ -232,7 +232,12 @@ INSERT INTO Tables (id, place_id, label, seats, status, qrsalt, isdisabled) VALU
 (4, 1, '4', 4, 'empty', '768e63c7ab2b44a482b2a825645aaabb', false),
 (5, 1, '5', 4, 'empty', '1b3593e63a6a4fef8f2e5eae19840165', false),
 (6, 1, '6', 4, 'empty', 'ef9bf913754048b083a8571b740fb112', false),
-(7, 1, '7', 4, 'empty', '52206960508e41a797f546dd4106cf45', false);
+(7, 1, '7', 4, 'empty', '52206960508e41a797f546dd4106cf45', false),
+(8, 3, '1', 4, 'empty', 'e6fae97a5c54471984572d1020388970', false),
+(9, 3, '2', 4, 'empty', 'eb754108919e4db18cb0d05e2c4262f2', false);
+
+UPDATE Tables
+SET status = 'occupied' WHERE id = 1
 
 -- Insert ProductCategory
 INSERT INTO ProductCategory(name, parentcategory_id) VALUES
@@ -515,21 +520,26 @@ INSERT INTO MenuItems(place_id, product_id, price, isAvailable) VALUES
 
 -- second bar
 INSERT INTO MenuItems(place_id, product_id, price, isAvailable) VALUES
---kave
 (3, 3, 2.30, true),
 (3, 5, 2.60, true),
 (3, 7, 2.30, true),
 (3, 4, 2.30, true),
-
---topli napitci
 (3, 19, 2.70, true),
 (3, 20, 2.80, true),
 (3, 21, 2.80, true),
 (3, 22, 2.80, true),
 (3, 23, 2.80, true),
-
 (3, 92, 2.90, true),
 (3, 93, 2.90, true),
 (3, 94, 2.90, true),
-
 (3, 76, 3.90, true);
+
+INSERT INTO Orders(table_id, createdAt, status, total_price, paymentType) VALUES
+(1, (NOW() - interval '1 day'), 'closed', 14.50, 'cash'),
+(2, (NOW() - interval '2 day'), 'closed', 10.50, 'cash'),
+(8, (NOW() - interval '1 hour'), 'closed', 13.00, 'cash'),
+(8, (NOW() - interval '1 day'), 'closed', 11.75, 'cash');
+
+INSERT INTO guestSessions(id, table_id, token, expires_at) VALUES
+('5328c4e8-eec2-4229-8c0c-25cc9e2ca0a5', 1, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiZ3Vlc3QiLCJ1c2VybmFtZSI6IjUzMjhjNGU4LWVlYzItNDIyOS04YzBjLTI1Y2M5ZTJjYTBhNSIsImV4cCI6OTk5OTk5OTk5OX0.KY3nJPNifhaxHLD0Ri49Sfbyp2WhfAbDeL5Q6zCozlQ', NOW() + interval '1 day')
+

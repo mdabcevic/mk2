@@ -17,7 +17,7 @@ public class Orders
     public int TableId { get; set; }
 
     [ForeignKey("TableId")]
-    public Tables Table { get; set; } = new Tables();
+    public Tables? Table { get; set; }
 
     [Column("customer_id")]
     public int? CustomerId { get; set; }
@@ -32,7 +32,7 @@ public class Orders
     public GuestSession? GuestSession { get; set; }
 
     [Column("createdat")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
 
     [Required]
     [Column("status")]
@@ -48,7 +48,6 @@ public class Orders
     [EnumDataType(typeof(PaymentType))]
     public PaymentType PaymentType { get; set; } = PaymentType.cash;
 
-    [Required]
     [Column("note")]
     public string? Note { get; set; }
 

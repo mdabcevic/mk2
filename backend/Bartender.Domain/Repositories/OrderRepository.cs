@@ -6,6 +6,7 @@ using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Orders;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Bartender.Domain.Repositories;
 
@@ -56,10 +57,23 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
         await context.SaveChangesAsync();
     }
 
+    public async Task<Orders?> getOrderById(int id)
+    {
+        return await _dbSet
+            .Include(o => o.Table)
+                .ThenInclude(t => t.Place)
+            .Include(o => o.Products)
+                .ThenInclude(p => p.MenuItem)
+                    .ThenInclude(mi => mi.Product)
+            .FirstOrDefaultAsync(o => o.Id == id);
+    }
+
     public async Task<List<Orders>> GetActiveOrdersByGuestIdAsync(Guid guestSessionId)
     {
         return await _dbSet
             .Include(o => o.Table)
+            .Include(o => o.Products)
+                .ThenInclude(p => p.MenuItem)
             .Where(o => o.GuestSessionId == guestSessionId)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
@@ -69,6 +83,9 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
     {
         return await _dbSet
             .Include(o => o.Table)
+            .Include(o => o.Products)
+                .ThenInclude(p => p.MenuItem)
+            .OrderByDescending(o => o.CreatedAt)
             .Where(o => o.TableId == tableId && o.Status != OrderStatus.closed && o.Status != OrderStatus.cancelled)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
@@ -78,6 +95,8 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
     {
         return await _dbSet
             .Include(o => o.Table)
+            .Include(o => o.Products)
+                .ThenInclude(p => p.MenuItem)
             .Where(o => o.Table.PlaceId == placeId &&
                         o.Status != OrderStatus.closed && 
                         o.Status != OrderStatus.cancelled)
@@ -89,6 +108,8 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
     {
         return await _dbSet
             .Include(o => o.Table)
+            .Include(o => o.Products)
+                .ThenInclude(p => p.MenuItem)
             .Where(o => o.Table.PlaceId == placeId &&
                         (o.Status == OrderStatus.created || 
                         o.Status == OrderStatus.payment_requested || 
@@ -101,6 +122,9 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
     {
         return await _dbSet
             .Include(o => o.Table)
+            .Include(o => o.Customer)
+            .Include(o => o.Products)
+                .ThenInclude(p => p.MenuItem)
             .Where(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
@@ -109,9 +133,10 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
     public async Task<List<BusinessOrdersDto>> GetAllOrdersByBusinessIdAsync(int businessId)
     {
         return await _dbSet
-            .Where(o => o.Table.Place.BusinessId == businessId && o.Status == OrderStatus.closed)
-            .Include(o => o.Table)
-                .ThenInclude(t => t.Place)
+            .Include(o => o.Table.Place.City)
+            .Include(o => o.Table.Place.Business)
+
+            .Where(o => o.Table.Place.BusinessId == businessId && o.Status == OrderStatus.closed)  
             .GroupBy(o => o.Table.Place)
             .Select(g => new BusinessOrdersDto
             {

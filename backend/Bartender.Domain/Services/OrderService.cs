@@ -39,11 +39,14 @@ public class OrderService(
         order.TotalPrice = calculatedTotal;
         order.Status = OrderStatus.created;
 
-        var guest = await guestSessionRepo.GetByKeyAsync(g => g.Token == currentUser.GetRawToken());
-        if (guest == null)
-            return ServiceResult.Fail("There is currently no active session found", ErrorType.NotFound);
+        if (currentUser.IsGuest)
+        {
+            var guest = await guestSessionRepo.GetByKeyAsync(g => g.Token == currentUser.GetRawToken());
+            if (guest == null)
+                return ServiceResult.Fail("There is currently no active session found", ErrorType.NotFound);
 
-        order.GuestSessionId = guest.Id;
+            order.GuestSessionId = guest.Id;
+        }
 
         // create order transaction - either completes both order and items creation or rolls back completely on any failure 
         await repository.CreateOrderWithItemsAsync(mapper.Map<Orders>(order), newOrderItems);
@@ -67,7 +70,7 @@ public class OrderService(
                 || (newStatus.Status == OrderStatus.cancelled && existingOrder.Status == OrderStatus.created))
             {
                 existingOrder.Status = newStatus.Status;
-                existingOrder.PaymentType = newStatus.PaymentType ?? PaymentType.cash;
+                existingOrder.PaymentType = newStatus.PaymentType ?? existingOrder.PaymentType;
                 logger.LogInformation("Guest updated status of OrderId {OrderId} to {NewStatus}", id, newStatus.Status);
             }
             else
@@ -79,9 +82,10 @@ public class OrderService(
         else
         {
             existingOrder.Status = newStatus.Status;
-            existingOrder.PaymentType = newStatus.PaymentType ?? PaymentType.cash;
+            existingOrder.PaymentType = newStatus.PaymentType ?? existingOrder.PaymentType;
             logger.LogInformation("Staff updated status of OrderId {OrderId} to {NewStatus}", id, newStatus.Status);
         }
+        existingOrder.CreatedAt = DateTime.SpecifyKind(existingOrder.CreatedAt, DateTimeKind.Utc);
         await repository.UpdateAsync(existingOrder);
         return ServiceResult.Ok();      
     }
@@ -164,24 +168,23 @@ public class OrderService(
         return ServiceResult<List<OrderDto>>.Ok(dto);
     }
 
-    public async Task<ServiceResult<List<OrderBaseDto>>> GetAllByBusinessIdAsync(int businessId)
+    public async Task<ServiceResult<List<BusinessOrdersDto>>> GetAllByBusinessIdAsync(int businessId)
     {
         var businessValidationResult = await validationService.EnsureBusinessExistsAsync(businessId);
         if (!businessValidationResult.Success)
-            return ServiceResult<List<OrderBaseDto>>.Fail(businessValidationResult.Error!, businessValidationResult.errorType!.Value);
+            return ServiceResult<List<BusinessOrdersDto>>.Fail(businessValidationResult.Error!, businessValidationResult.errorType!.Value);
 
         if (!await validationService.VerifyUserBusinessAccess(businessId))
-            return ServiceResult<List<OrderBaseDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            return ServiceResult<List<BusinessOrdersDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
 
         var orders = await repository.GetAllOrdersByBusinessIdAsync(businessId);
 
-        var dto = mapper.Map<List<OrderBaseDto>>(orders);
-        return ServiceResult<List<OrderBaseDto>>.Ok(dto);
+        return ServiceResult<List<BusinessOrdersDto>>.Ok(orders);
     }
 
     public async Task<ServiceResult<OrderDto?>> GetByIdAsync(int id)
     {
-        var order = await repository.GetByIdAsync(id, true);
+        var order = await repository.getOrderById(id);
 
         if (order == null)
             return ServiceResult<OrderDto?>.Fail($"Order with id {id} not found", ErrorType.NotFound);

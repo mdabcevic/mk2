@@ -5,7 +5,7 @@ namespace Bartender.Domain.Interfaces;
 public interface IOrderService
 {
     Task<ServiceResult<OrderDto?>> GetByIdAsync(int id);
-    Task<ServiceResult<List<OrderBaseDto>>> GetAllByBusinessIdAsync(int businessId);
+    Task<ServiceResult<List<BusinessOrdersDto>>> GetAllByBusinessIdAsync(int businessId);
     Task<ServiceResult<List<OrderDto>>> GetAllClosedOrdersByPlaceIdAsync(int placeId);
     Task<ServiceResult<List<OrderDto>>> GetAllActiveOrdersByPlaceIdAsync(int placeId, bool onlyWaitingForStaff = false);
     Task<ServiceResult<List<OrderDto>>> GetActiveTableOrdersForUserAsync(bool userSpecific = true);

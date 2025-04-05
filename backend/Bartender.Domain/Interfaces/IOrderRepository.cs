@@ -13,6 +13,7 @@ namespace Bartender.Domain.Interfaces;
 public interface IOrderRepository : IRepository<Orders>
 {
     Task CreateOrderWithItemsAsync(Orders order, List<ProductsPerOrder> items);
+    Task<Orders?> getOrderById(int id);
     Task<List<Orders>> GetActiveByPlaceIdAsync(int placeId);
     Task<List<Orders>> GetPendingByPlaceIdAsync(int placeId);
     Task<List<Orders>> GetAllByPlaceIdAsync(int placeId);
