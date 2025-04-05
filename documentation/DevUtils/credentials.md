@@ -27,3 +27,5 @@ Best would be to use vivasmanager, as data is populated for this place.
 
 ---
 Any other user you want to test probably has the password test.
+You can add employees to place by logging into manager account and using the POST /staff endpoint.
+Set username, role and provide password.
