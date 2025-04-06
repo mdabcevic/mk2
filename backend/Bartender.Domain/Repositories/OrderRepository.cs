@@ -14,11 +14,8 @@ namespace Bartender.Domain.Repositories;
 
 public class OrderRepository : Repository<Orders>, IOrderRepository
 {
-    private readonly IMapper _mapper;
-
-    public OrderRepository(AppDbContext context, IMapper mapper) : base(context)
+    public OrderRepository(AppDbContext context) : base(context)
     {
-        _mapper = mapper;
     }
 
     private static Expression<Func<Orders, bool>> IsActiveOrderForPlace(int placeId)
@@ -119,9 +116,8 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
     {
         return await GetOrdersAsync(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed);
     }
-   
 
-    private async Task<List<GroupedOrderStatusDto>> GroupOrdersByStatusAsync(
+    private async Task<List<Orders>> GetOrdersForGroupingAsync(
     Expression<Func<Orders, bool>> predicate)
     {
         return await _dbSet
@@ -129,37 +125,37 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
             .Include(o => o.Products)
                 .ThenInclude(p => p.MenuItem)
             .Where(predicate)
-            .GroupBy(o => o.Status)
-            .Select(g => new GroupedOrderStatusDto
-            {
-                Status = g.Key,
-                Orders = _mapper.Map<List<OrderBaseDto>>(g.OrderByDescending(o => o.CreatedAt).ToList())
-            })
+            .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
     }
 
-    public Task<List<GroupedOrderStatusDto>> GetActiveByPlaceIdGroupedAsync(int placeId){
-        return GroupOrdersByStatusAsync(IsActiveOrderForPlace(placeId));
-    }
- 
-    public Task<List<GroupedOrderStatusDto>> GetPendingByPlaceIdGroupedAsync(int placeId){
-        return GroupOrdersByStatusAsync(IsPendingOrderForPlace(placeId));
+    public async Task<Dictionary<OrderStatus, List<Orders>>> GetActiveByPlaceIdGroupedAsync(int placeId)
+    {
+        var orders = await GetOrdersForGroupingAsync(IsActiveOrderForPlace(placeId));
+        return orders.GroupBy(o => o.Status)
+                    .ToDictionary(g => g.Key, g => g.ToList());
     }
 
-    public async Task<List<BusinessOrdersDto>> GetAllOrdersByBusinessIdAsync(int businessId)
+    public async Task<Dictionary<OrderStatus, List<Orders>>> GetPendingByPlaceIdGroupedAsync(int placeId)
     {
-        return await _dbSet
+        var orders = await GetOrdersForGroupingAsync(IsPendingOrderForPlace(placeId));
+        return orders.GroupBy(o => o.Status)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+    }
+
+
+    public async Task<Dictionary<Places, List<Orders>>> GetAllOrdersByBusinessIdAsync(int businessId)
+    {
+        var orders = await _dbSet
             .Include(o => o.Table.Place.City)
             .Include(o => o.Table.Place.Business)
-
-            .Where(o => o.Table.Place.BusinessId == businessId && o.Status == OrderStatus.closed)  
-            .GroupBy(o => o.Table.Place)
-            .Select(g => new BusinessOrdersDto
-            {
-                Place = _mapper.Map<PlaceDto>(g.Key),
-                Orders = _mapper.Map<List<OrderBaseDto>>(g.OrderByDescending(o => o.CreatedAt).ToList())
-            })
+            .Where(o => o.Table.Place.BusinessId == businessId && o.Status == OrderStatus.closed)
+            .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
+
+        return orders
+            .GroupBy(o => o.Table.Place)
+            .ToDictionary(g => g.Key, g => g.ToList());
     }
 
     public async Task UpdateOrderWithItemsAsync(Orders existingOrder, List<ProductsPerOrder> newItems)

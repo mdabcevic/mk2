@@ -4,6 +4,7 @@ using Bartender.Data.Enums;
 using Bartender.Domain.DTO.Orders;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
+using Bartender.Domain.DTO;
 
 namespace Bartender.Domain.Services;
 
@@ -177,10 +178,16 @@ public class OrderService(
         if (!await validationService.VerifyUserPlaceAccess(placeId))
             return ServiceResult<List<GroupedOrderStatusDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
 
-        var orders = onlyWaitingForStaff ? await repository.GetPendingByPlaceIdGroupedAsync(placeId) :
+        var groupedOrders = onlyWaitingForStaff ? await repository.GetPendingByPlaceIdGroupedAsync(placeId) :
                     await repository.GetActiveByPlaceIdGroupedAsync(placeId);
 
-        return ServiceResult<List<GroupedOrderStatusDto>>.Ok(orders);
+        var result = groupedOrders.Select(g => new GroupedOrderStatusDto
+        {
+            Status = g.Key,
+            Orders = mapper.Map<List<OrderBaseDto>>(g.Value)
+        }).ToList();
+
+        return ServiceResult<List<GroupedOrderStatusDto>>.Ok(result);
     }
 
     public async Task<ServiceResult<List<BusinessOrdersDto>>> GetAllByBusinessIdAsync(int businessId)
@@ -194,7 +201,13 @@ public class OrderService(
 
         var orders = await repository.GetAllOrdersByBusinessIdAsync(businessId);
 
-        return ServiceResult<List<BusinessOrdersDto>>.Ok(orders);
+        var result = orders.Select(g => new BusinessOrdersDto
+        {
+            Place = mapper.Map<PlaceDto>(g.Key),
+            Orders = mapper.Map<List<OrderBaseDto>>(g.Value)
+        }).ToList();
+
+        return ServiceResult<List<BusinessOrdersDto>>.Ok(result);
     }
 
     public async Task<ServiceResult<OrderDto?>> GetByIdAsync(int id)
