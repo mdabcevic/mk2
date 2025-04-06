@@ -168,6 +168,21 @@ public class OrderService(
         return ServiceResult<List<OrderDto>>.Ok(dto);
     }
 
+    public async Task<ServiceResult<List<GroupedOrderStatusDto>>> GetAllActiveOrdersByPlaceIdGroupedAsync(int placeId, bool onlyWaitingForStaff = false)
+    {
+        var placeValidationResult = await validationService.EnsurePlaceExistsAsync(placeId);
+        if (!placeValidationResult.Success)
+            return ServiceResult<List<GroupedOrderStatusDto>>.Fail(placeValidationResult.Error!, placeValidationResult.errorType!.Value);
+
+        if (!await validationService.VerifyUserPlaceAccess(placeId))
+            return ServiceResult<List<GroupedOrderStatusDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+
+        var orders = onlyWaitingForStaff ? await repository.GetPendingByPlaceIdGroupedAsync(placeId) :
+                    await repository.GetActiveByPlaceIdGroupedAsync(placeId);
+
+        return ServiceResult<List<GroupedOrderStatusDto>>.Ok(orders);
+    }
+
     public async Task<ServiceResult<List<BusinessOrdersDto>>> GetAllByBusinessIdAsync(int businessId)
     {
         var businessValidationResult = await validationService.EnsureBusinessExistsAsync(businessId);

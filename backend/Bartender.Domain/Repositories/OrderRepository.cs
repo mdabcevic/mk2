@@ -104,6 +104,43 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
             .ToListAsync();
     }
 
+    public async Task<List<GroupedOrderStatusDto>> GetActiveByPlaceIdGroupedAsync(int placeId)
+    {
+        return await _dbSet
+            .Include(o => o.Table)
+            .Include(o => o.Products)
+                .ThenInclude(p => p.MenuItem)
+            .Where(o => o.Table.PlaceId == placeId &&
+                        o.Status != OrderStatus.closed &&
+                        o.Status != OrderStatus.cancelled)
+            .GroupBy(o => o.Status)
+            .Select(g => new GroupedOrderStatusDto
+            {
+                Status = g.Key,
+                Orders = _mapper.Map<List<OrderBaseDto>>(g.OrderByDescending(o => o.CreatedAt).ToList()),
+            })
+            .ToListAsync();
+    }
+
+    public async Task<List<GroupedOrderStatusDto>> GetPendingByPlaceIdGroupedAsync(int placeId)
+    {
+        return await _dbSet
+            .Include(o => o.Table)
+            .Include(o => o.Products)
+                .ThenInclude(p => p.MenuItem)
+            .Where(o => o.Table.PlaceId == placeId &&
+                        (o.Status == OrderStatus.payment_requested || 
+                        o.Status == OrderStatus.created ||
+                        o.Status == OrderStatus.approved))
+            .GroupBy(o => o.Status)
+            .Select(g => new GroupedOrderStatusDto
+            {
+                Status = g.Key,
+                Orders = _mapper.Map<List<OrderBaseDto>>(g.OrderByDescending(o => o.CreatedAt).ToList()),
+            })
+            .ToListAsync();
+    }
+
     public async Task<List<Orders>> GetPendingByPlaceIdAsync(int placeId)
     {
         return await _dbSet
