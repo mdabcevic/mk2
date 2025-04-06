@@ -7,6 +7,8 @@ using Bartender.Domain.DTO.Orders;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Linq.Expressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Bartender.Domain.Repositories;
 
@@ -18,6 +20,17 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
     {
         _mapper = mapper;
     }
+
+    private static Expression<Func<Orders, bool>> IsActiveOrderForPlace(int placeId)
+    => o => o.Table.PlaceId == placeId &&
+        o.Status != OrderStatus.closed &&
+        o.Status != OrderStatus.cancelled;
+
+    private static Expression<Func<Orders, bool>> IsPendingOrderForPlace(int placeId)
+        => o => o.Table.PlaceId == placeId &&
+                        (o.Status == OrderStatus.payment_requested ||
+                        o.Status == OrderStatus.created ||
+                        o.Status == OrderStatus.approved);
 
     public async Task CreateOrderWithItemsAsync(Orders order, List<ProductsPerOrder> items)
     {
@@ -68,103 +81,69 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
             .FirstOrDefaultAsync(o => o.Id == id);
     }
 
-    public async Task<List<Orders>> GetActiveOrdersByGuestIdAsync(Guid guestSessionId)
+    private async Task<List<Orders>> GetOrdersAsync(
+    Expression<Func<Orders, bool>> predicate,
+    bool includeCustomer = false)
     {
         return await _dbSet
             .Include(o => o.Table)
             .Include(o => o.Products)
                 .ThenInclude(p => p.MenuItem)
-            .Where(o => o.GuestSessionId == guestSessionId)
+            .Include(o => o.Customer)
+            .Where(predicate)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
+    }
+
+    public async Task<List<Orders>> GetActiveOrdersByGuestIdAsync(Guid guestSessionId)
+    {
+        return await GetOrdersAsync(o => o.GuestSessionId == guestSessionId);
     }
 
     public async Task<List<Orders>> GetActiveOrdersByTableIdAsync(int tableId)
     {
-        return await _dbSet
-            .Include(o => o.Table)
-            .Include(o => o.Products)
-                .ThenInclude(p => p.MenuItem)
-            .OrderByDescending(o => o.CreatedAt)
-            .Where(o => o.TableId == tableId && o.Status != OrderStatus.closed && o.Status != OrderStatus.cancelled)
-            .OrderByDescending(o => o.CreatedAt)
-            .ToListAsync();
+        return await GetOrdersAsync(o => o.TableId == tableId && o.Status != OrderStatus.closed && o.Status != OrderStatus.cancelled);
     }
 
     public async Task<List<Orders>> GetActiveByPlaceIdAsync(int placeId)
     {
-        return await _dbSet
-            .Include(o => o.Table)
-            .Include(o => o.Products)
-                .ThenInclude(p => p.MenuItem)
-            .Where(o => o.Table.PlaceId == placeId &&
-                        o.Status != OrderStatus.closed && 
-                        o.Status != OrderStatus.cancelled)
-            .OrderByDescending(o => o.CreatedAt)
-            .ToListAsync();
-    }
-
-    public async Task<List<GroupedOrderStatusDto>> GetActiveByPlaceIdGroupedAsync(int placeId)
-    {
-        return await _dbSet
-            .Include(o => o.Table)
-            .Include(o => o.Products)
-                .ThenInclude(p => p.MenuItem)
-            .Where(o => o.Table.PlaceId == placeId &&
-                        o.Status != OrderStatus.closed &&
-                        o.Status != OrderStatus.cancelled)
-            .GroupBy(o => o.Status)
-            .Select(g => new GroupedOrderStatusDto
-            {
-                Status = g.Key,
-                Orders = _mapper.Map<List<OrderBaseDto>>(g.OrderByDescending(o => o.CreatedAt).ToList()),
-            })
-            .ToListAsync();
-    }
-
-    public async Task<List<GroupedOrderStatusDto>> GetPendingByPlaceIdGroupedAsync(int placeId)
-    {
-        return await _dbSet
-            .Include(o => o.Table)
-            .Include(o => o.Products)
-                .ThenInclude(p => p.MenuItem)
-            .Where(o => o.Table.PlaceId == placeId &&
-                        (o.Status == OrderStatus.payment_requested || 
-                        o.Status == OrderStatus.created ||
-                        o.Status == OrderStatus.approved))
-            .GroupBy(o => o.Status)
-            .Select(g => new GroupedOrderStatusDto
-            {
-                Status = g.Key,
-                Orders = _mapper.Map<List<OrderBaseDto>>(g.OrderByDescending(o => o.CreatedAt).ToList()),
-            })
-            .ToListAsync();
+        return await GetOrdersAsync(IsActiveOrderForPlace(placeId));
     }
 
     public async Task<List<Orders>> GetPendingByPlaceIdAsync(int placeId)
     {
-        return await _dbSet
-            .Include(o => o.Table)
-            .Include(o => o.Products)
-                .ThenInclude(p => p.MenuItem)
-            .Where(o => o.Table.PlaceId == placeId &&
-                        (o.Status == OrderStatus.created || 
-                        o.Status == OrderStatus.payment_requested || 
-                        o.Status == OrderStatus.approved))
-            .OrderByDescending(o => o.CreatedAt)
-            .ToListAsync();
+        return await GetOrdersAsync(IsPendingOrderForPlace(placeId));
     }
 
     public async Task<List<Orders>> GetAllByPlaceIdAsync(int placeId)
     {
+        return await GetOrdersAsync(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed);
+    }
+   
+
+    private async Task<List<GroupedOrderStatusDto>> GroupOrdersByStatusAsync(
+    Expression<Func<Orders, bool>> predicate)
+    {
         return await _dbSet
             .Include(o => o.Table)
-            .Include(o => o.Customer)
             .Include(o => o.Products)
                 .ThenInclude(p => p.MenuItem)
-            .Where(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed)
-            .OrderByDescending(o => o.CreatedAt)
+            .Where(predicate)
+            .GroupBy(o => o.Status)
+            .Select(g => new GroupedOrderStatusDto
+            {
+                Status = g.Key,
+                Orders = _mapper.Map<List<OrderBaseDto>>(g.OrderByDescending(o => o.CreatedAt).ToList())
+            })
             .ToListAsync();
+    }
+
+    public Task<List<GroupedOrderStatusDto>> GetActiveByPlaceIdGroupedAsync(int placeId){
+        return GroupOrdersByStatusAsync(IsActiveOrderForPlace(placeId));
+    }
+ 
+    public Task<List<GroupedOrderStatusDto>> GetPendingByPlaceIdGroupedAsync(int placeId){
+        return GroupOrdersByStatusAsync(IsPendingOrderForPlace(placeId));
     }
 
     public async Task<List<BusinessOrdersDto>> GetAllOrdersByBusinessIdAsync(int businessId)
