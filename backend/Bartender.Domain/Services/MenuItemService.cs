@@ -360,14 +360,16 @@ public class MenuItemService(
             if (!await VerifyUserPlaceAccess(menuItem.PlaceId))
                 return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
 
-            bool existingMenuItem = await repository.ExistsAsync(mi => mi.PlaceId == menuItem.PlaceId && mi.ProductId == menuItem.ProductId);
-            if (!existingMenuItem)
+            var existingItem = await repository.GetByKeyAsync(mi =>
+                mi.PlaceId == menuItem.PlaceId &&
+                mi.ProductId == menuItem.ProductId);
+            if (existingItem == null)
                 return ServiceResult.Fail($"MenuItem with place id {menuItem.PlaceId} and product id {menuItem.ProductId} not found", ErrorType.NotFound);
 
             await ValidateMenuItemAsync(menuItem);
-      
-            var newMenuItem = mapper.Map<MenuItems>(menuItem);
-            await repository.UpdateAsync(newMenuItem);
+            mapper.Map(menuItem, existingItem);
+
+            await repository.UpdateAsync(existingItem);
             logger.LogInformation($"User {currentUser.UserId} updated product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
             return ServiceResult.Ok();
         }

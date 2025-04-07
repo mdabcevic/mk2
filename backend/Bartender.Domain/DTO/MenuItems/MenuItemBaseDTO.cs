@@ -5,6 +5,7 @@ namespace Bartender.Domain.DTO.MenuItems;
 
 public class MenuItemBaseDto
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Id { get; set; }
     public required ProductBaseDto Product { get; set; }
     [JsonIgnore]
