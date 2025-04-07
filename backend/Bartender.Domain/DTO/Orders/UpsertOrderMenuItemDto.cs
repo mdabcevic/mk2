@@ -9,4 +9,5 @@ public class UpsertOrderMenuItemDto
     [Required]
     [Range(1, int.MaxValue, ErrorMessage = "Item count must be at least 1")]
     public required int Count { get; set; }
+    public decimal? Discount { get; set; }
 }

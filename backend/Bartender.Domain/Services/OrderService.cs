@@ -296,7 +296,7 @@ public class OrderService(
                 MenuItemId = g.Key,
                 Count = g.Sum(i => i.Count),
                 Price = menuItems.First(mi => mi.Id == g.Key).Price,
-                Discount = 0 // TODO => implement discount after added to menuItems
+                Discount = g.Max(i => i.Discount ?? 0) // TODO: Update discount logic to use menuItem discount when available
             })
             .ToList();
 
