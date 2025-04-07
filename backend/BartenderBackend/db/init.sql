@@ -237,9 +237,6 @@ INSERT INTO Tables (id, place_id, label, seats, status, qrsalt, isdisabled) VALU
 (8, 3, '1', 4, 'empty', 'e6fae97a5c54471984572d1020388970', false),
 (9, 3, '2', 4, 'empty', 'eb754108919e4db18cb0d05e2c4262f2', false);
 
-UPDATE Tables
-SET status = 'occupied' WHERE id = 1
-
 -- Insert ProductCategory
 INSERT INTO ProductCategory(name, parentcategory_id) VALUES
 ('Kave', null),
@@ -541,6 +538,13 @@ INSERT INTO Orders(table_id, createdAt, status, total_price, paymentType) VALUES
 (8, (NOW() - interval '1 hour'), 'closed', 13.00, 'cash'),
 (8, (NOW() - interval '1 day'), 'closed', 11.75, 'cash');
 
-INSERT INTO guestSessions(id, table_id, token, expires_at) VALUES
-('5328c4e8-eec2-4229-8c0c-25cc9e2ca0a5', 1, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiZ3Vlc3QiLCJ1c2VybmFtZSI6IjUzMjhjNGU4LWVlYzItNDIyOS04YzBjLTI1Y2M5ZTJjYTBhNSIsImV4cCI6OTk5OTk5OTk5OX0.KY3nJPNifhaxHLD0Ri49Sfbyp2WhfAbDeL5Q6zCozlQ', NOW() + interval '1 day')
-
+INSERT INTO ProductsPerOrder(order_id, menuitem_id, item_price, discount, count) VALUES
+(1, 31, 2.50, 0, 1),
+(1, 4, 2.40, 0, 2),
+(2, 58, 2.70, 0, 1),
+(2, 71, 3.80, 0, 2),
+(2, 85, 3.00, 0, 1),
+(3, 98, 2.60, 0, 2),
+(3, 106, 2.90, 0, 1),
+(4, 105, 2.80, 0, 2),
+(4, 103, 2.80, 0, 1);

@@ -1,14 +1,9 @@
-﻿using AutoMapper;
-using Bartender.Data;
+﻿using Bartender.Data;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
-using Bartender.Domain.DTO.Orders;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Linq.Expressions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Bartender.Domain.Repositories;
 
@@ -86,6 +81,7 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
             .Include(o => o.Table)
             .Include(o => o.Products)
                 .ThenInclude(p => p.MenuItem)
+                    .ThenInclude(m => m.Product)
             .Include(o => o.Customer)
             .Where(predicate)
             .OrderByDescending(o => o.CreatedAt)
@@ -124,6 +120,7 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
             .Include(o => o.Table)
             .Include(o => o.Products)
                 .ThenInclude(p => p.MenuItem)
+                    .ThenInclude(m => m.Product)
             .Where(predicate)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
@@ -149,6 +146,9 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
         var orders = await _dbSet
             .Include(o => o.Table.Place.City)
             .Include(o => o.Table.Place.Business)
+            .Include(o => o.Products)
+                .ThenInclude(p => p.MenuItem)
+                    .ThenInclude(m => m.Product)
             .Where(o => o.Table.Place.BusinessId == businessId && o.Status == OrderStatus.closed)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();

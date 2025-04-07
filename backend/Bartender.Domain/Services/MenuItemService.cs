@@ -70,6 +70,7 @@ public class MenuItemService(
                     Items = g.OrderBy(mi => mi.Product != null ? mi.Product.Name : "")
                     .Select(mi => new MenuItemBaseDto
                     {
+                        Id = mi.Id,
                         Product = mapper.Map<ProductBaseDto>(mi.Product),
                         Price = mi.Price,
                         Description = mi.Description,

@@ -58,10 +58,13 @@ public class ValidationService(
         if (user!.Role == EmployeeRole.admin)
             return true;
 
-        if (businessId == user!.Place!.BusinessId)
-            return true;
+        if (user.Place == null)
+        {
+            logger.LogWarning("User {UserId} has no place assigned", user.Id);
+            return false;
+        }
 
-        return false;
+        return businessId == user.Place.BusinessId;
     }
      // TODO - throw exceptions instead of returning ServiceResult
     public async Task<ServiceResult> EnsurePlaceExistsAsync(int placeId)

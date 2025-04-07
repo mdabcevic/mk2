@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Bartender.Domain.DTO.Orders;
-using Bartender.Domain;
-using Bartender.Domain.DTO;
 
 namespace BartenderBackend.Controllers;
 
@@ -73,5 +70,16 @@ public class OrderController(IOrderService orderService) : ControllerBase
     {
         var result = await orderService.UpdateStatusAsync(id, orderStatus);
         return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Only cancelled orders can be deleted
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        return (await orderService.DeleteAsync(id)).ToActionResult();
     }
 }

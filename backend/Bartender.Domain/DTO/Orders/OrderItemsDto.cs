@@ -1,8 +1,4 @@
 ﻿
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using Bartender.Domain.DTO.MenuItems;
-
 namespace Bartender.Domain.DTO.Orders;
 
 public class OrderItemsDto

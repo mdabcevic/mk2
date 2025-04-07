@@ -12,8 +12,7 @@ public class OrderProfile : Profile
         CreateMap<UpsertOrderMenuItemDto, ProductsPerOrder>();
 
         CreateMap<Orders, OrderBaseDto>()
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt.ToString("dd.MM.yyyy HH:mm")))
-            .ForMember(dest => dest.Table, opt => opt.MapFrom(src => src.Table.Label));
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt.ToString("dd.MM.yyyy HH:mm")));
 
         CreateMap<Orders, OrderDto>()
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Products))

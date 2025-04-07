@@ -31,7 +31,7 @@ public class OrderService(
             return validationResult;
 
         // combine duplicate items (same MenuItemId) by summing their quantities and add price to each item
-        List<ProductsPerOrder> newOrderItems = await CombineDuplicateItemsAndAddPrices(order);
+        List<ProductsPerOrder> newOrderItems = await ProcessOrderItemsAsync(order);
 
         var calculatedTotal = CalculateTotalPrice(newOrderItems);
         if (calculatedTotal != order.TotalPrice)
@@ -104,7 +104,7 @@ public class OrderService(
             return validUser;
 
         // if the order is closed or the guest is trying to modify an already approved order, return an error.
-        if (existingOrder.Status == OrderStatus.closed || (currentUser.IsGuest && existingOrder.Status != OrderStatus.created))
+        if (existingOrder.Status == OrderStatus.closed || (currentUser.IsGuest && existingOrder.Status != OrderStatus.cancelled))
         {
             logger.LogWarning($"Update failed: Attempt to modify a closed or finalized order with id {id}");
             return ServiceResult.Fail("Order cannot be changed anymore", ErrorType.Validation);
@@ -115,7 +115,7 @@ public class OrderService(
         if (!validationResult.Success)
             return validationResult;
 
-        List<ProductsPerOrder> newOrderItems = await CombineDuplicateItemsAndAddPrices(order);
+        List<ProductsPerOrder> newOrderItems = await ProcessOrderItemsAsync(order);
 
         order.TotalPrice = CalculateTotalPrice(newOrderItems);
         order.Status = existingOrder.Status;
@@ -126,26 +126,33 @@ public class OrderService(
         return ServiceResult.Ok();
     }
 
-    //TODO - soft delete
+    /// <summary>
+    /// Only orders with status 'cancelled' can be fully deleted
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public async Task<ServiceResult> DeleteAsync(int id)
     {
         var order = await repository.GetByIdAsync(id);
         if (order == null)
-        {
             return ServiceResult.Fail($"Order with ID {id} not found", ErrorType.NotFound);
-        }
+
+        var validUser = await validationService.VerifyUserGuestAccess(order.TableId);
+        if (!validUser.Success)
+            return validUser;
+
+        if (order.Status != OrderStatus.cancelled)
+            return ServiceResult.Fail($"Only cancelled orders can be removed", ErrorType.NotFound);
+
         await repository.DeleteAsync(order);
         return ServiceResult.Ok();
     }
 
     public async Task<ServiceResult<List<OrderDto>>> GetAllClosedOrdersByPlaceIdAsync(int placeId)
     {
-        var placeValidationResult = await validationService.EnsurePlaceExistsAsync(placeId);
-        if (!placeValidationResult.Success)
-            return ServiceResult<List<OrderDto>>.Fail(placeValidationResult.Error!, placeValidationResult.errorType!.Value);
-
-        if (!await validationService.VerifyUserPlaceAccess(placeId))
-            return ServiceResult<List<OrderDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+        var validationResult = await ValidatePlaceAccessAsync(placeId);
+        if (!validationResult.Success)
+            return ServiceResult<List<OrderDto>>.Fail(validationResult.Error!, validationResult.errorType!.Value);
 
         var orders = await repository.GetAllByPlaceIdAsync(placeId);
 
@@ -155,12 +162,9 @@ public class OrderService(
 
     public async Task<ServiceResult<List<OrderDto>>> GetAllActiveOrdersByPlaceIdAsync(int placeId, bool onlyWaitingForStaff = false)
     {
-        var placeValidationResult = await validationService.EnsurePlaceExistsAsync(placeId);
-        if (!placeValidationResult.Success)
-            return ServiceResult<List<OrderDto>>.Fail(placeValidationResult.Error!, placeValidationResult.errorType!.Value);
-
-        if (!await validationService.VerifyUserPlaceAccess(placeId))
-            return ServiceResult<List<OrderDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+        var validationResult = await ValidatePlaceAccessAsync(placeId);
+        if (!validationResult.Success)
+            return ServiceResult<List<OrderDto>>.Fail(validationResult.Error!, validationResult.errorType!.Value);
 
         var orders = onlyWaitingForStaff ? await repository.GetPendingByPlaceIdAsync(placeId) :
                     await repository.GetActiveByPlaceIdAsync(placeId);
@@ -171,12 +175,9 @@ public class OrderService(
 
     public async Task<ServiceResult<List<GroupedOrderStatusDto>>> GetAllActiveOrdersByPlaceIdGroupedAsync(int placeId, bool onlyWaitingForStaff = false)
     {
-        var placeValidationResult = await validationService.EnsurePlaceExistsAsync(placeId);
-        if (!placeValidationResult.Success)
-            return ServiceResult<List<GroupedOrderStatusDto>>.Fail(placeValidationResult.Error!, placeValidationResult.errorType!.Value);
-
-        if (!await validationService.VerifyUserPlaceAccess(placeId))
-            return ServiceResult<List<GroupedOrderStatusDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+        var validationResult = await ValidatePlaceAccessAsync(placeId);
+        if (!validationResult.Success)
+            return ServiceResult<List<GroupedOrderStatusDto>>.Fail(validationResult.Error!, validationResult.errorType!.Value);
 
         var groupedOrders = onlyWaitingForStaff ? await repository.GetPendingByPlaceIdGroupedAsync(placeId) :
                     await repository.GetActiveByPlaceIdGroupedAsync(placeId);
@@ -184,7 +185,7 @@ public class OrderService(
         var result = groupedOrders.Select(g => new GroupedOrderStatusDto
         {
             Status = g.Key,
-            Orders = mapper.Map<List<OrderBaseDto>>(g.Value)
+            Orders = mapper.Map<List<OrderDto>>(g.Value)
         }).ToList();
 
         return ServiceResult<List<GroupedOrderStatusDto>>.Ok(result);
@@ -204,7 +205,7 @@ public class OrderService(
         var result = orders.Select(g => new BusinessOrdersDto
         {
             Place = mapper.Map<PlaceDto>(g.Key),
-            Orders = mapper.Map<List<OrderBaseDto>>(g.Value)
+            Orders = mapper.Map<List<OrderDto>>(g.Value)
         }).ToList();
 
         return ServiceResult<List<BusinessOrdersDto>>.Ok(result);
@@ -285,35 +286,38 @@ public class OrderService(
         return menuItems;
     }
 
-    private async Task<List<ProductsPerOrder>> CombineDuplicateItemsAndAddPrices(UpsertOrderDto order)
+    private async Task<List<ProductsPerOrder>> ProcessOrderItemsAsync(UpsertOrderDto order)
     {
-        var combinedItemsDto = order.Items
+        var menuItems = await GetOrderItemsAsync(order);
+        var combinedItems = order.Items
             .GroupBy(i => i.MenuItemId)
-            .Select(g => new UpsertOrderMenuItemDto
+            .Select(g => new ProductsPerOrder
             {
                 MenuItemId = g.Key,
-                Count = g.Sum(i => i.Count)
+                Count = g.Sum(i => i.Count),
+                Price = menuItems.First(mi => mi.Id == g.Key).Price,
+                Discount = 0 // TODO => implement discount after added to menuItems
             })
             .ToList();
 
-        var items = mapper.Map<List<ProductsPerOrder>>(combinedItemsDto);
-
-        var menuItems = await GetOrderItemsAsync(order);
-
-        foreach (var item in items)
-            item.Price = menuItems.FirstOrDefault(mi => mi.Id == item.MenuItemId)?.Price ?? 0m;
-
-        return items;
+        return combinedItems;
     }
+
 
     private decimal CalculateTotalPrice(List<ProductsPerOrder> items)
     {
-        decimal totalPrice = 0m;
+        return items.Sum(item => item.Price * item.Count * (1 - item.Discount / 100m));
+    }
 
-        foreach (var item in items)
-        {
-            totalPrice += item.Price * item.Count * (1 - item.Discount / 100m);
-        }
-        return totalPrice;
+    private async Task<ServiceResult> ValidatePlaceAccessAsync(int placeId)
+    {
+        var placeValidationResult = await validationService.EnsurePlaceExistsAsync(placeId);
+        if (!placeValidationResult.Success)
+            return placeValidationResult;
+
+        if (!await validationService.VerifyUserPlaceAccess(placeId))
+            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+
+        return ServiceResult.Ok();
     }
 }
