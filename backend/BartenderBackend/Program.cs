@@ -77,6 +77,9 @@ builder.Services.AddScoped<ITableManagementService, TableManagementService>();
 builder.Services.AddScoped<IGuestSessionService, GuestSessionService>();
 builder.Services.AddScoped<ITableSessionService, GuestSessionService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -85,7 +88,11 @@ builder.Services.AddHttpContextAccessor(); // required!
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 
 builder.Services.AddAutoMapper(
-    typeof(BusinessProfile).Assembly
+    typeof(BusinessProfile).Assembly,
+    typeof(ProductProfile).Assembly,
+    typeof(MenuItemProfile).Assembly,
+    typeof(PlacesProfile).Assembly,
+    typeof(OrderProfile).Assembly
 );
 
 builder.Services.AddControllers()
@@ -96,12 +103,6 @@ builder.Services.AddControllers()
     });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
-builder.Services.AddAutoMapper(
-    typeof(ProductProfile),
-    typeof(MenuItemProfile),
-    typeof(PlacesProfile)
-    );
 
 var app = builder.Build();
 app.UseSerilogRequestLogging(); // Log all HTTP requests automatically

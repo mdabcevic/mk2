@@ -1,0 +1,17 @@
+﻿using Bartender.Domain.DTO.Orders;
+
+namespace Bartender.Domain.Interfaces;
+
+public interface IOrderService
+{
+    Task<ServiceResult<OrderDto?>> GetByIdAsync(int id);
+    Task<ServiceResult<List<BusinessOrdersDto>>> GetAllByBusinessIdAsync(int businessId);
+    Task<ServiceResult<List<OrderDto>>> GetAllClosedOrdersByPlaceIdAsync(int placeId);
+    Task<ServiceResult<List<OrderDto>>> GetAllActiveOrdersByPlaceIdAsync(int placeId, bool onlyWaitingForStaff = false);
+    Task<ServiceResult<List<GroupedOrderStatusDto>>> GetAllActiveOrdersByPlaceIdGroupedAsync(int placeId, bool onlyWaitingForStaff = false);
+    Task<ServiceResult<List<OrderDto>>> GetActiveTableOrdersForUserAsync(bool userSpecific = true);
+    Task<ServiceResult> AddAsync(UpsertOrderDto order);
+    Task<ServiceResult> UpdateAsync(int id, UpsertOrderDto order);
+    Task<ServiceResult> UpdateStatusAsync(int id, UpdateOrderStatusDto newStatus);
+    Task<ServiceResult> DeleteAsync(int id);
+}

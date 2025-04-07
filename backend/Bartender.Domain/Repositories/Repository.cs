@@ -4,6 +4,7 @@ using Bartender.Data;
 using System.Linq.Expressions;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Linq;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Bartender.Domain.Repositories;
 
@@ -93,7 +94,8 @@ public class Repository<T> : IRepository<T> where T : class
 
     public async Task<List<T>> GetFilteredAsync(
         bool? includeNavigations = false, 
-        Expression<Func<T, bool>>? filterBy = null, 
+        Expression<Func<T, bool>>? filterBy = null,
+        bool orderByDescending = false,
         params Expression<Func<T, object>>[]? orderBy)
     {
         var query = _dbSet.AsQueryable();
@@ -105,7 +107,7 @@ public class Repository<T> : IRepository<T> where T : class
             query = query.Where(filterBy);
 
         if (orderBy != null)
-            query = ApplyOrdering(query, orderBy);
+            query = ApplyOrdering(query, orderBy, orderByDescending);
 
         return await query.ToListAsync();
     }
@@ -127,16 +129,24 @@ public class Repository<T> : IRepository<T> where T : class
         return query;
     }
 
-    public IQueryable<T> ApplyOrdering(IQueryable<T> query, Expression<Func<T, object>>[] orderBy)
+    public IQueryable<T> ApplyOrdering(IQueryable<T> query, Expression<Func<T, object>>[] orderBy, bool descending = false)
     {
         if (orderBy.Length == 0)
             return query;
 
-        var orderedQuery = query.OrderBy(orderBy[0]);
+        IOrderedQueryable<T> orderedQuery = descending 
+            ? query.OrderByDescending(orderBy[0])
+            : query.OrderBy(orderBy[0]);
 
-        for (int i = 1; i < orderBy.Length; i++)
+        if (descending)
         {
-            orderedQuery = orderedQuery.ThenBy(orderBy[i]);
+            for (int i = 1; i < orderBy.Length; i++)
+                orderedQuery = orderedQuery.ThenByDescending(orderBy[i]);
+        }
+        else
+        {
+            for (int i = 1; i < orderBy.Length; i++)
+                orderedQuery = orderedQuery.ThenBy(orderBy[i]);
         }
 
         return orderedQuery;
@@ -195,6 +205,12 @@ public class Repository<T> : IRepository<T> where T : class
     public async Task DeleteAsync(T entity)
     {
         _dbSet.Remove(entity);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task DeleteRangeAsync(IEnumerable<T> entities)
+    {
+        _dbSet.RemoveRange(entities);
         await context.SaveChangesAsync();
     }
 

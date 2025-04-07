@@ -6,9 +6,13 @@ namespace Bartender.Data.Models;
 [Table("menuitems")]
 public class MenuItems
 {
+    [Key]
+    [Column("id")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+
     [Required]
     [Column("place_id")]
-    [Key]
     public int PlaceId { get; set; }
 
     [ForeignKey("PlaceId")]
@@ -16,7 +20,6 @@ public class MenuItems
 
     [Required]
     [Column("product_id")]
-    [Key]
     public int ProductId { get; set; }
 
     [ForeignKey("ProductId")]

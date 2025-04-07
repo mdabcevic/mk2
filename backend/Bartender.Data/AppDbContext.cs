@@ -22,8 +22,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<MenuItems>().HasKey(mi => new { mi.PlaceId, mi.ProductId });
-        modelBuilder.Entity<ProductsPerOrder>().HasKey(po => new { po.OrderId, po.ProductId });
+        modelBuilder.Entity<ProductsPerOrder>().HasKey(po => new { po.OrderId, po.MenuItemId });
         modelBuilder.Entity<Reviews>().HasKey(r => new { r.ProductId, r.CustomerId });
 
         base.OnModelCreating(modelBuilder);

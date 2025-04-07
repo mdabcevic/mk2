@@ -17,7 +17,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'orderstatus') THEN
-    CREATE TYPE OrderStatus AS ENUM ('created', 'approved', 'delivered', 'paid', 'closed', 'cancelled');
+    CREATE TYPE OrderStatus AS ENUM ('created', 'approved', 'delivered', 'payment_requested', 'paid', 'closed', 'cancelled');
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'paymenttype') THEN
@@ -101,12 +101,13 @@ CREATE TABLE IF NOT EXISTS Products (
 
 -- Table: MenuItems
 CREATE TABLE IF NOT EXISTS MenuItems (
+	id SERIAL PRIMARY KEY,
     place_id INTEGER NOT NULL REFERENCES Places(id) ON DELETE CASCADE,
     product_id INTEGER NOT NULL REFERENCES Products(id) ON DELETE CASCADE,
     price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    isAvailable BOOLEAN NOT NULL,
+    isAvailable BOOLEAN NOT NULL DEFAULT false,
     description VARCHAR NULL,
-    PRIMARY KEY (place_id, product_id)
+    UNIQUE(place_id, product_id)
 );
 
 -- Table: Customers
@@ -119,19 +120,24 @@ CREATE TABLE IF NOT EXISTS Customers (
 -- Table: Orders
 CREATE TABLE IF NOT EXISTS Orders (
     id SERIAL PRIMARY KEY,
-    table_id INTEGER NOT NULL UNIQUE REFERENCES Tables(id) ON DELETE CASCADE,
+    table_id INTEGER NOT NULL REFERENCES Tables(id) ON DELETE CASCADE,
     customer_id INTEGER REFERENCES Customers(id) ON DELETE SET NULL,
+	guest_session_id UUID REFERENCES guestSessions(id) ON DELETE SET NULL,
     createdAt TIMESTAMP DEFAULT now(),
     status OrderStatus NOT NULL DEFAULT 'created',
-    paymentType PaymentType NOT NULL DEFAULT 'cash'
+	total_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    paymentType PaymentType NOT NULL DEFAULT 'cash',
+	note VARCHAR NULL
 );
 
 -- Table: ProductsPerOrder
 CREATE TABLE IF NOT EXISTS ProductsPerOrder (
     order_id INTEGER NOT NULL REFERENCES Orders(id) ON DELETE CASCADE,
-    product_id INTEGER NOT NULL REFERENCES Products(id) ON DELETE CASCADE,
+    menuitem_id INTEGER NOT NULL REFERENCES MenuItems(id) ON DELETE CASCADE,
+	item_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+	discount DECIMAL(5,2) DEFAULT 0.00,
     count INTEGER DEFAULT 1,
-    PRIMARY KEY (order_id, product_id)
+    PRIMARY KEY (order_id, menuitem_id)
 );
 
 -- Table: Reviews
@@ -227,7 +233,9 @@ INSERT INTO Tables (id, place_id, label, seats, status, qrsalt, isdisabled) VALU
 (4, 1, '4', 4, 'empty', '768e63c7ab2b44a482b2a825645aaabb', false),
 (5, 1, '5', 4, 'empty', '1b3593e63a6a4fef8f2e5eae19840165', false),
 (6, 1, '6', 4, 'empty', 'ef9bf913754048b083a8571b740fb112', false),
-(7, 1, '7', 4, 'empty', '52206960508e41a797f546dd4106cf45', false);
+(7, 1, '7', 4, 'empty', '52206960508e41a797f546dd4106cf45', false),
+(8, 3, '1', 4, 'empty', 'e6fae97a5c54471984572d1020388970', false),
+(9, 3, '2', 4, 'empty', 'eb754108919e4db18cb0d05e2c4262f2', false);
 
 -- Insert ProductCategory
 INSERT INTO ProductCategory(name, parentcategory_id) VALUES
@@ -510,21 +518,33 @@ INSERT INTO MenuItems(place_id, product_id, price, isAvailable) VALUES
 
 -- second bar
 INSERT INTO MenuItems(place_id, product_id, price, isAvailable) VALUES
---kave
 (3, 3, 2.30, true),
 (3, 5, 2.60, true),
 (3, 7, 2.30, true),
 (3, 4, 2.30, true),
-
---topli napitci
 (3, 19, 2.70, true),
 (3, 20, 2.80, true),
 (3, 21, 2.80, true),
 (3, 22, 2.80, true),
 (3, 23, 2.80, true),
-
 (3, 92, 2.90, true),
 (3, 93, 2.90, true),
 (3, 94, 2.90, true),
-
 (3, 76, 3.90, true);
+
+INSERT INTO Orders(table_id, createdAt, status, total_price, paymentType) VALUES
+(1, (NOW() - interval '1 day'), 'closed', 14.50, 'cash'),
+(2, (NOW() - interval '2 day'), 'closed', 10.50, 'cash'),
+(8, (NOW() - interval '1 hour'), 'closed', 13.00, 'cash'),
+(8, (NOW() - interval '1 day'), 'closed', 11.75, 'cash');
+
+INSERT INTO ProductsPerOrder(order_id, menuitem_id, item_price, discount, count) VALUES
+(1, 31, 2.50, 0, 1),
+(1, 4, 2.40, 0, 2),
+(2, 58, 2.70, 0, 1),
+(2, 71, 3.80, 0, 2),
+(2, 85, 3.00, 0, 1),
+(3, 98, 2.60, 0, 2),
+(3, 106, 2.90, 0, 1),
+(4, 105, 2.80, 0, 2),
+(4, 103, 2.80, 0, 1);

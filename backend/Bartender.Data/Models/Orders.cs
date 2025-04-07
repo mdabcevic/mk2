@@ -17,7 +17,7 @@ public class Orders
     public int TableId { get; set; }
 
     [ForeignKey("TableId")]
-    public Tables Table { get; set; } = new Tables();
+    public Tables? Table { get; set; }
 
     [Column("customer_id")]
     public int? CustomerId { get; set; }
@@ -25,8 +25,14 @@ public class Orders
     [ForeignKey("CustomerId")]
     public Customers? Customer { get; set; }
 
+    [Column("guest_session_id")]
+    public Guid? GuestSessionId { get; set; }
+
+    [ForeignKey("GuestSessionId")]
+    public GuestSession? GuestSession { get; set; }
+
     [Column("createdat")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
 
     [Required]
     [Column("status")]
@@ -34,9 +40,16 @@ public class Orders
     public OrderStatus Status { get; set; } = OrderStatus.created;
 
     [Required]
+    [Column("total_price", TypeName = "decimal(10,2)")]
+    public decimal TotalPrice { get; set; } = 0.0m;
+
+    [Required]
     [Column("paymenttype")]
     [EnumDataType(typeof(PaymentType))]
     public PaymentType PaymentType { get; set; } = PaymentType.cash;
+
+    [Column("note")]
+    public string? Note { get; set; }
 
     public ICollection<ProductsPerOrder> Products { get; set; } = [];
 }

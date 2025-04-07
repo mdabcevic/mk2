@@ -15,5 +15,6 @@ public class TableProfile : Profile
             .ForMember(dest => dest.GuestToken, opt => opt.Ignore()); // set manually
 
         CreateMap<UpsertTableDto, Tables>();
+        CreateMap<Tables, UpsertTableDto>();
     }
 }
