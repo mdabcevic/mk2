@@ -33,7 +33,7 @@ public class JwtService(IConfiguration config) : IJwtService
         var claims = new[]
         {
             new Claim("sub", staff.Id.ToString()),
-            new Claim(ClaimTypes.Role, staff.Role.ToString()),
+            new Claim("role", staff.Role.ToString()),
             new Claim("place_id", staff.PlaceId.ToString())
         };
 
