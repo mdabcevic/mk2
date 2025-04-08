@@ -46,7 +46,7 @@ public class GuestSessionService(
         }
 
         var sessionId = Guid.NewGuid();
-        var expiresAt = DateTime.UtcNow.AddMinutes(30);
+        var expiresAt = DateTime.UtcNow.AddMinutes(120); //remove this...
         var token = jwtService.GenerateGuestToken(tableId, sessionId, expiresAt);
 
         var session = new GuestSession
@@ -99,8 +99,13 @@ public class GuestSessionService(
         }
 
         foreach (var session in sessions)
+        {
             session.IsValid = false;
-
+            //TODO: horrible fix - find a way to deal with postgres timestamps.
+            session.CreatedAt = DateTime.SpecifyKind(session.CreatedAt, DateTimeKind.Utc);
+            session.ExpiresAt = DateTime.SpecifyKind(session.ExpiresAt, DateTimeKind.Utc);
+        }
+            
         await guestSessionRepo.UpdateRangeAsync(sessions);
 
         logger.LogInformation("Revoked {Count} sessions for Table {TableId}", sessions.Count, tableId);

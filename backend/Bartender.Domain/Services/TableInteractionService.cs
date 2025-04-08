@@ -47,7 +47,7 @@ public class TableInteractionService(
         }
 
         return currentUser.IsGuest
-            ? await HandleGuestStatusChangeAsync(table, newStatus, token)
+            ? await HandleGuestStatusChangeAsync(table, newStatus, currentUser.GetRawToken()) //TODO: not table access token, user access token for session...
             : await HandleStaffStatusChangeAsync(table, newStatus);
     }
 
