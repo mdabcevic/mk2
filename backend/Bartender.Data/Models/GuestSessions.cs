@@ -18,7 +18,7 @@ public class GuestSession
     public Tables? Table { get; set; }
 
     [Column("group_id")]
-    public Guid GroupId { get; set; }
+    public Guid? GroupId { get; set; }
 
     [ForeignKey(nameof(GroupId))]
     public GuestSessionGroup Group { get; set; } = null!;

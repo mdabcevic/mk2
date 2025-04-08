@@ -15,7 +15,7 @@ public class ValidationService(
 {
     public async Task<ServiceResult> VerifyUserGuestAccess(int orderTableId)
     {
-        if (currentUser.IsGuest && !await tableSessionService.IsSameTokenAsActiveAsync(orderTableId, currentUser.GetRawToken()))
+        if (currentUser.IsGuest && !await tableSessionService.HasActiveSessionAsync(orderTableId, currentUser.GetRawToken()))
         {
             logger.LogWarning("Guest access denied for TableId: {TableId}, Token: {Token}", orderTableId, currentUser.GetRawToken());
             return ServiceResult.Fail("You don't have access to manage orders for this table", ErrorType.Unauthorized);

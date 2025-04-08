@@ -19,13 +19,6 @@ public class GuestSessionService(
         return session is not null;
     }
 
-    public async Task<List<GuestSession>> GetAllActiveSessionsAsync(int tableId)
-    {
-        return await guestSessionRepo.Query()
-            .Where(s => s.TableId == tableId && s.IsValid)
-            .ToListAsync();
-    }
-
     public async Task<string> CreateSessionAsync(int tableId, string passphrase) // always send passphrase, on new group session and existing?
     {
         if (string.IsNullOrEmpty(passphrase))
