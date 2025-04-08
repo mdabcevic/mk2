@@ -22,7 +22,7 @@ public class TableInteractionService(
     /// </summary>
     /// <param name="salt">Rotating token used for QR - also unique identifier for table.</param>
     /// <returns></returns>
-    public async Task<ServiceResult<TableScanDto>> GetBySaltAsync(string salt)
+    public async Task<ServiceResult<TableScanDto>> GetBySaltAsync(string salt, string? passphrase = null)
     {
         var table = await repository.GetByKeyAsync(t => t.QrSalt == salt);
         if (table is null)
@@ -32,7 +32,7 @@ public class TableInteractionService(
         }
 
         return currentUser.IsGuest
-            ? await HandleGuestScanAsync(table)
+            ? await HandleGuestScanAsync(table, passphrase)
             : await HandleStaffScanAsync(table);
     }
 
@@ -51,7 +51,7 @@ public class TableInteractionService(
             : await HandleStaffStatusChangeAsync(table, newStatus);
     }
 
-    private async Task<ServiceResult<TableScanDto>> HandleGuestScanAsync(Tables table)
+    private async Task<ServiceResult<TableScanDto>> HandleGuestScanAsync(Tables table, string? passphrase)
     {
         if (table.IsDisabled)
         {
@@ -59,10 +59,10 @@ public class TableInteractionService(
             return ServiceResult<TableScanDto>.Fail("QR for this table is currently unavailable. Waiter is coming.", ErrorType.Unauthorized);
         }
 
-        if (table.Status == TableStatus.occupied)
-            return await HandleOccupiedOnGuestScan(table);
+        if (table.Status == TableStatus.empty)
+            return await StartFirstSession(table);
 
-        return await BeginNewGuestSession(table);
+        return await TryJoinExistingSession(table, passphrase);
     }
 
     private async Task<ServiceResult<TableScanDto>> HandleOccupiedOnGuestScan(Tables table)
@@ -175,18 +175,72 @@ public class TableInteractionService(
         return ServiceResult<TableScanDto>.Ok(mapper.Map<TableScanDto>(table));
     }
 
-    private async Task<bool> IsSameBusinessAsync(int placeId) //TODO: business guard
+    private async Task<bool> IsSameBusinessAsync(int placeId) //TODO: use validation service
     {
         var user = await currentUser.GetCurrentUserAsync();
         return placeId == user!.PlaceId;
     }
 
-    private string GeneratePassphrase(int length = 6)
+    private static string GeneratePassphrase(int length = 6)
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         var random = new Random();
-        return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
+        return new string([.. Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)])]);
     }
 
+    private async Task<ServiceResult<TableScanDto>> StartFirstSession(Tables table)
+    {
+        table.Status = TableStatus.occupied;
+        await repository.UpdateAsync(table);
+
+        var passphrase = GeneratePassphrase(); // 6-char alphanum
+        var token = await guestSessionService.CreateSessionAsync(table.Id, passphrase);
+
+        var dto = mapper.Map<TableScanDto>(table);
+        dto.GuestToken = token;
+        dto.Passphrase = passphrase;
+
+        logger.LogInformation("Table {TableId} is now occupied. First session started with passphrase {Passphrase}", table.Id, passphrase);
+        return ServiceResult<TableScanDto>.Ok(dto);
+    }
+
+    private async Task<ServiceResult<TableScanDto>> TryJoinExistingSession(Tables table, string? submittedPassphrase)
+    {
+        if (string.IsNullOrWhiteSpace(submittedPassphrase))
+            return ServiceResult<TableScanDto>.Fail("This table is currently occupied. Enter the passphrase to join.", ErrorType.Unauthorized);
+
+        try
+        {
+            var token = await guestSessionService.CreateSessionAsync(table.Id, submittedPassphrase);
+
+            var dto = mapper.Map<TableScanDto>(table);
+            dto.GuestToken = token;
+            dto.Passphrase = null; // don't return passphrase here
+
+            logger.LogInformation("New guest joined table {TableId} using passphrase {Passphrase}", table.Id, submittedPassphrase);
+            return ServiceResult<TableScanDto>.Ok(dto);
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogWarning("Join failed: incorrect passphrase for table {TableId}, exception: {Exception}", table.Id, ex.Message);
+            return ServiceResult<TableScanDto>.Fail("Incorrect passphrase. Please ask someone at the table.", ErrorType.Unauthorized);
+        }
+    }
+
+    public async Task<ServiceResult<TableScanDto>> TryJoinExistingSessionAsync(string salt, string submittedPassphrase)
+    {
+        var table = await repository.GetByKeyAsync(t => t.QrSalt == salt);
+        if (table is null)
+        {
+            logger.LogWarning("Join failed: Invalid QR salt {Salt}", salt);
+            return ServiceResult<TableScanDto>.Fail("Invalid QR code.", ErrorType.NotFound);
+        }
+
+        if (table.Status != TableStatus.occupied)
+        {
+            logger.LogWarning("Join failed: Table {TableId} not occupied", table.Id);
+            return ServiceResult<TableScanDto>.Fail("Table is not currently occupied.", ErrorType.Validation);
+        }
+        return await TryJoinExistingSession(table, submittedPassphrase);
+    }
 }

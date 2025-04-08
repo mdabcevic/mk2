@@ -53,9 +53,17 @@ public class TablesController(
 
     [HttpGet("lookup")]
     [AllowAnonymous] // guests scan QR
-    public async Task<IActionResult> GetBySalt([FromQuery] string salt)
+    public async Task<IActionResult> GetBySalt([FromQuery] string salt, [FromQuery] string? passphrase = null)
     {
-        var result = await tableInteractionService.GetBySaltAsync(salt);
+        var result = await tableInteractionService.GetBySaltAsync(salt, passphrase);
+        return result.ToActionResult();
+    }
+
+    [HttpPost("join")]
+    [AllowAnonymous] // guests must access this
+    public async Task<IActionResult> JoinTable([FromBody] TableJoinDto request)
+    {
+        var result = await tableInteractionService.TryJoinExistingSessionAsync(request.Salt, request.Passphrase);
         return result.ToActionResult();
     }
 
