@@ -28,8 +28,14 @@ public class GuestSessionService(
 
         // Try to find existing group for this table
         var group = await groupSessionRepo.Query()
-            .Where(g => g.TableId == tableId && g.Passphrase == passphrase)
+            .Where(g => g.TableId == tableId)
             .FirstOrDefaultAsync();
+
+        if (group != null && group.Passphrase != passphrase)
+        {
+            logger.LogWarning("Attempted to join Table {TableId} with incorrect passphrase.", tableId);
+            throw new InvalidOperationException("Incorrect passphrase for this table.");
+        }
 
         // group doesnt exist - ensure that passphrase isn't null!!!
         if (group == null)
