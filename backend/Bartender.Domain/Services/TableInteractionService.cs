@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
 using Bartender.Data.Enums;
-using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
+using Bartender.Domain.DTO.Table;
 
 namespace Bartender.Domain.Services;
 

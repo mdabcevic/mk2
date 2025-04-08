@@ -1,5 +1,6 @@
 ﻿using Bartender.Data.Enums;
-using Bartender.Domain.DTO;
+using Bartender.Data.Models;
+using Bartender.Domain.DTO.Table;
 
 namespace Bartender.Domain.Interfaces;
 

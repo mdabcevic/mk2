@@ -73,12 +73,20 @@ CREATE TABLE IF NOT EXISTS Tables (
     UNIQUE (place_id, label) -- ensures table tags are unique per place
 );
 
+-- Create session group table
+CREATE TABLE GuestSessionGroups (
+    id UUID PRIMARY KEY,
+    table_id INT NOT NULL REFERENCES Tables(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT now(),
+    passphrase VARCHAR(12) NOT NULL
+);
+
 -- Table: GuestSessions
 CREATE TABLE IF NOT EXISTS guestSessions (
     id UUID PRIMARY KEY,
     table_id INTEGER NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    group_id UUID REFERENCES guest_session_groups(id) ON DELETE CASCADE;
     token TEXT NOT NULL,
-    passphrase VARCHAR(12), -- nullable for now, only first user needs it
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMP NOT NULL,
     UNIQUE (table_id) -- only one active session per table

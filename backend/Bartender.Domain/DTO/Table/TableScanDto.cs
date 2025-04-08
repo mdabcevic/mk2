@@ -1,5 +1,4 @@
-﻿
-namespace Bartender.Domain.DTO;
+﻿namespace Bartender.Domain.DTO.Table;
 
 public class TableScanDto
 {

@@ -1,5 +1,5 @@
 ﻿using Bartender.Data.Enums;
-using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

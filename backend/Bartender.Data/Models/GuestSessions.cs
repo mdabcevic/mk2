@@ -17,12 +17,16 @@ public class GuestSession
     [ForeignKey(nameof(TableId))]
     public Tables? Table { get; set; }
 
+    [Column("group_id")]
+    public Guid GroupId { get; set; }
+
+    [ForeignKey(nameof(GroupId))]
+    public GuestSessionGroup Group { get; set; } = null!;
+
     [Required]
     [Column("token")]
     public string Token { get; set; } = string.Empty;
 
-    [Column("passphrase")]
-    public string? Passphrase { get; set; }
 
     [Required]
     [Column("created_at")]

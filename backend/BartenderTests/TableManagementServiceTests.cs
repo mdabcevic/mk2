@@ -1,5 +1,4 @@
 ﻿using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain;
 using NSubstitute;
 using System.Linq.Expressions;
@@ -8,6 +7,7 @@ using Bartender.Data.Enums;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services;
 using Microsoft.Extensions.Logging;
+using Bartender.Domain.DTO.Table;
 
 namespace BartenderTests;
 
