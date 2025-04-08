@@ -47,7 +47,7 @@ public class GuestSessionService(
 
         var sessionId = Guid.NewGuid();
         var expiresAt = DateTime.UtcNow.AddMinutes(120); //remove this...
-        var token = jwtService.GenerateGuestToken(tableId, sessionId, expiresAt);
+        var token = jwtService.GenerateGuestToken(tableId, sessionId, expiresAt, passphrase);
 
         var session = new GuestSession
         {
