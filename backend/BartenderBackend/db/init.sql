@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS guestSessions (
     token TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMP NOT NULL,
-    UNIQUE (table_id) -- only one active session per table
+    isvalid boolean default true
 );
 
 -- Table: ProductCategory

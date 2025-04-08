@@ -12,27 +12,18 @@ public class GuestSessionService(
     ILogger<GuestSessionService> logger
 ) : IGuestSessionService, ITableSessionService
 {
-    public async Task<bool> HasActiveSessionAsync(int tableId)
+    public async Task<bool> HasActiveSessionAsync(int tableId, string token)
     {
-        return await GetActiveSessionAsync(tableId) is not null;
+        var session = await guestSessionRepo.GetByKeyAsync(s =>
+            s.TableId == tableId && s.Token == token && s.IsValid);
+        return session is not null;
     }
 
-    public async Task<bool> IsSameTokenAsActiveAsync(int tableId, string token)
+    public async Task<List<GuestSession>> GetAllActiveSessionsAsync(int tableId)
     {
-        var active = await GetActiveSessionAsync(tableId);
-        return active?.Token == token;
-    }
-
-    private async Task<GuestSession?> GetActiveSessionAsync(int tableId)
-    {
-        return await guestSessionRepo.GetByKeyAsync(s =>
-            s.TableId == tableId && s.ExpiresAt > DateTime.UtcNow);
-    }
-
-    public async Task<bool> CanResumeExpiredSessionAsync(int tableId, string token)
-    {
-        var latestExpired = await GetLatestExpiredSessionAsync(tableId);
-        return latestExpired?.Token == token;
+        return await guestSessionRepo.Query()
+            .Where(s => s.TableId == tableId && s.IsValid)
+            .ToListAsync();
     }
 
     public async Task<string> CreateSessionAsync(int tableId, string passphrase) // always send passphrase, on new group session and existing?
@@ -89,14 +80,6 @@ public class GuestSessionService(
             await guestSessionRepo.DeleteAsync(session);
             logger.LogInformation("Deleted guest session {SessionId}", session.Id);
         }
-    }
-
-    public async Task<GuestSession?> GetLatestExpiredSessionAsync(int tableId)
-    {
-        return await guestSessionRepo.Query()
-            .Where(s => s.TableId == tableId)
-            .OrderByDescending(s => s.ExpiresAt)
-            .FirstOrDefaultAsync();
     }
 
     public async Task<GuestSession?> GetByTokenAsync(int tableId, string token)

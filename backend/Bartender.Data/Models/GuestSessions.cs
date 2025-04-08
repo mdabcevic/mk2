@@ -36,8 +36,9 @@ public class GuestSession
     [Column("expires_at")]
     public DateTime ExpiresAt { get; set; }
 
-    [NotMapped]
-    public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
+    [Required]
+    [Column("isvalid")]
+    public bool IsValid { get; set; } = true;
 
     public ICollection<Orders> Orders { get; set; } = [];
 }

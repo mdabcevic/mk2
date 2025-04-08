@@ -59,49 +59,22 @@ public class TableInteractionService(
             return ServiceResult<TableScanDto>.Fail("QR for this table is currently unavailable. Waiter is coming.", ErrorType.Unauthorized);
         }
 
+        // ✅ 1. Resume if guest already has a valid session
+        var token = currentUser.GetRawToken();
+        if (!string.IsNullOrWhiteSpace(token) && await tableSessionService.HasActiveSessionAsync(table.Id, token))
+        {
+            logger.LogInformation("Guest resumed session {Session} on Table {TableId}", token, table.Id);
+            var dto = mapper.Map<TableScanDto>(table);
+            dto.GuestToken = token;
+            return ServiceResult<TableScanDto>.Ok(dto);
+        }
+
+        // ✅ 2. If table is empty — first scan: generate session + passphrase
         if (table.Status == TableStatus.empty)
             return await StartFirstSession(table);
 
+        // ✅ 3. Table is occupied — try to join via passphrase
         return await TryJoinExistingSession(table, passphrase);
-    }
-
-    private async Task<ServiceResult<TableScanDto>> HandleOccupiedOnGuestScan(Tables table)
-    {
-        var token = currentUser.GetRawToken();
-        if (await tableSessionService.HasActiveSessionAsync(table.Id))
-        {
-            if (await tableSessionService.IsSameTokenAsActiveAsync(table.Id, token))
-            {
-                logger.LogInformation("Guest resumed active session for Table {TableId}", table.Id);
-                var dto = mapper.Map<TableScanDto>(table);
-                dto.GuestToken = token;
-                return ServiceResult<TableScanDto>.Ok(dto);
-            }
-            logger.LogWarning("QR scan denied for Table {TableId} — session already active for another user", table.Id);
-            return ServiceResult<TableScanDto>.Fail("This table is currently in use.", ErrorType.Conflict);
-        }
-
-        if (!await tableSessionService.CanResumeExpiredSessionAsync(table.Id, token))
-        {
-            logger.LogWarning("QR scan denied — expired session exists but token does not match. Table {TableId}", table.Id);
-            return ServiceResult<TableScanDto>.Fail("Table is still in use.", ErrorType.Conflict);
-        }
-        return await BeginNewGuestSession(table);
-    }
-
-    private async Task<ServiceResult<TableScanDto>> BeginNewGuestSession(Tables table)
-    {
-        table.Status = TableStatus.occupied;
-        await repository.UpdateAsync(table);
-
-        var passphrase = GeneratePassphrase();
-        var newToken = await guestSessionService.CreateSessionAsync(table.Id, passphrase);
-
-        var resultDto = mapper.Map<TableScanDto>(table);
-        resultDto.GuestToken = newToken;
-        resultDto.Passphrase = passphrase; // add this property to DTO
-
-        return ServiceResult<TableScanDto>.Ok(resultDto);
     }
 
     private async Task<ServiceResult> HandleGuestStatusChangeAsync(Tables table, TableStatus newStatus, string token)
