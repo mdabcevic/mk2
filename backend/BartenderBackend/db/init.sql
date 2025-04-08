@@ -85,7 +85,7 @@ CREATE TABLE GuestSessionGroups (
 CREATE TABLE IF NOT EXISTS guestSessions (
     id UUID PRIMARY KEY,
     table_id INTEGER NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
-    group_id UUID REFERENCES guest_session_groups(id) ON DELETE SET NULL;
+    group_id UUID REFERENCES GuestSessionGroups(id) ON DELETE SET NULL,
     token TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMP NOT NULL,
