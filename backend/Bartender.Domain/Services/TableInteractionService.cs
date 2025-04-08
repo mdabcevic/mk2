@@ -86,7 +86,7 @@ public class TableInteractionService(
             return ServiceResult.Fail("Missing authentication token.", ErrorType.Unauthorized);
         }
 
-        if (await tableSessionService.HasActiveSessionAsync(table.Id, token))
+        if (!await tableSessionService.HasActiveSessionAsync(table.Id, token))
         {
             logger.LogWarning("Invalid session for guest trying to change status on Table {Id}", table.Id);
             return ServiceResult.Fail("Unauthorized or expired session.", ErrorType.Unauthorized);
@@ -126,7 +126,8 @@ public class TableInteractionService(
         }
 
         if (newStatus == TableStatus.empty)
-        { 
+        {
+            await guestSessionService.EndGroupSessionAsync(table.Id);
             await orderRepository.SetTableOrdersAsClosedAsync(table.Id);
             logger.LogInformation("Orders set as closed for TableId: {TableId}", table.Id);
         }
