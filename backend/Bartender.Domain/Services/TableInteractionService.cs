@@ -104,15 +104,7 @@ public class TableInteractionService(
             return ServiceResult.Ok();
         }
 
-        
-        await guestSessionService.EndGroupSessionAsync(table.Id);
-        table.Status = newStatus;
-        await repository.UpdateAsync(table);
-        logger.LogInformation("Guest freed Table {Id} via valid session", table.Id);
-
-        // TODO: Re-evaluate this logic when implementing multi-guest table sharing
-        await orderRepository.SetTableOrdersAsClosedAsync(table.Id);
-
+        await ApplyEmptyStatusAsync(table); //TODO: look into applying orders as complete
         return ServiceResult.Ok();
     }
 
@@ -127,9 +119,7 @@ public class TableInteractionService(
 
         if (newStatus == TableStatus.empty)
         {
-            await guestSessionService.EndGroupSessionAsync(table.Id);
-            await orderRepository.SetTableOrdersAsClosedAsync(table.Id);
-            logger.LogInformation("Orders set as closed for TableId: {TableId}", table.Id);
+            await ApplyEmptyStatusAsync(table);
         }
 
         logger.LogInformation("User {UserId} changed Table {Id} status to {NewStatus}", user!.Id, table.Id, newStatus);
@@ -213,5 +203,16 @@ public class TableInteractionService(
             return ServiceResult<TableScanDto>.Fail("Table is not currently occupied.", ErrorType.Validation);
         }
         return await TryJoinExistingSession(table, submittedPassphrase);
+    }
+
+    private async Task ApplyEmptyStatusAsync(Tables table)
+    {
+        await guestSessionService.EndGroupSessionAsync(table.Id);
+        await orderRepository.SetTableOrdersAsClosedAsync(table.Id);
+
+        table.Status = TableStatus.empty;
+        await repository.UpdateAsync(table);
+
+        logger.LogInformation("Table {TableId} set to empty and all sessions/orders cleared.", table.Id);
     }
 }
