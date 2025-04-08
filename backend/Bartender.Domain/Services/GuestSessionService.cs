@@ -82,8 +82,55 @@ public class GuestSessionService(
         }
     }
 
+    public async Task RevokeSessionAsync(Guid sessionId)
+    {
+        var session = await guestSessionRepo.GetByKeyAsync(s => s.Id == sessionId);
+        if (session is not null && session.IsValid)
+        {
+            session.IsValid = false;
+            await guestSessionRepo.UpdateAsync(session);
+            logger.LogInformation("Session {SessionId} revoked", session.Id);
+        }
+    }
+
+    public async Task RevokeAllSessionsForTableAsync(int tableId)
+    {
+        var sessions = await guestSessionRepo.Query()
+            .Where(s => s.TableId == tableId && s.IsValid)
+            .ToListAsync();
+
+        if (sessions.Count == 0)
+        {
+            logger.LogInformation("No active sessions to revoke for Table {TableId}", tableId);
+            return;
+        }
+
+        foreach (var session in sessions)
+            session.IsValid = false;
+
+        await guestSessionRepo.UpdateRangeAsync(sessions);
+
+        logger.LogInformation("Revoked {Count} sessions for Table {TableId}", sessions.Count, tableId);
+    }
+
     public async Task<GuestSession?> GetByTokenAsync(int tableId, string token)
     {
         return await guestSessionRepo.GetByKeyAsync(s => s.TableId == tableId && s.Token == token);
+    }
+
+    public async Task EndGroupSessionAsync(int tableId)
+    {
+        // 1. Revoke all valid sessions
+        await RevokeAllSessionsForTableAsync(tableId);
+
+        // 2. Delete the group session
+        var group = await groupSessionRepo.Query()
+            .FirstOrDefaultAsync(g => g.TableId == tableId);
+
+        if (group is not null)
+        {
+            await groupSessionRepo.DeleteAsync(group);
+            logger.LogInformation("Deleted group session {GroupId} for Table {TableId}", group.Id, tableId);
+        }
     }
 }

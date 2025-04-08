@@ -59,7 +59,7 @@ public class TableInteractionService(
             return ServiceResult<TableScanDto>.Fail("QR for this table is currently unavailable. Waiter is coming.", ErrorType.Unauthorized);
         }
 
-        // ✅ 1. Resume if guest already has a valid session
+        // 1. Resume if guest already has a valid session
         var token = currentUser.GetRawToken();
         if (!string.IsNullOrWhiteSpace(token) && await tableSessionService.HasActiveSessionAsync(table.Id, token))
         {
@@ -69,11 +69,11 @@ public class TableInteractionService(
             return ServiceResult<TableScanDto>.Ok(dto);
         }
 
-        // ✅ 2. If table is empty — first scan: generate session + passphrase
+        // 2. If table is empty — first scan: generate session + passphrase
         if (table.Status == TableStatus.empty)
             return await StartFirstSession(table);
 
-        // ✅ 3. Table is occupied — try to join via passphrase
+        // 3. Table is occupied — try to join via passphrase
         return await TryJoinExistingSession(table, passphrase);
     }
 
@@ -86,11 +86,9 @@ public class TableInteractionService(
             return ServiceResult.Fail("Missing authentication token.", ErrorType.Unauthorized);
         }
 
-        var session = await guestSessionService.GetByTokenAsync(table.Id, accessToken);
-
-        if (session is null || session.ExpiresAt < DateTime.UtcNow)
+        if (await tableSessionService.HasActiveSessionAsync(table.Id, token))
         {
-            logger.LogWarning("Invalid or expired session for guest trying to change status on Table {Id}", table.Id);
+            logger.LogWarning("Invalid session for guest trying to change status on Table {Id}", table.Id);
             return ServiceResult.Fail("Unauthorized or expired session.", ErrorType.Unauthorized);
         }
 
@@ -106,12 +104,11 @@ public class TableInteractionService(
             return ServiceResult.Ok();
         }
 
-        logger.LogInformation("Guest freed Table {Id} via valid session", table.Id);
-        await guestSessionService.DeleteSessionAsync(session.Id);
-        logger.LogInformation("Session {Id} was deleted.", session.Id);
-
+        
+        await guestSessionService.EndGroupSessionAsync(table.Id);
         table.Status = newStatus;
         await repository.UpdateAsync(table);
+        logger.LogInformation("Guest freed Table {Id} via valid session", table.Id);
 
         // TODO: Re-evaluate this logic when implementing multi-guest table sharing
         await orderRepository.SetTableOrdersAsClosedAsync(table.Id);
