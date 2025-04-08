@@ -93,9 +93,14 @@ public class TableInteractionService(
     {
         table.Status = TableStatus.occupied;
         await repository.UpdateAsync(table);
-        var newToken = await guestSessionService.CreateSessionAsync(table.Id);
+
+        var passphrase = GeneratePassphrase();
+        var newToken = await guestSessionService.CreateSessionAsync(table.Id, passphrase);
+
         var resultDto = mapper.Map<TableScanDto>(table);
         resultDto.GuestToken = newToken;
+        resultDto.Passphrase = passphrase; // add this property to DTO
+
         return ServiceResult<TableScanDto>.Ok(resultDto);
     }
 
@@ -175,4 +180,13 @@ public class TableInteractionService(
         var user = await currentUser.GetCurrentUserAsync();
         return placeId == user!.PlaceId;
     }
+
+    private string GeneratePassphrase(int length = 6)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var random = new Random();
+        return new string(Enumerable.Repeat(chars, length)
+            .Select(s => s[random.Next(s.Length)]).ToArray());
+    }
+
 }

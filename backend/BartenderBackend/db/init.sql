@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS guestSessions (
     id UUID PRIMARY KEY,
     table_id INTEGER NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
     token TEXT NOT NULL,
+    passphrase VARCHAR(12), -- nullable for now, only first user needs it
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMP NOT NULL,
     UNIQUE (table_id) -- only one active session per table

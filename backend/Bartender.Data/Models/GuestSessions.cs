@@ -21,6 +21,9 @@ public class GuestSession
     [Column("token")]
     public string Token { get; set; } = string.Empty;
 
+    [Column("passphrase")]
+    public string? Passphrase { get; set; }
+
     [Required]
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

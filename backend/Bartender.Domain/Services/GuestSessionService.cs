@@ -34,7 +34,7 @@ public class GuestSessionService(
         return latestExpired?.Token == token;
     }
 
-    public async Task<string> CreateSessionAsync(int tableId)
+    public async Task<string> CreateSessionAsync(int tableId, string? passphrase = null)
     {
         var sessionId = Guid.NewGuid();
         var expiresAt = DateTime.UtcNow.AddMinutes(30);
@@ -45,6 +45,7 @@ public class GuestSessionService(
             Id = sessionId,
             TableId = tableId,
             Token = token,
+            Passphrase = passphrase,
             ExpiresAt = expiresAt
         };
 
