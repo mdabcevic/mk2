@@ -1,11 +1,12 @@
 
 export enum Constants{
-    tokenKey="token",
-    cartKey="cart"
+    tokenKey = "token",
+    cartKey = "cart",
+    passcode = "passcode",
 }
 
 export enum UserRole{
-    admin="admin",
-    manager="manager",
-    regular="regular"
+    admin = "admin",
+    manager  ="manager",
+    regular = "regular"
 }
