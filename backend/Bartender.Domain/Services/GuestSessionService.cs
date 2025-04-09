@@ -9,6 +9,7 @@ public class GuestSessionService(
     IRepository<GuestSession> guestSessionRepo,
     IRepository<GuestSessionGroup> groupSessionRepo,
     IJwtService jwtService,
+    ICurrentUserContext currentUser,
     ILogger<GuestSessionService> logger
 ) : IGuestSessionService, ITableSessionService
 {
@@ -19,6 +20,7 @@ public class GuestSessionService(
         return session is not null;
     }
 
+    //TODO: refactor this one a bit
     public async Task<string> CreateSessionAsync(int tableId, string passphrase) // always send passphrase, on new group session and existing?
     {
         if (string.IsNullOrEmpty(passphrase))
@@ -37,7 +39,21 @@ public class GuestSessionService(
             throw new InvalidOperationException("Incorrect passphrase for this table.");
         }
 
-        // group doesnt exist - ensure that passphrase isn't null!!!
+        // Check if guest already has a valid session
+        var currentToken = currentUser.GetRawToken();
+        if (!string.IsNullOrWhiteSpace(currentToken))
+        {
+            var activeSession = await guestSessionRepo.GetByKeyAsync(s =>
+                s.Token == currentToken && s.IsValid && s.TableId != tableId);
+
+            if (activeSession != null)
+            {
+                logger.LogWarning("Guest attempted to create a new session while already in an active one. Table: {TableId}", activeSession.TableId);
+                throw new InvalidOperationException("You already have an active session. Please finish it before joining another table.");
+            }
+        }
+
+        // group doesnt exist
         if (group == null)
         {
             // First user: create a new group
@@ -52,7 +68,7 @@ public class GuestSessionService(
         }
 
         var sessionId = Guid.NewGuid();
-        var expiresAt = DateTime.UtcNow.AddMinutes(120); //remove this...
+        var expiresAt = DateTime.UtcNow.AddMinutes(120); //TODO: remove this...
         var token = jwtService.GenerateGuestToken(tableId, sessionId, expiresAt, passphrase);
 
         var session = new GuestSession

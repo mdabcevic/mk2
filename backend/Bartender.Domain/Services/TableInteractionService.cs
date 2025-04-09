@@ -151,7 +151,7 @@ public class TableInteractionService(
 
     private async Task<ServiceResult<TableScanDto>> StartFirstSession(Tables table)
     {
-        table.Status = TableStatus.occupied;
+        table.Status = TableStatus.occupied; //TODO: background job that empties tables with no active group sessions? Or wrap into transaction?
         await repository.UpdateAsync(table);
 
         var passphrase = GeneratePassphrase(); // 6-char alphanum
