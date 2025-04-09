@@ -3,11 +3,17 @@
     "aboutus_link_text": "Promijeni jezik",
     "bars_link_text": "Kafići",
     "logout": "Logout",
+    "username":"Korisničko ime",
+    "login":"Prijava",
+    "password":"Lozinka",
     "menu_text": "Menu",
     "quantity_text":"Količina",
     "price_text":"Cijena",
     "total_price_text":"Ukupno",
     "edit_text":"Uredi",
     "delete_text":"Izbriši",
-    "selected_items":"Odabrani proizvodi"
+    "selected_items":"Odabrani proizvodi",
+    "search":"Pretraži...",
+    "unavailable":"Trenutno nedostupno"
+    
 }
