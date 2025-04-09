@@ -2,22 +2,14 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
+import { AppPaths } from "../../utils/routing/routes";
+import { languages } from "../../utils/languages";
 
-const HeaderComponent = () => {
-  const { t, i18n } = useTranslation("public");
+const HeaderAdminComponent = () => {
+  const { t, i18n } = useTranslation("admin");
   const location = useLocation();
-
-  const [open, setOpen] = useState(false);
-  const openNavbar = () => {
-    setOpen(!open);
-  };
   const [showLanguages,setShowLanguages] = useState(false);
-
   const [selectedLang, setSelectedLang] = useState(i18n.language);
-  const languages = [
-    { code: "en", label: "English", flag: "/assets/images/uk_flag.png" },
-    { code: "hr", label: "Hrvatski", flag: "/assets/images/cro_flag.png" },
-  ];
 
   const changeLanguage = (lang:string) => {
     i18n.changeLanguage(lang);
@@ -25,23 +17,36 @@ const HeaderComponent = () => {
     setShowLanguages(false);
   };
 
+  const [open, setOpen] = useState(false);
+  const openNavbar = () => {
+    setOpen(!open);
+  };
+
   return (
     <header>
 
-      <nav className="flex justify-between items-center text-[1.2rem] bg-white text-black p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2
+      <nav className="flex justify-between items-center text-[1.2rem] bg-white p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2
 ">
-      <h1 className="">Mk2</h1>
+      <h1 className="text-black">Mk2</h1>
       <div className="hamburger-cross-icons" onClick={openNavbar}>
         <Menu size={24} />
       </div>
       <ul className={open ? "menu-items active" : "menu-items"}>
       <Link
-          to="/"
+          to="/admin"
           className={`nav-links ${
-            location.pathname === "" ? "text-orange-500" : ""
+            location.pathname === "/admin" ? "text-orange-500" : ""
           }`}
         >
           {t("home_link_text")}
+        </Link>
+        <Link
+          to="products"
+          className={`nav-links  ${
+            location.pathname === AppPaths.admin.products ? "text-orange-500" : ""
+          }`}
+        >
+          {t("products")}
         </Link>
         <div className="relative">
         <button className="m-0 p-0"
@@ -59,7 +64,7 @@ const HeaderComponent = () => {
             </li>
           ))}
         </ul>
-      </div>
+        </div>
       </ul>
       
     </nav>
@@ -68,4 +73,4 @@ const HeaderComponent = () => {
   );
 };
 
-export default HeaderComponent;
+export default HeaderAdminComponent;

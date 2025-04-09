@@ -1,14 +1,24 @@
 {
     "home_link_text": "Početna",
     "menu_link_text": "Menu",
-    "products_link_text": "Proizvodi",
+    "products": "Proizvodi",
     "logout": "Logout",
     "lang_option_cro":"Hrvatski",
     "lang_option_eng":"Engleski",
     "quantity_text":"Količina",
-    "price_text":"Cijena",
+    "price":"Cijena",
     "total_price_text":"Ukupno",
     "edit_text":"Uredi",
-    "delete_text":"Izbriši"
-    
+    "delete_text":"Izbriši",
+    "save":"Spremi",
+    "product":"Proizvod",
+    "volume":"Pakiranje",
+    "description":"Opis",
+    "availability":"Dostupnost",
+    "selected_products":"Odabrani proizvodi",
+    "available_products":"Dostupni proizvodi",
+    "my_menu":"Moj menu",
+    "previous_page":"Prethodna",
+    "next_page":"Slijedeća",
+    "of":"od"
 }

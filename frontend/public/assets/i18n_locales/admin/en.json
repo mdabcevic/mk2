@@ -1,13 +1,24 @@
 {
     "home_link_text": "Home",
     "menu_link_text": "Menu",
-    "products_link_text": "Products",
+    "products": "Products",
     "logout": "Logout",
     "lang_option_cro":"Croatian",
     "lang_option_eng":"English",
     "quantity_text":"Quantity",
-    "price_text":"Price",
+    "price":"Price",
     "total_price_text":"Total price",
     "edit_text":"Edit",
-    "delete_text":"Delete"
+    "delete_text":"Delete",
+    "save":"Save",
+    "product":"Product",
+    "volume":"Volume",
+    "description":"Description",
+    "availability":"Availability",
+    "selected_products":"Selected products",
+    "available_products":"Available products",
+    "my_menu":"My menu",
+    "previous_page":"Prev",
+    "next_page":"Next",
+    "of":"of"
 }

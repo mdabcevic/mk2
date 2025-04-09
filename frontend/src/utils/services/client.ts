@@ -24,6 +24,23 @@ httpClient.interceptors.request.use(
   }
 );
 
+httpClient.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response) {
+      alert(`Error: ${error.response.data.message || "Something went wrong!"}`);
+    } else if (error.request) {
+      alert("Network error! Please check your internet connection.");
+    } else {
+      alert("An unexpected error occurred.");
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
 
 const sendRequest = async (method:string, url:string, data = null, params = {}) => {
   try {
