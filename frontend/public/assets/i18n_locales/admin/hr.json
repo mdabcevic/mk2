@@ -6,9 +6,16 @@
     "lang_option_cro":"Hrvatski",
     "lang_option_eng":"Engleski",
     "quantity_text":"Količina",
-    "price_text":"Cijena",
+    "price":"Cijena",
     "total_price_text":"Ukupno",
     "edit_text":"Uredi",
-    "delete_text":"Izbriši"
+    "delete_text":"Izbriši",
+    "username":"Korisničko ime",
+    "login":"Prijava",
+    "password":"Lozinka",
+    "product":"Proizvod",
+    "volume":"Pakiranje",
+    "description":"Opis",
+    "availability":"Dostupnost"
     
 }

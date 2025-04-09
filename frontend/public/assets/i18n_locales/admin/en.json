@@ -6,8 +6,15 @@
     "lang_option_cro":"Croatian",
     "lang_option_eng":"English",
     "quantity_text":"Quantity",
-    "price_text":"Price",
+    "price":"Price",
     "total_price_text":"Total price",
     "edit_text":"Edit",
-    "delete_text":"Delete"
+    "delete_text":"Delete",
+    "username":"Username",
+    "login":"Login",
+    "password":"Password",
+    "product":"Product",
+    "volume":"Volume",
+    "description":"Description",
+    "availability":"Availability"
 }

@@ -1,4 +1,4 @@
-import { IPlaceItem } from "../interfaces/place-item";
+import { IPlaceItem } from "../utils/interfaces/place-item";
 
 const imgUrls = [
     "https://www.foodandwine.com/thmb/8rtGtUmtC0KiJCDxAUXP_cfwgM8=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GTM-Best-US-Bars-Katana-Kitten-FT-BLOG0423-fa9f2ba9925c47abb4afb0abd25d915a.jpg",
@@ -16,18 +16,17 @@ const imgUrls = [
 ]
 
 export const randomImages = (places: IPlaceItem | IPlaceItem[]): any =>{
-    console.log("je : ", places)
     if(Array.isArray(places))
     for(var i = 0; i < places.length; i++){
         let randomIndex = Math.floor(Math.random() * imgUrls.length);
         places[i].imageUrl = imgUrls[randomIndex]
     }
-    else if(places?.images){
+    else if(!places?.images){
+        places = {...places,images: []};
         for(var i = 0; i < 3; i++){
             let randomIndex = Math.floor(Math.random() * imgUrls.length);
             places.images.push(imgUrls[randomIndex])
         }
     }
-    console.log("jeaaaaa : ", places)
     return places;
 }

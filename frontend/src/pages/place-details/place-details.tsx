@@ -1,27 +1,26 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
-import ImageSlider from "../components/image-slider";
-import { IPlaceItem } from "../interfaces/place-item";
-import { placeService } from "../services/place.service";
-import { randomImages } from "./random-images";
+import ImageSlider from "./image-slider";
+import { IPlaceItem } from "../../utils/interfaces/place-item";
+import { placeService } from "../../utils/services/place.service";
+import { randomImages } from "../../utils/random-images";
+import { AppPaths } from "../../utils/routing/routes";
+
 
 const PlaceDetails = () => {
     
   const { id } = useParams();
   const { t } = useTranslation("public");
   const [place, setPlace] = useState<IPlaceItem | null>(null);
-  console.log(id)
+
   useEffect(() => {
     getPlaceDetails();
   }, []);
 
   const getPlaceDetails = async () => {
     let place = await placeService.getPlaceDetailsById(Number(id));
-    place = {...place,images: []};
-    place = randomImages(place)
-    console.log(place);
-    setPlace(place);
+    setPlace(randomImages(place));
   };
 
   return (
@@ -35,7 +34,7 @@ const PlaceDetails = () => {
           <p className="text-gray-700">{place?.workHours}</p>
         </div>
 
-        <Link to={`/place/${id}/menu`}  className="mt-4 bg-orange-600 text-white  px-4 rounded hover:bg-orange-500 transition">
+        <Link to={AppPaths.public.menu.replace(":placeId",id!.toString())}  className="mt-4 bg-orange-600 text-white  px-4 rounded hover:bg-orange-500 transition">
           {t("menu_text")}
         </Link>
       </div>
