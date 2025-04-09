@@ -2,8 +2,8 @@
 
 public class TableScanDto
 {
-    public string GuestToken { get; set; } = string.Empty;
+    public string? GuestToken { get; set; }
     public string Label { get; set; } = string.Empty;
-    public string? Passphrase { get; set; } // only filled for first guest
-
+    public string? Message {  get; set; } = string.Empty;
+    public bool IsSessionEstablished { get; set; } = false; //TODO: more graceful handling?
 }

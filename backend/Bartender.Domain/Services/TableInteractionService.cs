@@ -66,6 +66,7 @@ public class TableInteractionService(
             logger.LogInformation("Guest resumed session {Session} on Table {TableId}", token, table.Id);
             var dto = mapper.Map<TableScanDto>(table);
             dto.GuestToken = token;
+            dto.IsSessionEstablished = true;
             return ServiceResult<TableScanDto>.Ok(dto);
         }
 
@@ -171,7 +172,7 @@ public class TableInteractionService(
 
         var dto = mapper.Map<TableScanDto>(table);
         dto.GuestToken = token;
-        dto.Passphrase = passphrase;
+        dto.IsSessionEstablished = true;
 
         logger.LogInformation("Table {TableId} is now occupied. First session started with passphrase {Passphrase}", table.Id, passphrase);
         return ServiceResult<TableScanDto>.Ok(dto);
@@ -180,15 +181,20 @@ public class TableInteractionService(
     private async Task<ServiceResult<TableScanDto>> TryJoinExistingSession(Tables table, string? submittedPassphrase)
     {
         if (string.IsNullOrWhiteSpace(submittedPassphrase))
-            return ServiceResult<TableScanDto>.Fail("This table is currently occupied. Enter the passphrase to join.", ErrorType.Unauthorized);
-
+        {
+            var dto = mapper.Map<TableScanDto>(table);
+            dto.Message = "This table is currently occupied. Enter the passphrase to join.";
+            dto.IsSessionEstablished = false;
+            return ServiceResult<TableScanDto>.Ok(dto); //Token should be null / empty here i think.
+        }
+           
         try
         {
             var token = await guestSessionService.CreateSessionAsync(table.Id, submittedPassphrase);
 
             var dto = mapper.Map<TableScanDto>(table);
             dto.GuestToken = token;
-            dto.Passphrase = null; // don't return passphrase here
+            dto.IsSessionEstablished = true;
 
             logger.LogInformation("New guest joined table {TableId} using passphrase {Passphrase}", table.Id, submittedPassphrase);
             return ServiceResult<TableScanDto>.Ok(dto);
