@@ -9,7 +9,6 @@ public class GuestSessionService(
     IRepository<GuestSession> guestSessionRepo,
     IRepository<GuestSessionGroup> groupSessionRepo,
     IJwtService jwtService,
-    ICurrentUserContext currentUser,
     ILogger<GuestSessionService> logger
 ) : IGuestSessionService, ITableSessionService
 {
@@ -18,6 +17,13 @@ public class GuestSessionService(
         var session = await guestSessionRepo.GetByKeyAsync(s =>
             s.TableId == tableId && s.Token == token && s.IsValid);
         return session is not null;
+    }
+
+    public async Task<GuestSession?> GetConflictingSessionAsync(string token, int tableId)
+    {
+        var session = await guestSessionRepo.GetByKeyAsync(s =>
+            s.Token == token && s.IsValid && s.TableId != tableId);
+        return session;
     }
 
     //TODO: refactor this one a bit
@@ -37,20 +43,6 @@ public class GuestSessionService(
         {
             logger.LogWarning("Attempted to join Table {TableId} with incorrect passphrase.", tableId);
             throw new InvalidOperationException("Incorrect passphrase for this table.");
-        }
-
-        // Check if guest already has a valid session
-        var currentToken = currentUser.GetRawToken();
-        if (!string.IsNullOrWhiteSpace(currentToken))
-        {
-            var activeSession = await guestSessionRepo.GetByKeyAsync(s =>
-                s.Token == currentToken && s.IsValid && s.TableId != tableId);
-
-            if (activeSession != null)
-            {
-                logger.LogWarning("Guest attempted to create a new session while already in an active one. Table: {TableId}", activeSession.TableId);
-                throw new InvalidOperationException("You already have an active session. Please finish it before joining another table.");
-            }
         }
 
         // group doesnt exist

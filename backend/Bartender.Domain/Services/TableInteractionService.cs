@@ -47,7 +47,7 @@ public class TableInteractionService(
         }
 
         return currentUser.IsGuest
-            ? await HandleGuestStatusChangeAsync(table, newStatus, currentUser.GetRawToken()) //TODO: not table access token, user access token for session...
+            ? await HandleGuestStatusChangeAsync(table, newStatus, currentUser.GetRawToken()) //not table access token, user access token for session...
             : await HandleStaffStatusChangeAsync(table, newStatus);
     }
 
@@ -59,7 +59,7 @@ public class TableInteractionService(
             return ServiceResult<TableScanDto>.Fail("QR for this table is currently unavailable. Waiter is coming.", ErrorType.Unauthorized);
         }
 
-        // 1. Resume if guest already has a valid session
+        // 1. Resume if guest already has a valid session on THIS table
         var token = currentUser.GetRawToken();
         if (!string.IsNullOrWhiteSpace(token) && await tableSessionService.HasActiveSessionAsync(table.Id, token))
         {
@@ -69,11 +69,23 @@ public class TableInteractionService(
             return ServiceResult<TableScanDto>.Ok(dto);
         }
 
-        // 2. If table is empty — first scan: generate session + passphrase
+        // 2. Prevent starting a session if guest is active elsewhere
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            var activeSession = await tableSessionService.GetConflictingSessionAsync(token, table.Id);
+
+            if (activeSession != null)
+            {
+                logger.LogWarning("Guest tried to join Table {CurrentTableId} while already active on Table {OtherTableId}.", table.Id, activeSession.TableId);
+                return ServiceResult<TableScanDto>.Fail("You already have an active session on another table. Mark it as complete before next attempt.", ErrorType.Conflict);
+            }
+        }
+
+        // 3. First-time scan
         if (table.Status == TableStatus.empty)
             return await StartFirstSession(table);
 
-        // 3. Table is occupied — try to join via passphrase
+        // 4. Join existing session
         return await TryJoinExistingSession(table, passphrase);
     }
 
