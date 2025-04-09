@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { languages } from "../utils/languages";
+import { AppPaths } from "../utils/routing/routes";
 
 
 
@@ -34,13 +35,19 @@ const HeaderComponent = () => {
       </div>
       <ul className={open ? "menu-items active" : "menu-items"}>
       <Link
-          to="/"
+          to={AppPaths.public.home}
           className={`nav-links ${
-            location.pathname === "" ? "text-orange-500" : ""
+            location.pathname === AppPaths.public.home ? "text-orange-500" : ""
           }`}
         >
           {t("home_link_text")}
         </Link>
+        <button
+            className={`nav-links`}
+           // onClick={() => {showPasscode } }
+        >
+          {t("passcode")}
+        </button>
         <div className="relative">
         <button className="m-0 p-0"
                 onClick={() => setShowLanguages(!showLanguages)}>

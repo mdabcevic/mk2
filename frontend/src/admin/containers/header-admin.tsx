@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { AppPaths } from "../../utils/routing/routes";
 import { languages } from "../../utils/languages";
+import { authService } from "../../utils/auth/auth.service";
 
 const HeaderAdminComponent = () => {
   const { t, i18n } = useTranslation("admin");
@@ -33,21 +34,27 @@ const HeaderAdminComponent = () => {
       </div>
       <ul className={open ? "menu-items active" : "menu-items"}>
       <Link
-          to="/admin"
+          to={AppPaths.admin.dashboard}
           className={`nav-links ${
-            location.pathname === "/admin" ? "text-orange-500" : ""
+              location.pathname === AppPaths.admin.dashboard ? "text-orange-500" : ""
           }`}
         >
           {t("home_link_text")}
         </Link>
         <Link
-          to="products"
+          to={AppPaths.admin.products}
           className={`nav-links  ${
             location.pathname === AppPaths.admin.products ? "text-orange-500" : ""
           }`}
         >
           {t("products")}
         </Link>
+        <button
+            className={`nav-links`}
+            onClick={()=>authService.logout()}
+        >
+            {t("logout")}
+        </button>
         <div className="relative">
         <button className="m-0 p-0"
                 onClick={() => setShowLanguages(!showLanguages)}>

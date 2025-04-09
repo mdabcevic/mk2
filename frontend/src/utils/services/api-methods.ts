@@ -12,6 +12,7 @@ export const ApiMethods ={
     getAllProducts: "/api/product",
     getProductCategories: "/api/product/categories",
 
+    getGuestToken: "/api/tables/lookup",
     login:"api/auth"
 
 }
