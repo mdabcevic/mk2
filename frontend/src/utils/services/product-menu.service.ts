@@ -1,10 +1,10 @@
-import { Product, MenuItem, UpsertMenuItemDto, MenuItemDto, CategoryGroup } from "../../admin/pages/products/product";
+import { Product, MenuItem, UpsertMenuItemDto, MenuItemDto, CategoryGroup, MenuGroupedItemDto } from "../../admin/pages/products/product";
 import { ApiMethods } from "./api-methods"
 import api from "./client";
 
 export const productMenuService = {
 
-    getMenuByPlaceId: async (placeId:string,includeCategory:boolean): Promise<MenuItemDto[] | CategoryGroup[]> => {
+    getMenuByPlaceId: async (placeId: string, includeCategory: boolean): Promise<MenuItemDto[] | CategoryGroup[]> => {
         const params = includeCategory ? {
             groupByCategory:true
         } : {}

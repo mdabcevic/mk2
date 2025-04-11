@@ -4,6 +4,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { languages } from "../utils/languages";
 import { AppPaths } from "../utils/routing/routes";
+import { authService } from "../utils/auth/auth.service";
+import { Constants, UserRole } from "../utils/constants";
 
 
 
@@ -23,12 +25,12 @@ const HeaderComponent = () => {
     setSelectedLang(lang);
     setShowLanguages(false);
   };
+  const userRole = authService.userRole();
 
-  return (
+  return userRole !== UserRole.guest ? (
     <header>
 
-      <nav className="flex justify-between items-center text-[1.2rem] bg-white text-black p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2
-">
+      <nav className="flex justify-between items-center text-[1.2rem] bg-white text-black p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2 z-100000">
       <h1 className="">Mk2</h1>
       <div className="hamburger-cross-icons" onClick={openNavbar}>
         <Menu size={24} />
@@ -70,7 +72,7 @@ const HeaderComponent = () => {
     </nav>
     
     </header>
-  );
+  ) : (<div></div>);
 };
 
 export default HeaderComponent;

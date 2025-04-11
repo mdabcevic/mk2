@@ -36,7 +36,8 @@ export const authService = {
         const passcode = decodePayload(token)?.passphrase;
         if (passcode)
             setPassCode(passcode);
-        window.location.href = AppPaths.public.placeDetails.replace(":id", placeId);
+        setTimeout(()=>{window.location.href = AppPaths.public.placeDetails.replace(":id", placeId);},5000)
+        
     },
 
     userRole: (): string => {
@@ -53,6 +54,14 @@ export const authService = {
         }
         return decodePayload(token)?.place_id;
     },
+
+    tableId: (): number => {
+        const token = localStorage.getItem(Constants.tokenKey);
+        if (!token) {
+            throw Error("Token not found!");
+        }
+        return decodePayload(token)?.table_id;
+    }
 
 }
 function decodePayload(token: string): Payload {

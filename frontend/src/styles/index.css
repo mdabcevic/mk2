@@ -32,11 +32,12 @@ h1 {
 }
 
 main{
-  padding-top:100px;
   box-sizing: border-box;
   max-width: 1500px;
   margin:0 auto;
 }
+
+
 
 .menu-items {
   list-style: none;
@@ -91,5 +92,23 @@ main{
   .hamburger-cross-icons {
     display: block;
   }
+
+
+  .perspective {
+    perspective: 1200px;
+  }
+  
+  .transform-style-preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+  
 
 }

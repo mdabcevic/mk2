@@ -9,6 +9,7 @@ import { lazy, Suspense } from "react";
 import { authService } from "../auth/auth.service";
 import { UserRole } from "../constants";
 import LoginPage from "../auth/login";
+import RedirectPage from "../redirect-page.tsx";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
 const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
@@ -30,6 +31,7 @@ function AppRoutes(){
           <Route path={AppPaths.public.aboutUs} element={<AboutUs />} />
           <Route path={AppPaths.public.placeDetails} element={<PlaceDetails />} />
           <Route path={AppPaths.public.menu} element={<Menu />} />
+          <Route path={AppPaths.public.redirectPage} element={<RedirectPage />} />
           <Route path={AppPaths.public.login} element={<LoginPage />} />
           <Route path="*" element={<Home />} />
         </Route>

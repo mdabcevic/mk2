@@ -3,7 +3,8 @@ import { Constants } from "./constants";
 
 
 
-type CartItem = {
+export type CartItem = {
+  menuId: number,
   name: string;
   quantity: number;
   price: number;
@@ -27,33 +28,40 @@ const saveCart = (cart: Cart) => {
   subscribers.forEach((cb) => cb(cart));
 };
 
-const addItem = (item: MenuGroupedItemDto) => {
+const addItem = (item: MenuGroupedItemDto | CartItem) => {
   const cart = getCart();
-  const existing = cart[item.product.name];
+  const name = isMenuGroupedItemDto(item) ? item.product.name : item.name;
+  const price = isMenuGroupedItemDto(item) ? parseFloat(item.price) : item.price;
+  const id = isMenuGroupedItemDto(item) ? item.id : item.menuId;
+
+  const existing = cart[name];
 
   const updated: Cart = {
     ...cart,
-    [item.product.name]: {
-      name: item.product.name,
+    [name]: {
+      menuId: id,
+      name,
       quantity: existing ? existing.quantity + 1 : 1,
-      price: parseFloat(item.price),
+      price,
     },
   };
 
   saveCart(updated);
 };
 
-const removeItem = (item: MenuGroupedItemDto) => {
+
+const removeItem = (item: MenuGroupedItemDto | CartItem) => {
   const cart = getCart();
-  const existing = cart[item.product.name];
+  const name = "product" in item ? item.product.name : item.name;
+
+  const existing = cart[name];
   if (!existing) return;
 
   const updated = { ...cart };
-
   if (existing.quantity <= 1) {
-    delete updated[item.product.name];
+    delete updated[name];
   } else {
-    updated[item.product.name].quantity -= 1;
+    updated[name].quantity -= 1;
   }
 
   saveCart(updated);
@@ -66,6 +74,10 @@ const subscribe = (callback: (cart: Cart) => void) => {
   return () => {
     subscribers = subscribers.filter((cb) => cb !== callback);
   };
+};
+
+const getTotalPrice = (): number =>{
+  return getTotal().totalPrice;
 };
 
 const getTotal = () => {
@@ -81,10 +93,15 @@ const getTotal = () => {
   return { totalQuantity, totalPrice };
 };
 
+function isMenuGroupedItemDto(item: any): item is MenuGroupedItemDto {
+  return typeof item === "object" && item !== null && "product" in item;
+}
+
 export const cartStorage = {
   getCart,
   addItem,
   removeItem,
   subscribe,
   getTotal,
+  getTotalPrice,
 };

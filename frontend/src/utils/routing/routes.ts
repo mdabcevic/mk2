@@ -4,11 +4,11 @@ const AdminRoot="/admin";
 export const AppPaths = {
     public: {
         home:"/",
-        aboutUs:"aboutus",
-        placeDetails:"bar/:id",
+        aboutUs:"/aboutus",
+        placeDetails:"/bar/:id",
         menu: "/place/:placeId/menu",
-        redirectPage: "table-lookup/:placeId/:salt",
-        login:"login"
+        redirectPage: "/table-lookup/:placeId/:salt",
+        login:"/login"
     },
     
     admin:{
