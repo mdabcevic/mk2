@@ -16,5 +16,6 @@ export const ApiMethods ={
     login:"api/auth",
 
     createOrder:"/api/order",
+    getMyOrders:"/api/order/my-orders",
 
 }

@@ -20,8 +20,13 @@ body {
   padding:0;
   min-width: 320px;
   min-height: 100vh;
-  background: rgb(255,237,213);
-  background: linear-gradient(0deg, rgba(255,237,213,1) 15%, rgb(240, 240, 240) 59%);
+  /* background: rgb(255,237,213);
+  background: linear-gradient(0deg, rgba(255,237,213,1) 15%, rgb(240, 240, 240) 59%); */
+  /* background: #402A1F;
+  background: linear-gradient(180deg, rgba(64, 42, 31, 1) 0%, rgba(227, 218, 201, 1) 50%, rgba(230, 230, 230, 1) 100%); */
+  background: #6B513F;
+background: linear-gradient(180deg, rgba(107, 81, 63, 1) 0%, rgba(227, 218, 201, 1) 10%, rgba(227, 218, 201, 1) 100%);
+
 }
 
 h1 {
@@ -37,7 +42,15 @@ main{
   margin:0 auto;
 }
 
-
+.bg-mocha-600{
+  background-color: #463426;
+}
+.color-mocha-600{
+  color: #463426;
+}
+.neutral-latte{
+  background-color: #DFD8CD;
+}
 
 .menu-items {
   list-style: none;

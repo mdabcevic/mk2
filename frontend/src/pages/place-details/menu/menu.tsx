@@ -14,10 +14,10 @@ import Cart from "./cart";
 export function Menu() {
   const { t } = useTranslation("public");
   const { placeId } = useParams<{ placeId: string }>();
-    const [menu, setMenu] = useState<CategoryGroup[]>([]);
+  const [menu, setMenu] = useState<CategoryGroup[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-    const [itemsOfSelectedCategory, setItemsOfSelectedCategory] = useState<MenuGroupedItemDto[]>([]);
+  const [itemsOfSelectedCategory, setItemsOfSelectedCategory] = useState<MenuGroupedItemDto[]>([]);
   const userRole = authService.userRole();
 
   const fetchMenu = async () => {

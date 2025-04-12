@@ -30,4 +30,8 @@ export const orderService = {
         return response;
     },
 
+    getMyOrders: async (): Promise<any> =>{
+        return await api.get(ApiMethods.getMyOrders);
+    }
+
 }
