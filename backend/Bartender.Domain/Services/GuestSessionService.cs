@@ -7,50 +7,74 @@ namespace Bartender.Domain.Services;
 
 public class GuestSessionService(
     IRepository<GuestSession> guestSessionRepo,
+    IRepository<GuestSessionGroup> groupSessionRepo,
     IJwtService jwtService,
     ILogger<GuestSessionService> logger
 ) : IGuestSessionService, ITableSessionService
 {
-    public async Task<bool> HasActiveSessionAsync(int tableId)
+    public async Task<bool> HasActiveSessionAsync(int tableId, string token)
     {
-        return await GetActiveSessionAsync(tableId) is not null;
+        var session = await guestSessionRepo.GetByKeyAsync(s =>
+            s.TableId == tableId && s.Token == token && s.IsValid);
+        return session is not null;
     }
 
-    public async Task<bool> IsSameTokenAsActiveAsync(int tableId, string token)
+    public async Task<GuestSession?> GetConflictingSessionAsync(string token, int tableId)
     {
-        var active = await GetActiveSessionAsync(tableId);
-        return active?.Token == token;
+        var session = await guestSessionRepo.GetByKeyAsync(s =>
+            s.Token == token && s.IsValid && s.TableId != tableId);
+        return session;
     }
 
-    private async Task<GuestSession?> GetActiveSessionAsync(int tableId)
+    //TODO: refactor this one a bit
+    public async Task<string> CreateSessionAsync(int tableId, string passphrase) // always send passphrase, on new group session and existing?
     {
-        return await guestSessionRepo.GetByKeyAsync(s =>
-            s.TableId == tableId && s.ExpiresAt > DateTime.UtcNow);
-    }
+        if (string.IsNullOrEmpty(passphrase))
+        {
+            throw new ArgumentNullException(nameof(passphrase));
+        }
 
-    public async Task<bool> CanResumeExpiredSessionAsync(int tableId, string token)
-    {
-        var latestExpired = await GetLatestExpiredSessionAsync(tableId);
-        return latestExpired?.Token == token;
-    }
+        // Try to find existing group for this table
+        var group = await groupSessionRepo.Query()
+            .Where(g => g.TableId == tableId)
+            .FirstOrDefaultAsync();
 
-    public async Task<string> CreateSessionAsync(int tableId)
-    {
+        if (group != null && group.Passphrase != passphrase)
+        {
+            logger.LogWarning("Attempted to join Table {TableId} with incorrect passphrase.", tableId);
+            throw new InvalidOperationException("Incorrect passphrase for this table.");
+        }
+
+        // group doesnt exist
+        if (group == null)
+        {
+            // First user: create a new group
+            group = new GuestSessionGroup
+            {
+                TableId = tableId,
+                Passphrase = passphrase
+            };
+            await groupSessionRepo.AddAsync(group);
+            logger.LogInformation("New group session started: Table {TableId}, Group {GroupId}, Passphrase {Passphrase}.",
+            tableId, group.Id, passphrase);
+        }
+
         var sessionId = Guid.NewGuid();
-        var expiresAt = DateTime.UtcNow.AddMinutes(30);
-        var token = jwtService.GenerateGuestToken(tableId, sessionId, expiresAt);
+        var expiresAt = DateTime.UtcNow.AddMinutes(120); //TODO: remove this...
+        var token = jwtService.GenerateGuestToken(tableId, sessionId, expiresAt, passphrase);
 
         var session = new GuestSession
         {
             Id = sessionId,
             TableId = tableId,
+            GroupId = group.Id,
             Token = token,
             ExpiresAt = expiresAt
         };
 
         await guestSessionRepo.AddAsync(session);
-        logger.LogInformation("New guest session started: Table {TableId}, Session {SessionId}, Expires {Expires}",
-            tableId, sessionId, expiresAt);
+        logger.LogInformation("New guest joined a group session: Table {TableId}, Group {GroupId}, Session {SessionId}, Expires {Expires}",
+            tableId, group.Id, sessionId, expiresAt);
 
         return token;
     }
@@ -65,16 +89,60 @@ public class GuestSessionService(
         }
     }
 
-    public async Task<GuestSession?> GetLatestExpiredSessionAsync(int tableId)
+    public async Task RevokeSessionAsync(Guid sessionId)
     {
-        return await guestSessionRepo.Query()
-            .Where(s => s.TableId == tableId)
-            .OrderByDescending(s => s.ExpiresAt)
-            .FirstOrDefaultAsync();
+        var session = await guestSessionRepo.GetByKeyAsync(s => s.Id == sessionId);
+        if (session is not null && session.IsValid)
+        {
+            session.IsValid = false;
+            await guestSessionRepo.UpdateAsync(session);
+            logger.LogInformation("Session {SessionId} revoked", session.Id);
+        }
+    }
+
+    public async Task RevokeAllSessionsForTableAsync(int tableId)
+    {
+        var sessions = await guestSessionRepo.Query()
+            .Where(s => s.TableId == tableId && s.IsValid)
+            .ToListAsync();
+
+        if (sessions.Count == 0)
+        {
+            logger.LogInformation("No active sessions to revoke for Table {TableId}", tableId);
+            return;
+        }
+
+        foreach (var session in sessions)
+        {
+            session.IsValid = false;
+            //TODO: horrible fix - find a way to deal with postgres timestamps.
+            session.CreatedAt = DateTime.SpecifyKind(session.CreatedAt, DateTimeKind.Utc);
+            session.ExpiresAt = DateTime.SpecifyKind(session.ExpiresAt, DateTimeKind.Utc);
+        }
+            
+        await guestSessionRepo.UpdateRangeAsync(sessions);
+
+        logger.LogInformation("Revoked {Count} sessions for Table {TableId}", sessions.Count, tableId);
     }
 
     public async Task<GuestSession?> GetByTokenAsync(int tableId, string token)
     {
         return await guestSessionRepo.GetByKeyAsync(s => s.TableId == tableId && s.Token == token);
+    }
+
+    public async Task EndGroupSessionAsync(int tableId)
+    {
+        // 1. Revoke all valid sessions
+        await RevokeAllSessionsForTableAsync(tableId);
+
+        // 2. Delete the group session
+        var group = await groupSessionRepo.Query()
+            .FirstOrDefaultAsync(g => g.TableId == tableId);
+
+        if (group is not null)
+        {
+            await groupSessionRepo.DeleteAsync(group);
+            logger.LogInformation("Deleted group session {GroupId} for Table {TableId}", group.Id, tableId);
+        }
     }
 }

@@ -15,6 +15,12 @@
     "selected_items": "Odabrani proizvodi",
     "search": "Pretraži...",
     "unavailable": "Trenutno nedostupno",
-    "passcode": "kod"
+    "passcode": "kod",
+    "note":"Napomena konobaru",
+    "cash":"Gotovina",
+    "credit_card":"Kartica",
+    "payment_type":"Način plaćanja(može se promijeniti kasnije)",
+    "removed":"uklonjen",
+    "added":"dodan"
 
 }

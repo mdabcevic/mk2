@@ -15,5 +15,11 @@
     "selected_items": "Selected items",
     "search": "Search...",
     "unavailable": "Not available",
-    "passcode": "code"
+    "passcode": "code",
+    "note":"Note",
+    "cash":"Cash",
+    "credit_card":"Credit card",
+    "payment_type":"Payment type(can be changed later)",
+    "removed":"removed",
+    "added":"added"
 }

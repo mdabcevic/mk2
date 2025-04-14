@@ -18,6 +18,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Reviews> Reviews { get; set; }
     public DbSet<ProductCategory> ProductCategory { get; set; }
     public DbSet<GuestSession> GuestSessions { get; set; }
+    public DbSet<GuestSessionGroup> GuestSessionGroups { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

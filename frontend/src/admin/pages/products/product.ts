@@ -34,9 +34,15 @@ export interface Product {
   
   export interface CategoryGroup {
     category: string;
-    items: MenuItemDto[];
+    items: MenuGroupedItemDto[];
   }
 
+  export interface cartItem{
+    menuId:number,
+    name:string,
+    price:number,
+    quantity:number
+  }
 
 
 

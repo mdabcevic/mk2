@@ -17,20 +17,28 @@ public class GuestSession
     [ForeignKey(nameof(TableId))]
     public Tables? Table { get; set; }
 
+    [Column("group_id")]
+    public Guid? GroupId { get; set; }
+
+    [ForeignKey(nameof(GroupId))]
+    public GuestSessionGroup Group { get; set; } = null!;
+
     [Required]
     [Column("token")]
     public string Token { get; set; } = string.Empty;
 
+
     [Required]
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
 
     [Required]
     [Column("expires_at")]
-    public DateTime ExpiresAt { get; set; }
+    public DateTime ExpiresAt { get; set; } = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
 
-    [NotMapped]
-    public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
+    [Required]
+    [Column("isvalid")]
+    public bool IsValid { get; set; } = true;
 
     public ICollection<Orders> Orders { get; set; } = [];
 }

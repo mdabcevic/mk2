@@ -2,9 +2,6 @@
 using Bartender.Domain.Interfaces;
 using Bartender.Data;
 using System.Linq.Expressions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using System.Linq;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Bartender.Domain.Repositories;
 
@@ -199,6 +196,17 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet.Attach(entity);
         // marks given state as modified
         context.Entry(entity).State = EntityState.Modified;
+        await context.SaveChangesAsync();
+    }
+
+    public async Task UpdateRangeAsync(IEnumerable<T> entities)
+    {
+        foreach (var entity in entities)
+        {
+            _dbSet.Attach(entity);
+            context.Entry(entity).State = EntityState.Modified;
+        }
+
         await context.SaveChangesAsync();
     }
 

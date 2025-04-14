@@ -7,20 +7,23 @@ function RedirectPage(){
 
     const { placeId,salt } = useParams();
     const [paramsValid, setParamsValid] = useState<boolean | null>(null);
-    
-
+    console.log("redirect page ")
     const checkAndGetToken = async () => {
         if (isNaN(Number(placeId)) || salt?.length !== 32) {
             setParamsValid(false);
+            console.log("nije ok ")
             return;
         }
         const response = await authService.getGuestToken(salt!);
-        if (response.isAvailable && response.token) {
-            authService.setGuestToken(response.token,placeId!);
+        // if (response.isAvailable && response.guestToken) {
+        if (response.guestToken) {
+            console.log("settiram token")
+            authService.setGuestToken(response.guestToken,placeId!);
         }
     }
     useEffect(() => {
-        checkAndGetToken();
+        setTimeout(()=>{checkAndGetToken();},5000)
+        
     })
     
     return (

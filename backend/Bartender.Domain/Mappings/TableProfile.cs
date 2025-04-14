@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.Table;
 
 namespace Bartender.Domain.Mappings;
 
