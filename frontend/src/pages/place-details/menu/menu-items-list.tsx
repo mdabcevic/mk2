@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { UserRole } from "../../../utils/constants";
-import { cartStorage } from "../../../utils/storage";
+import { CartItem, cartStorage } from "../../../utils/storage";
 import { MenuGroupedItemDto } from "../../../admin/pages/products/product";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "framer-motion";
@@ -15,6 +15,7 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
     const [visibleStart, setVisibleStart] = useState(0);
     const [scrollDirection, setScrollDirection] = useState<"up" | "down">("down");
     const [lastScrollTop, setLastScrollTop] = useState(0);
+    const [cart, setCart] = useState<Record<string, CartItem>>(cartStorage.getCart());
     const { t } = useTranslation("public");
     const handleScroll = () => {
       const container = containerRef.current;
@@ -34,6 +35,10 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
       return () => el?.removeEventListener("scroll", handleScroll);
     }, []);
   
+    useEffect(() => {
+      const unsubscribe = cartStorage.subscribe(setCart);
+      return unsubscribe;
+    }, []);
   
     return (
       <div
@@ -44,7 +49,7 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
         <AnimatePresence mode="popLayout">
             {items.map((item, index) => {
               const isVisible = index >= visibleStart && index < visibleStart + ITEMS_VISIBLE;
-
+              const quantity = cart[item.product.name]?.quantity || 0;
               return (
                   <div key={index} className="relative">
                       <motion.div
@@ -85,18 +90,20 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
                         <div className="flex gap-1 justify-end">
                           <button
                             className="px-2 py-1 rounded text-black"
-                            onClick={() => {cartStorage.removeItem(item); showToast(`${item.product.name} ${t("removed")}`,ToastType.info)}}
-                          >
-                            -
-                          </button>
-                          <button
-                            className="px-2 py-1 rounded text-black"
                             onClick={() => {cartStorage.addItem(item); showToast(`${item.product.name} ${t("added")}`,ToastType.info)}}
                           >
                             +
                           </button>
                         </div>
                       )
+                    )}
+
+
+                    {userRole === UserRole.guest && quantity > 0 && (
+                      <div className="absolute bottom-6 left-0 text-gray-600 mb-8 p-1 px-4 bg-white rounded-full shadow-md test">
+                        <span>{quantity} x</span>
+                        <button className="px-2 bg-white ml-1 rounded" onClick={() => {cartStorage.removeItem(item); showToast(`${item.product.name} ${t("removed")}`,ToastType.info)}}>-</button>
+                      </div>
                     )}
                   </div>
                 </motion.div>
