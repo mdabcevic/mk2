@@ -3,6 +3,7 @@ using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Bartender.Domain.Services;
@@ -28,6 +29,16 @@ public class TableManagementService(
             .ToList();
 
         return ServiceResult<List<TableDto>>.Ok(filtered);
+    }
+
+    public async Task<ServiceResult<List<TableDto>>> GetByPlaceId(int placeId)
+    {
+        var tables = await repository.Query()
+            .Where(t => t.PlaceId == placeId && !t.IsDisabled)
+            .ToListAsync();
+
+        var result = tables.Select(t => mapper.Map<TableDto>(t)).ToList();
+        return ServiceResult<List<TableDto>>.Ok(result);
     }
 
     public async Task<ServiceResult<TableDto>> GetByLabelAsync(string label)
