@@ -26,11 +26,11 @@ public class TableManagementService(
         return ServiceResult<List<TableDto>>.Ok(result);
     }
 
-    public async Task<ServiceResult<List<TableDto>>> GetByPlaceId(int placeId)
+    public async Task<ServiceResult<List<BaseTableDto>>> GetByPlaceId(int placeId)
     {
         var tables = await repository.GetActiveByPlaceAsync(placeId);
-        var result = mapper.Map<List<TableDto>>(tables);
-        return ServiceResult<List<TableDto>>.Ok(result); //TODO: redact properties for employees (salt, disabled flag...)
+        var result = mapper.Map<List<BaseTableDto>>(tables);
+        return ServiceResult<List<BaseTableDto>>.Ok(result); //TODO: redact properties for employees (salt, disabled flag...)
     }
 
     public async Task<ServiceResult<TableDto>> GetByLabelAsync(string label)
