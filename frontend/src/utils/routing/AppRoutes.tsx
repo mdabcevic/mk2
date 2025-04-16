@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
-import Home from "../../pages/home/home";
-import AboutUs from "../../pages/about-us";
+import Places from "../../pages/home/places.tsx";
+import AboutUs from "../../pages/home.tsx";
 import PlaceDetails from "../../pages/place-details/place-details";
 import Layout from "../../containers/layout";
 import {Menu} from "../../pages/place-details/menu/menu.tsx";
@@ -10,11 +10,12 @@ import { authService } from "../auth/auth.service";
 import { UserRole } from "../constants";
 import LoginPage from "../auth/login";
 import RedirectPage from "../redirect-page.tsx";
+import Home from "../../pages/home.tsx";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
 const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
 const ProductsViewPage = lazy(() => import("../../admin/pages/products/products"));
-const TableViewPage = lazy(() => import("../../admin/pages/tables-view"));
+const TableViewPage = lazy(() => import("../../admin/pages/table-view/tables-view.tsx"));
 
 
 function ProtectedAdminRoute() {
@@ -28,12 +29,12 @@ function AppRoutes(){
         {/* Public routes */}
         <Route path={AppPaths.public.home} element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path={AppPaths.public.aboutUs} element={<AboutUs />} />
+          <Route path={AppPaths.public.places} element={<Places />} />
           <Route path={AppPaths.public.placeDetails} element={<PlaceDetails />} />
           <Route path={AppPaths.public.menu} element={<Menu />} />
           <Route path={AppPaths.public.redirectPage} element={<RedirectPage />} />
           <Route path={AppPaths.public.login} element={<LoginPage />} />
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<Places />} />
         </Route>
 
         {/* Admin Routes (Using AdminLayout) */}

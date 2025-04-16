@@ -5,7 +5,7 @@ import { placeService } from "../../utils/services/place.service";
 import { randomImages } from "../../utils/random-images";
 
 const availableOptions = ["Zagreb", "Rijeka", "Karlovac", "Osijek"];
-function Home() {
+function Places() {
   
   const [selectedOption, setSelectedOption] = useState(availableOptions[0]);
   const [isOpen, setIsOpen] = useState(false);
@@ -83,4 +83,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default Places;

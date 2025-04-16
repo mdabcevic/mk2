@@ -20,5 +20,11 @@
     "my_menu":"Moj menu",
     "previous_page":"Prethodna",
     "next_page":"Slijedeća",
-    "of":"od"
+    "of":"od",
+    "tables":"Stolovi",
+    "table_info":"Podaci o stolu",
+    "table_label":"Kod stola",
+    "seats_number":"Broj stolica",
+    "add_table":"Dodaj stol",
+    "table_already_exist":"Već postoji stol s tim nazivom"
 }

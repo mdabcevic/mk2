@@ -49,6 +49,14 @@ const HeaderAdminComponent = () => {
         >
           {t("products")}
         </Link>
+        <Link
+          to={AppPaths.admin.tables}
+          className={`nav-links  ${
+            location.pathname === AppPaths.admin.tables ? "text-orange-500" : ""
+          }`}
+        >
+          {t("tables")}
+        </Link>
         <button
             className={`nav-links`}
             onClick={()=>authService.logout()}
