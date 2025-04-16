@@ -107,36 +107,44 @@ public class TableManagementService(
 
     public async Task<ServiceResult> BulkUpsertAsync(List<UpsertTableDto> dtoList)
     {
+        var duplicatesInInput = dtoList
+            .GroupBy(dto => dto.Label, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
+
+        if (duplicatesInInput.Count != 0)
+        {
+            logger.LogWarning("Duplicate labels in bulk upsert input: {Labels}", string.Join(", ", duplicatesInInput));
+            return ServiceResult.Fail("Duplicate labels found in input: " + string.Join(", ", duplicatesInInput), ErrorType.Conflict);
+        }
+
         var user = await currentUser.GetCurrentUserAsync();
 
         var existing = await repository.Query()
             .Where(t => t.PlaceId == user!.PlaceId)
-            .ToDictionaryAsync(t => t.Label.ToLower());
+            .ToDictionaryAsync(t => t.Label, StringComparer.OrdinalIgnoreCase);
 
-        var upserts = new List<Tables>();
-        //TODO: filter for duplicates in DTO list?
+        var toInsert = new List<Tables>();
+        var toUpdate = new List<Tables>();
         foreach (var dto in dtoList)
         {
-            var key = dto.Label.ToLower();
-            if (existing.TryGetValue(key, out var existingTable))
+            if (existing.TryGetValue(dto.Label, out var existingTable))
             {
                 mapper.Map(dto, existingTable);
-                upserts.Add(existingTable);
+                toUpdate.Add(existingTable);
                 logger.LogInformation("Table '{Label}' updated by User {UserId}", existingTable.Label, user!.Id);
             }
             else
             {
                 var newTable = mapper.Map<Tables>(dto);
-                newTable.Id = 0; // <-- ensure this
                 newTable.PlaceId = user!.PlaceId;
-                newTable.Status = TableStatus.empty;
-                newTable.QrSalt = Guid.NewGuid().ToString("N");
-                upserts.Add(newTable);
+                //newTable.Status = TableStatus.empty;
+                //newTable.QrSalt = Guid.NewGuid().ToString("N");
+                toInsert.Add(newTable);
                 logger.LogInformation("New table added by user {UserId}. Currently active token: {Token}", user.Id, newTable.QrSalt);
             }
         }
-        var toUpdate = upserts.Where(t => t.Id > 0).ToList();
-        var toInsert = upserts.Where(t => t.Id == 0).ToList();
 
         if (toUpdate.Count != 0)
             await repository.UpdateRangeAsync(toUpdate);
