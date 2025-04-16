@@ -51,6 +51,15 @@ public class TablesController(
         return result.ToActionResult();
     }
 
+    //TODO: should this be in place/tables instead?
+    [HttpGet("{placeId}/all")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetTablesByPlaceId(int placeId)
+    {
+        var result = await tableManagementService.GetByPlaceId(placeId);
+        return result.ToActionResult();
+    }
+
     [HttpGet("lookup")]
     [AllowAnonymous] // guests scan QR
     public async Task<IActionResult> GetBySalt([FromQuery] string salt, [FromQuery] string? passphrase = null)
@@ -59,6 +68,7 @@ public class TablesController(
         return result.ToActionResult();
     }
 
+    //TODO: maybe not needed anymore.
     [HttpPost("join")]
     [AllowAnonymous] // guests must access this
     public async Task<IActionResult> JoinTable([FromBody] TableJoinDto request)

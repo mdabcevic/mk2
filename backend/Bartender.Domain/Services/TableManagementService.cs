@@ -35,10 +35,11 @@ public class TableManagementService(
     {
         var tables = await repository.Query()
             .Where(t => t.PlaceId == placeId && !t.IsDisabled)
+            .Select(t => mapper.Map<TableDto>(t))
             .ToListAsync();
 
-        var result = tables.Select(t => mapper.Map<TableDto>(t)).ToList();
-        return ServiceResult<List<TableDto>>.Ok(result);
+        //var result = tables.Select(t => mapper.Map<TableDto>(t)).ToList();
+        return ServiceResult<List<TableDto>>.Ok(tables);
     }
 
     public async Task<ServiceResult<TableDto>> GetByLabelAsync(string label)
