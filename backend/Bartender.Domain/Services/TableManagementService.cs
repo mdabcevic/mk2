@@ -3,13 +3,12 @@ using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Bartender.Domain.Services;
 
 public class TableManagementService(
-    IRepository<Tables> repository,
+    ITableRepository repository,
     ILogger<TableInteractionService> logger,
     ICurrentUserContext currentUser,
     IMapper mapper
@@ -22,33 +21,23 @@ public class TableManagementService(
     public async Task<ServiceResult<List<TableDto>>> GetAllAsync()
     {
         var user = await currentUser.GetCurrentUserAsync();
-        var tables = await repository.GetAllAsync();
-        var filtered = tables
-            .Where(t => t.PlaceId == user!.PlaceId)
-            .Select(t => mapper.Map<TableDto>(t))
-            .ToList();
+        var tables = await repository.GetAllByPlaceAsync(user!.PlaceId);
+        var result = mapper.Map<List<TableDto>>(tables);
 
-        return ServiceResult<List<TableDto>>.Ok(filtered);
+        return ServiceResult<List<TableDto>>.Ok(result);
     }
 
     public async Task<ServiceResult<List<TableDto>>> GetByPlaceId(int placeId)
     {
-        var tables = await repository.Query()
-            .Where(t => t.PlaceId == placeId && !t.IsDisabled)
-            .Select(t => mapper.Map<TableDto>(t))
-            .ToListAsync();
-
-        //var result = tables.Select(t => mapper.Map<TableDto>(t)).ToList();
-        return ServiceResult<List<TableDto>>.Ok(tables);
+        var tables = await repository.GetActiveByPlaceAsync(placeId);
+        var result = mapper.Map<List<TableDto>>(tables);
+        return ServiceResult<List<TableDto>>.Ok(result); //TODO: redact properties for employees (salt, disabled flag...)
     }
 
     public async Task<ServiceResult<TableDto>> GetByLabelAsync(string label)
     {
         var user = await currentUser.GetCurrentUserAsync();
-
-        var table = await repository.GetByKeyAsync(t =>
-            t.PlaceId == user!.PlaceId &&
-            t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
+        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
 
         if (table is null)
         {
@@ -61,9 +50,7 @@ public class TableManagementService(
     public async Task<ServiceResult> AddAsync(UpsertTableDto dto)
     {
         var user = await currentUser.GetCurrentUserAsync();
-        if (await repository.ExistsAsync(t =>
-            t.PlaceId == user!.PlaceId &&
-            t.Label.Equals(dto.Label, StringComparison.CurrentCultureIgnoreCase)))
+        if (await repository.ExistsByLabelAsync(user!.PlaceId, dto.Label))
         {
             logger.LogWarning("Failed to add table: Label '{Label}' already exists for Place {PlaceId} by User {UserId}",
             dto.Label, user!.PlaceId, user.Id);
@@ -90,16 +77,15 @@ public class TableManagementService(
     public async Task<ServiceResult> UpdateAsync(string label, UpsertTableDto dto)
     {
         var user = await currentUser.GetCurrentUserAsync();
-        var table = await repository.GetByKeyAsync(t =>
-            t.PlaceId == user!.PlaceId &&
-            t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
+        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
 
         if (table is null)
         {
             logger.LogWarning("Update failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
             return ServiceResult.Fail("Table not found", ErrorType.NotFound);
         }
-        table.Seats = dto.Seats;
+
+        mapper.Map(dto, table);
         await repository.UpdateAsync(table);
         logger.LogInformation("Table '{Label}' updated by User {UserId}", label, user!.Id);
         return ServiceResult.Ok();
@@ -120,10 +106,7 @@ public class TableManagementService(
         }
 
         var user = await currentUser.GetCurrentUserAsync();
-
-        var existing = await repository.Query()
-            .Where(t => t.PlaceId == user!.PlaceId)
-            .ToDictionaryAsync(t => t.Label, StringComparer.OrdinalIgnoreCase);
+        var existing = await repository.GetByPlaceAsLabelDictionaryAsync(user!.PlaceId);
 
         var toInsert = new List<Tables>();
         var toUpdate = new List<Tables>();
@@ -139,8 +122,6 @@ public class TableManagementService(
             {
                 var newTable = mapper.Map<Tables>(dto);
                 newTable.PlaceId = user!.PlaceId;
-                //newTable.Status = TableStatus.empty;
-                //newTable.QrSalt = Guid.NewGuid().ToString("N");
                 toInsert.Add(newTable);
                 logger.LogInformation("New table added by user {UserId}. Currently active token: {Token}", user.Id, newTable.QrSalt);
             }
@@ -159,10 +140,7 @@ public class TableManagementService(
     public async Task<ServiceResult> DeleteAsync(string label)
     {
         var user = await currentUser.GetCurrentUserAsync();
-
-        var table = await repository.GetByKeyAsync(t =>
-            t.PlaceId == user!.PlaceId &&
-            t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
+        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
 
         if (table is null)
         {
@@ -177,9 +155,7 @@ public class TableManagementService(
     public async Task<ServiceResult> RegenerateSaltAsync(string label)
     {
         var user = await currentUser.GetCurrentUserAsync();
-        var table = await repository.GetByKeyAsync(t =>
-            t.PlaceId == user!.PlaceId &&
-            t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
+        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
 
         if (table is null)
         {
@@ -196,10 +172,7 @@ public class TableManagementService(
     public async Task<ServiceResult> SwitchDisabledAsync(string label, bool flag)
     {
         var user = await currentUser.GetCurrentUserAsync();
-
-        var table = await repository.GetByKeyAsync(t =>
-            t.PlaceId == user!.PlaceId &&
-            t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
+        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
 
         if (table is null)
         {
