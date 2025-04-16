@@ -20,5 +20,12 @@
     "my_menu":"My menu",
     "previous_page":"Prev",
     "next_page":"Next",
-    "of":"of"
+    "of":"of",
+    "tables":"Tables",
+    "table_info":"Table info",
+    "table_label":"Table code",
+    "seats_number":"Number of seats",
+    "add_table":"Add table",
+    "table_already_exist":"Table name already exists"
+    
 }

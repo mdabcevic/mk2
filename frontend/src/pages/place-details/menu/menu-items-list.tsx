@@ -65,7 +65,7 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
                     pointerEvents: isVisible ? "auto" : "none",
                   }}
                   transition={{ duration: 0.3 }}
-                  className={`p-3 border rounded-lg shadow-sm flex justify-between items-start absolute w-full ${
+                  className={`p-3 border rounded-[40px] shadow-sm flex justify-between items-start absolute w-full ${
                     !item.isAvailable ? "bg-gray-200" : "bg-white"
                   }`}
                   style={{

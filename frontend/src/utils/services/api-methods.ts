@@ -18,4 +18,6 @@ export const ApiMethods ={
     createOrder:"/api/order",
     getMyOrders:"/api/order/my-orders",
 
+    getPlaceTablesByCurrentUser:"/api/tables"
+
 }
