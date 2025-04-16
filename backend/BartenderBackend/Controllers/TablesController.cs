@@ -13,21 +13,21 @@ public class TablesController(
     ITableInteractionService tableInteractionService,
     ITableManagementService tableManagementService) : ControllerBase
 {
-    [HttpPost]
-    [Authorize(Roles = "manager")]
-    public async Task<IActionResult> Add([FromBody] UpsertTableDto dto)
-    {
-        var result = await tableManagementService.AddAsync(dto);
-        return result.ToActionResult();
-    }
+    //[HttpPost]
+    //[Authorize(Roles = "manager")]
+    //public async Task<IActionResult> Add([FromBody] UpsertTableDto dto)
+    //{
+    //    var result = await tableManagementService.AddAsync(dto);
+    //    return result.ToActionResult();
+    //}
 
-    [HttpPut("{label}")]
-    [Authorize(Roles = "manager")]
-    public async Task<IActionResult> Update(string label, [FromBody] UpsertTableDto dto)
-    {
-        var result = await tableManagementService.UpdateAsync(label, dto);
-        return result.ToActionResult();
-    }
+    //[HttpPut("{label}")]
+    //[Authorize(Roles = "manager")]
+    //public async Task<IActionResult> Update(string label, [FromBody] UpsertTableDto dto)
+    //{
+    //    var result = await tableManagementService.UpdateAsync(label, dto);
+    //    return result.ToActionResult();
+    //}
 
     [HttpDelete("{label}")]
     [Authorize(Roles = "manager")]
@@ -36,6 +36,18 @@ public class TablesController(
         var result = await tableManagementService.DeleteAsync(label);
         return result.ToActionResult();
     }
+
+    [HttpPost("bulk-upsert")]
+    [Authorize(Roles = "manager")]
+    public async Task<IActionResult> BulkUpsert([FromBody] List<UpsertTableDto> tables)
+    {
+        if (tables == null || tables.Count == 0)
+            return BadRequest("No table data provided.");
+
+        var result = await tableManagementService.BulkUpsertAsync(tables);
+        return result.ToActionResult();
+    }
+
 
     [HttpGet("{label}")]
     public async Task<IActionResult> GetById(string label)

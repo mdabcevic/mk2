@@ -105,6 +105,49 @@ public class TableManagementService(
         return ServiceResult.Ok();
     }
 
+    public async Task<ServiceResult> BulkUpsertAsync(List<UpsertTableDto> dtoList)
+    {
+        var user = await currentUser.GetCurrentUserAsync();
+
+        var existing = await repository.Query()
+            .Where(t => t.PlaceId == user!.PlaceId)
+            .ToDictionaryAsync(t => t.Label.ToLower());
+
+        var upserts = new List<Tables>();
+        //TODO: filter for duplicates in DTO list?
+        foreach (var dto in dtoList)
+        {
+            var key = dto.Label.ToLower();
+            if (existing.TryGetValue(key, out var existingTable))
+            {
+                mapper.Map(dto, existingTable);
+                upserts.Add(existingTable);
+                logger.LogInformation("Table '{Label}' updated by User {UserId}", existingTable.Label, user!.Id);
+            }
+            else
+            {
+                var newTable = mapper.Map<Tables>(dto);
+                newTable.Id = 0; // <-- ensure this
+                newTable.PlaceId = user!.PlaceId;
+                newTable.Status = TableStatus.empty;
+                newTable.QrSalt = Guid.NewGuid().ToString("N");
+                upserts.Add(newTable);
+                logger.LogInformation("New table added by user {UserId}. Currently active token: {Token}", user.Id, newTable.QrSalt);
+            }
+        }
+        var toUpdate = upserts.Where(t => t.Id > 0).ToList();
+        var toInsert = upserts.Where(t => t.Id == 0).ToList();
+
+        if (toUpdate.Count != 0)
+            await repository.UpdateRangeAsync(toUpdate);
+
+        if (toInsert.Count != 0)
+            await repository.AddMultipleAsync(toInsert);
+        logger.LogInformation("Bulk updated {Count} tables for place {PlaceId}", toUpdate.Count, user!.PlaceId);
+        logger.LogInformation("Bulk inserted {Count} tables for place {PlaceId}", toInsert.Count, user!.PlaceId);
+        return ServiceResult.Ok();
+    }
+
     public async Task<ServiceResult> DeleteAsync(string label)
     {
         var user = await currentUser.GetCurrentUserAsync();
