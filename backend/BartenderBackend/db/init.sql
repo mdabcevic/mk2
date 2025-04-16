@@ -67,6 +67,10 @@ CREATE TABLE IF NOT EXISTS Tables (
     place_id INTEGER NOT NULL REFERENCES Places(id) ON DELETE CASCADE,
     label VARCHAR not null,
     seats INTEGER NOT NULL DEFAULT 2,
+    width INTEGER NOT NULL,
+    height INTEGER NOT NULL,
+    xcoordinate DECIMAL(6,2) NOT NULL,
+    ycoordinate DECIMAL(6,2) NOT NULL,
     status TableStatus NOT NULL DEFAULT 'empty',
     qrsalt text NOT NULL,
     isdisabled boolean DEFAULT false,
@@ -235,16 +239,19 @@ VALUES (12, '99999999904', 'teststaff', '$2a$12$gZqmOoeAos6cXBVMSeTHge6YSTExR34f
 INSERT INTO Staff (place_id, OIB, username, password, fullName, role)
 VALUES (1, '99999999905', 'vivasadmin', '$2a$12$iF54En7VicKnz3G6eBosf.m5HezRaQ6c2CyZCB.MUowFMzJayK9Dq', 'Luka Vivasović', 'admin'); -- pw: test123
 
-INSERT INTO Tables (id, place_id, label, seats, status, qrsalt, isdisabled) VALUES
-(1, 1, '1', 2, 'empty', '5036144c6f5d41aeb0e332ea0029e073', false),
-(2, 1, '2', 2, 'empty', 'f8b4d726faf1436089415d0e453d33a3', false),
-(3, 1, '3', 2, 'empty', '766f575f7bf042ccb79e9df9da4e9ca5', true),
-(4, 1, '4', 4, 'empty', '768e63c7ab2b44a482b2a825645aaabb', false),
-(5, 1, '5', 4, 'empty', '1b3593e63a6a4fef8f2e5eae19840165', false),
-(6, 1, '6', 4, 'empty', 'ef9bf913754048b083a8571b740fb112', false),
-(7, 1, '7', 4, 'empty', '52206960508e41a797f546dd4106cf45', false),
-(8, 3, '1', 4, 'empty', 'e6fae97a5c54471984572d1020388970', false),
-(9, 3, '2', 4, 'empty', 'eb754108919e4db18cb0d05e2c4262f2', false);
+INSERT INTO Tables (id, place_id, label, seats, width, height, xcoordinate, ycoordinate, status, qrsalt, isdisabled) VALUES
+(1, 1, '1', 2, 80, 80, 100.0, 100.0, 'empty', '5036144c6f5d41aeb0e332ea0029e073', false),
+(2, 1, '2', 2, 80, 80, 200.0, 100.0, 'empty', 'f8b4d726faf1436089415d0e453d33a3', false),
+(3, 1, '3', 2, 80, 80, 300.0, 100.0, 'empty', '766f575f7bf042ccb79e9df9da4e9ca5', true),
+(4, 1, '4', 4, 100, 100, 100.0, 200.0, 'empty', '768e63c7ab2b44a482b2a825645aaabb', false),
+(5, 1, '5', 4, 100, 100, 200.0, 200.0, 'empty', '1b3593e63a6a4fef8f2e5eae19840165', false),
+(6, 1, '6', 4, 100, 100, 300.0, 200.0, 'empty', 'ef9bf913754048b083a8571b740fb112', false),
+(7, 1, '7', 4, 100, 100, 400.0, 200.0, 'empty', '52206960508e41a797f546dd4106cf45', false),
+(8, 3, '1', 4, 90, 90, 100.0, 300.0, 'empty', 'e6fae97a5c54471984572d1020388970', false),
+(9, 3, '2', 4, 90, 90, 200.0, 300.0, 'empty', 'eb754108919e4db18cb0d05e2c4262f2', false);
+
+-- This tells Postgres to set the sequence to the current max value
+SELECT setval('tables_id_seq', (SELECT MAX(id) FROM tables));
 
 -- Insert ProductCategory
 INSERT INTO ProductCategory(name, parentcategory_id) VALUES

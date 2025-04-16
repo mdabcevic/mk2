@@ -7,7 +7,6 @@ using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Serilog;
@@ -67,6 +66,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         }));
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<ITableRepository, TableRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
 builder.Services.AddScoped<IBusinessService, BusinessService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IPlacesService, PlacesService>();
@@ -79,8 +81,6 @@ builder.Services.AddScoped<ITableSessionService, GuestSessionService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
-builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 

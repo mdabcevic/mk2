@@ -1,18 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using Bartender.Data.Enums;
 
 namespace Bartender.Domain.DTO.Table;
 
-public class UpsertTableDto
+public class BaseTableDto
 {
     public string Label { get; set; } = string.Empty;
-    public int Seats { get; set; } = 2;
+    public int Seats { get; set; }
 
-    [Required]
     public int Width { get; set; }
-    [Required]
     public int Height { get; set; }
-    [Required]
     public decimal X { get; set; }
-    [Required]
     public decimal Y { get; set; }
+    public TableStatus Status { get; set; } = TableStatus.empty;
 }
