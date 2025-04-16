@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
@@ -45,50 +44,6 @@ public class TableManagementService(
             return ServiceResult<TableDto>.Fail("Table not found", ErrorType.NotFound);
         }
         return ServiceResult<TableDto>.Ok(mapper.Map<TableDto>(table));
-    }
-
-    public async Task<ServiceResult> AddAsync(UpsertTableDto dto)
-    {
-        var user = await currentUser.GetCurrentUserAsync();
-        if (await repository.ExistsByLabelAsync(user!.PlaceId, dto.Label))
-        {
-            logger.LogWarning("Failed to add table: Label '{Label}' already exists for Place {PlaceId} by User {UserId}",
-            dto.Label, user!.PlaceId, user.Id);
-            return ServiceResult.Fail("Cannot create table with that label - it already exists.", ErrorType.Conflict);
-        }
-
-        var entity = mapper.Map<Tables>(dto);
-
-        entity.PlaceId = user!.PlaceId;
-        entity.Status = TableStatus.empty;
-        entity.QrSalt = Guid.NewGuid().ToString("N");
-
-        await repository.AddAsync(entity);
-        logger.LogInformation("New table added by user {UserId}. Currently active token: {Token}", user.Id, entity.QrSalt);
-        return ServiceResult.Ok();
-    }
-
-    /// <summary>
-    /// Updates a table info based on provided details.
-    /// </summary>
-    /// <param name="label">label assigned by staff (unique per place).</param>
-    /// <param name="dto">Contains data for modification.</param>
-    /// <returns></returns>
-    public async Task<ServiceResult> UpdateAsync(string label, UpsertTableDto dto)
-    {
-        var user = await currentUser.GetCurrentUserAsync();
-        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
-
-        if (table is null)
-        {
-            logger.LogWarning("Update failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
-            return ServiceResult.Fail("Table not found", ErrorType.NotFound);
-        }
-
-        mapper.Map(dto, table);
-        await repository.UpdateAsync(table);
-        logger.LogInformation("Table '{Label}' updated by User {UserId}", label, user!.Id);
-        return ServiceResult.Ok();
     }
 
     public async Task<ServiceResult> BulkUpsertAsync(List<UpsertTableDto> dtoList)
