@@ -107,7 +107,7 @@ public class TableManagementService(
         return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult> RegenerateSaltAsync(string label)
+    public async Task<ServiceResult<string>> RegenerateSaltAsync(string label)
     {
         var user = await currentUser.GetCurrentUserAsync();
         var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
@@ -115,13 +115,13 @@ public class TableManagementService(
         if (table is null)
         {
             logger.LogWarning("Resalt failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
-            return ServiceResult.Fail("Table not found", ErrorType.NotFound);
+            return ServiceResult<string>.Fail("Table not found", ErrorType.NotFound);
         }
 
         table.QrSalt = Guid.NewGuid().ToString("N");
         await repository.UpdateAsync(table);
         logger.LogInformation("Salt rotated for Table '{Label}' by User {UserId}", label, user!.Id);
-        return ServiceResult.Ok();
+        return ServiceResult<string>.Ok(table.QrSalt);
     }
 
     public async Task<ServiceResult> SwitchDisabledAsync(string label, bool flag)

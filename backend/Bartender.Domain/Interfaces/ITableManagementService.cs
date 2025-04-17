@@ -9,6 +9,6 @@ public interface ITableManagementService
     Task<ServiceResult> DeleteAsync(string label);
     Task<ServiceResult> BulkUpsertAsync(List<UpsertTableDto> dtoList);
     Task<ServiceResult> SwitchDisabledAsync(string label, bool flag);
-    Task<ServiceResult> RegenerateSaltAsync(string label);
+    Task<ServiceResult<string>> RegenerateSaltAsync(string label);
     Task<ServiceResult<List<BaseTableDto>>> GetByPlaceId(int placeId);
 }

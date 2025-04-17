@@ -25,7 +25,7 @@ public class TableRepository(AppDbContext context) : Repository<Tables>(context)
     {
         return await Query()
             .FirstOrDefaultAsync(t => t.PlaceId == placeId &&
-                                      t.Label.Equals(label, StringComparison.CurrentCultureIgnoreCase));
+                                      t.Label.ToLower() == label.ToLower());
     }
 
     public async Task<Dictionary<string, Tables>> GetByPlaceAsLabelDictionaryAsync(int placeId)
