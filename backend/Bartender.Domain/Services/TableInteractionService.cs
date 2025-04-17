@@ -4,6 +4,7 @@ using Bartender.Data.Enums;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO.Table;
+using Bartender.Data;
 
 namespace Bartender.Domain.Services;
 
@@ -12,6 +13,7 @@ public class TableInteractionService(
     IGuestSessionService guestSessionService,
     ITableSessionService tableSessionService,
     IOrderRepository orderRepository,
+    INotificationService notificationService,
     ILogger<TableInteractionService> logger,
     ICurrentUserContext currentUser,
     IMapper mapper
@@ -47,7 +49,7 @@ public class TableInteractionService(
         }
 
         return currentUser.IsGuest
-            ? await HandleGuestStatusChangeAsync(table, newStatus, currentUser.GetRawToken()!) //not table access token, user access token for session...
+            ? await HandleGuestStatusChangeAsync(table, newStatus, currentUser.GetRawToken()!) // not table access token, user access token for session...
             : await HandleStaffStatusChangeAsync(table, newStatus);
     }
 
@@ -56,6 +58,10 @@ public class TableInteractionService(
         if (table.IsDisabled)
         {
             logger.LogWarning("QR scan blocked for disabled Table {TableId}", table.Id);
+
+            await notificationService.AddNotificationAsync(table.Id,
+                NotificationFactory.ForTableStatus(table, $"Staff attention needed at Disabled table {table.Label}.", NotificationType.StaffNeeded));
+
             return ServiceResult<TableScanDto>.Fail("QR for this table is currently unavailable. Waiter is coming.", ErrorType.Unauthorized);
         }
 
@@ -90,6 +96,7 @@ public class TableInteractionService(
         return await TryJoinExistingSession(table, passphrase);
     }
 
+    //TODO: add check for unpaid receipts before emptying table.
     private async Task<ServiceResult> HandleGuestStatusChangeAsync(Tables table, TableStatus newStatus, string token)
     {
         var accessToken = currentUser.GetRawToken();
@@ -175,6 +182,10 @@ public class TableInteractionService(
         dto.IsSessionEstablished = true;
 
         logger.LogInformation("Table {TableId} is now occupied. First session started with passphrase {Passphrase}", table.Id, passphrase);
+
+        await notificationService.AddNotificationAsync(table.Id,
+            NotificationFactory.ForTableStatus(table, $"New guest at table {table.Label}.", NotificationType.GuestJoinedTable));
+
         return ServiceResult<TableScanDto>.Ok(dto);
     }
 
@@ -195,6 +206,10 @@ public class TableInteractionService(
             dto.GuestToken = token;
             dto.IsSessionEstablished = true;
             logger.LogInformation("New guest joined table {TableId} using passphrase {Passphrase}", table.Id, submittedPassphrase);
+
+            await notificationService.AddNotificationAsync(table.Id,
+                NotificationFactory.ForTableStatus(table, $"New guest at table {table.Label}.", NotificationType.GuestJoinedTable));
+
             return ServiceResult<TableScanDto>.Ok(dto);
         }
         catch (InvalidOperationException ex)
@@ -211,6 +226,9 @@ public class TableInteractionService(
 
         table.Status = TableStatus.empty;
         await repository.UpdateAsync(table);
+
+        await notificationService.AddNotificationAsync(table.Id,
+            NotificationFactory.ForTableStatus(table, $"Guests have left table {table.Label}.", NotificationType.GuestLeftTable));
 
         logger.LogInformation("Table {TableId} set to empty and all sessions/orders cleared.", table.Id);
     }

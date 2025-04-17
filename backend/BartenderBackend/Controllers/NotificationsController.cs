@@ -15,17 +15,10 @@ public class NotificationsController(INotificationService service) : ControllerB
         return Ok(notifs);
     }
 
-    [HttpPost]
+    [HttpPost] //calling staff
     public async Task<IActionResult> Create(int tableId, [FromBody] TableNotification notification)
     {
         await service.AddNotificationAsync(tableId, notification);
-        return NoContent();
-    }
-
-    [HttpPatch("mark-all-read")]
-    public async Task<IActionResult> MarkAllRead(int tableId)
-    {
-        await service.MarkAllAsReadAsync(tableId);
         return NoContent();
     }
 

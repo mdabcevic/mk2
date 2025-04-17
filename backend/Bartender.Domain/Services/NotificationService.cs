@@ -23,23 +23,23 @@ public class NotificationService(IConnectionMultiplexer redis) : INotificationSe
         return [.. items.Select(i => JsonSerializer.Deserialize<TableNotification>(i!)!)];
     }
 
-    public async Task MarkAllAsReadAsync(int tableId)
-    {
-        var key = Key(tableId);
-        var items = await _db.ListRangeAsync(key);
-        var updated = items
-            .Select(i => JsonSerializer.Deserialize<TableNotification>(i!)!)
-            .ToList();
+    //public async Task MarkAllAsReadAsync(int tableId)
+    //{
+    //    var key = Key(tableId);
+    //    var items = await _db.ListRangeAsync(key);
+    //    var updated = items
+    //        .Select(i => JsonSerializer.Deserialize<TableNotification>(i!)!)
+    //        .ToList();
 
-        foreach (var item in updated)
-            item.Pending = false;
+    //    foreach (var item in updated)
+    //        item.Pending = false;
 
-        await _db.KeyDeleteAsync(key);
-        foreach (var updatedItem in updated)
-        {
-            await _db.ListRightPushAsync(key, JsonSerializer.Serialize(updatedItem));
-        }
-    }
+    //    await _db.KeyDeleteAsync(key);
+    //    foreach (var updatedItem in updated)
+    //    {
+    //        await _db.ListRightPushAsync(key, JsonSerializer.Serialize(updatedItem));
+    //    }
+    //}
 
     public Task ClearNotificationsAsync(int tableId) =>
         _db.KeyDeleteAsync(Key(tableId));
