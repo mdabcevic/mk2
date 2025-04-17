@@ -9,4 +9,5 @@ public interface IPlacesService
     Task<ServiceResult> AddAsync(InsertPlaceDto dto);
     Task<ServiceResult> UpdateAsync(int id, UpdatePlaceDto dto);
     Task<ServiceResult> DeleteAsync(int id);
+    Task<ServiceResult> NotifyStaffAsync(string salt);
 }

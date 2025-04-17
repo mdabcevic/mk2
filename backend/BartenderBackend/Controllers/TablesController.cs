@@ -32,7 +32,6 @@ public class TablesController(
         return result.ToActionResult();
     }
 
-
     [HttpGet("{label}")]
     public async Task<IActionResult> GetById(string label)
     {

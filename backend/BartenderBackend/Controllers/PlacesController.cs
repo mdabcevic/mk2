@@ -18,6 +18,13 @@ public class PlacesController(IPlacesService placesService) : ControllerBase
         return (await placesService.GetAllAsync()).ToActionResult();
     }
 
+    [HttpGet("notify-staff/{salt}")]
+    public async Task<IActionResult> NotifyStaff(string salt)
+    {
+        var result = await placesService.NotifyStaffAsync(salt);
+        return result.ToActionResult();
+    }
+
     [Authorize(Roles = "manager")] //switch to admin/owner maybe
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] InsertPlaceDto dto)

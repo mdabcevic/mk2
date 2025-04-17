@@ -8,5 +8,6 @@ public enum NotificationType
     StaffNeeded,
     OrderCreated,
     OrderCancelled,
-    PaymentRequested
+    PaymentRequested,
+    TableStatusChanged
 }
