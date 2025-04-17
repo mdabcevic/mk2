@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Serilog;
+using StackExchange.Redis;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization; // <-- ensure this namespace is included
@@ -86,6 +87,11 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 
 builder.Services.AddHttpContextAccessor(); // required!
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    await ConnectionMultiplexer.ConnectAsync("localhost:6379"));
+
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddAutoMapper(
     typeof(BusinessProfile).Assembly,

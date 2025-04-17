@@ -47,7 +47,7 @@ public class TableInteractionService(
         }
 
         return currentUser.IsGuest
-            ? await HandleGuestStatusChangeAsync(table, newStatus, currentUser.GetRawToken()) //not table access token, user access token for session...
+            ? await HandleGuestStatusChangeAsync(table, newStatus, currentUser.GetRawToken()!) //not table access token, user access token for session...
             : await HandleStaffStatusChangeAsync(table, newStatus);
     }
 
@@ -199,7 +199,7 @@ public class TableInteractionService(
         }
         catch (InvalidOperationException ex)
         {
-            logger.LogWarning("Join failed: incorrect passphrase for table {TableId}, exception: {Exception}", table.Id, ex.Message);
+            logger.LogWarning("Join failed: incorrect passphrase for table {TableId}, exception: {Ex}.", table.Id, ex);
             return ServiceResult<TableScanDto>.Fail("Incorrect passphrase. Please ask someone at the table.", ErrorType.Unauthorized);
         }
     }
