@@ -15,13 +15,6 @@ public class NotificationsController(INotificationService service) : ControllerB
         return Ok(notifs);
     }
 
-    [HttpPost] //calling staff
-    public async Task<IActionResult> Create(int tableId, [FromBody] TableNotification notification)
-    {
-        await service.AddNotificationAsync(tableId, notification);
-        return NoContent();
-    }
-
     [HttpDelete]
     public async Task<IActionResult> Clear(int tableId)
     {

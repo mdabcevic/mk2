@@ -59,7 +59,7 @@ public class TableInteractionService(
         {
             logger.LogWarning("QR scan blocked for disabled Table {TableId}", table.Id);
 
-            await notificationService.AddNotificationAsync(table.Id,
+            await notificationService.AddNotificationAsync(table,
                 NotificationFactory.ForTableStatus(table, $"Staff attention needed at Disabled table {table.Label}.", NotificationType.StaffNeeded));
 
             return ServiceResult<TableScanDto>.Fail("QR for this table is currently unavailable. Waiter is coming.", ErrorType.Unauthorized);
@@ -183,7 +183,7 @@ public class TableInteractionService(
 
         logger.LogInformation("Table {TableId} is now occupied. First session started with passphrase {Passphrase}", table.Id, passphrase);
 
-        await notificationService.AddNotificationAsync(table.Id,
+        await notificationService.AddNotificationAsync(table,
             NotificationFactory.ForTableStatus(table, $"New guest at table {table.Label}.", NotificationType.GuestJoinedTable));
 
         return ServiceResult<TableScanDto>.Ok(dto);
@@ -207,7 +207,7 @@ public class TableInteractionService(
             dto.IsSessionEstablished = true;
             logger.LogInformation("New guest joined table {TableId} using passphrase {Passphrase}", table.Id, submittedPassphrase);
 
-            await notificationService.AddNotificationAsync(table.Id,
+            await notificationService.AddNotificationAsync(table,
                 NotificationFactory.ForTableStatus(table, $"New guest at table {table.Label}.", NotificationType.GuestJoinedTable));
 
             return ServiceResult<TableScanDto>.Ok(dto);
@@ -227,7 +227,7 @@ public class TableInteractionService(
         table.Status = TableStatus.empty;
         await repository.UpdateAsync(table);
 
-        await notificationService.AddNotificationAsync(table.Id,
+        await notificationService.AddNotificationAsync(table,
             NotificationFactory.ForTableStatus(table, $"Guests have left table {table.Label}.", NotificationType.GuestLeftTable));
 
         logger.LogInformation("Table {TableId} set to empty and all sessions/orders cleared.", table.Id);

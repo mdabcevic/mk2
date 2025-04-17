@@ -78,20 +78,22 @@ builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<ITableInteractionService, TableInteractionService>();
 builder.Services.AddScoped<ITableManagementService, TableManagementService>();
 builder.Services.AddScoped<IGuestSessionService, GuestSessionService>();
-builder.Services.AddScoped<ITableSessionService, GuestSessionService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IValidationService, ValidationService>();
-
-builder.Services.AddScoped<IJwtService, JwtService>();
 
 builder.Services.AddHttpContextAccessor(); // required!
+
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ITableSessionService, GuestSessionService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IValidationService, ValidationService>();
+
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(
     await ConnectionMultiplexer.ConnectAsync("localhost:6379"));
 
-builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddSignalR();
 
 builder.Services.AddAutoMapper(
     typeof(BusinessProfile).Assembly,
@@ -126,4 +128,6 @@ app.UseCors("AllowedOrigins");
 app.UseAuthentication(); // <--- MUST come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<PlaceHub>("/hubs/place");
+
 await app.RunAsync();

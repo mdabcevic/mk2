@@ -97,7 +97,7 @@ public class PlacesService(
             return ServiceResult.Fail("Table not found", ErrorType.NotFound);
         }
 
-        await notificationService.AddNotificationAsync(table.Id, 
+        await notificationService.AddNotificationAsync(table, 
             NotificationFactory.ForTableStatus(table, $"Waiter requested at table {table.Label}.", NotificationType.StaffNeeded));
 
         logger.LogInformation("Staff notified for table {Label}", table.Label);
