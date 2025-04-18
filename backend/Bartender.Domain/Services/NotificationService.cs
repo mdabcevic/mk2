@@ -22,8 +22,8 @@ public class NotificationService(
         var json = JsonSerializer.Serialize(notification);
         await _db.ListRightPushAsync(Key(table.Id), json);
 
-        // 🔔 Notify staff group for the place
-        var placeGroupKey = $"place_{table.PlaceId}_staff"; // optional: pass placeId instead if you store it
+        // Notify staff group for the place
+        var placeGroupKey = $"place_{table.PlaceId}_staff"; 
         await hub.Clients.Group(placeGroupKey).SendAsync("ReceiveNotification", notification);
     }
 

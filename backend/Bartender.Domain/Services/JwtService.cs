@@ -20,11 +20,9 @@ public class JwtService(IConfiguration config) : IJwtService
     {
         var claims = new[]
         {
-            //new Claim("sub", "guest"),
             new Claim("role", "guest"),
             new Claim("table_id", tableId.ToString()),
             new Claim("session_id", sessionId.ToString()),
-            //new Claim("table_label", label),
             new Claim("passphrase", passphrase)
         };
 
