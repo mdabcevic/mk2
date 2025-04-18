@@ -3,11 +3,13 @@ type SubscriptionCardProps = {
     price: string;
     textColor: string;
     bgColor: string;
+    hoverColor: string;
     features: string[];
     t: (key: string) => string;
+    onSubscribe: () => void;
 };
 
-const SubscriptionCard = ({ title, price, textColor, bgColor, features, t }: SubscriptionCardProps) => {
+const SubscriptionCard = ({ title, price, textColor, bgColor, hoverColor, features, t, onSubscribe }: SubscriptionCardProps) => {
     return (
         <div className="w-full lg:w-1/3 flex flex-col border border-neutral-400 rounded-3xl bg-neutral-100 px-5">
             <div className="flex flex-col flex-grow">
@@ -20,12 +22,13 @@ const SubscriptionCard = ({ title, price, textColor, bgColor, features, t }: Sub
                 </p>
                 <ul className="p-5 list-disc text-base mb-15 min-h-[80px]">
                     {features.map((feature, i) => (
-                        <li key={i}>{feature}</li>
+                        <li key={i}>{t(feature)}</li>
                     ))}
                 </ul>
             </div>
             <button
-                className={`${bgColor} text-white rounded-full w-full h-[50px] mb-4 font-semibold tracking-widest`}>
+                onClick={onSubscribe}
+                className={`${bgColor} text-white rounded-full w-full h-[50px] mb-4 font-semibold tracking-widest ${hoverColor}`}>
                 {t("get_subscription").toUpperCase()} {title.toUpperCase()}
             </button>
         </div>

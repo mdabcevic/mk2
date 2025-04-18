@@ -43,5 +43,12 @@
     "priority_live_chat_support": "Prioritetna + Live Chat Podrška",
     "up_to": "Do",
     "unlimited": "Neograničeno",
-    "choose_subscription": "Odaberite Svoj Paket"
+    "choose_subscription": "Odaberite Svoj Paket",
+    "contact": "Kontakt",
+    "subject": "Predmet",
+    "sender": "Pošiljatelj",
+    "message": "Poruka",
+    "close": "Zatvori",
+    "send": "Pošalji",
+    "inquire_plan": "Želio bih se informirati o {{sub}} planu."
 }

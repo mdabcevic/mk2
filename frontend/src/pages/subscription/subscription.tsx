@@ -2,9 +2,33 @@ import { useTranslation } from "react-i18next";
 import SubscriptionCard from './subscription-card';
 import SubscriptionTableBody from './subscription-table-body';
 import { subscriptionPlans, benefitsData } from './subscription-data';
+import { useState, useEffect } from "react";
+import ContactModal from "./contact-modal";
 
 function Subscription() {
     const { t } = useTranslation("public");
+    const [modalOpen, setModalOpen] = useState(false);
+    const [subject, setSubject] = useState("");
+    const [message, setMessage] = useState("");
+
+    useEffect(() => {
+        if (modalOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [modalOpen]);
+
+
+    const handleOpenModal = (sub: string) => {
+        setSubject(sub + " " + t("subscription")); 
+        setMessage(t('inquire_plan', { sub }));
+        setModalOpen(true);
+    };
 
     return (
         <div className="flex flex-col max-w-[1200px] mx-auto pt-10 pb-50 px-4">
@@ -19,8 +43,10 @@ function Subscription() {
                         price={subscription.price}
                         textColor={subscription.textColor}
                         bgColor={subscription.bgColor}
+                        hoverColor={subscription.hoverColor}
                         features={subscription.features}
-                        t={t}
+                        t = {t}
+                        onSubscribe={() => handleOpenModal(subscription.title)}
                     />
                 ))}
             </div>
@@ -40,6 +66,13 @@ function Subscription() {
                     </table>
                 </div>
             </div>
+            <ContactModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                subject={subject}
+                message={message}
+                t = {t}
+            />
         </div>
     );
 }

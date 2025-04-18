@@ -43,5 +43,12 @@
     "priority_live_chat_support": "Priority + Live Chat Support",
     "up_to": "Up to",
     "unlimited": "Unlimited",
-    "choose_subscription": "Choose Your Plan"
+    "choose_subscription": "Choose Your Plan",
+    "contact": "Contact",
+    "subject": "Subject",
+    "sender": "Sender",
+    "message": "Message",
+    "close": "Close",
+    "send": "Send",
+    "inquire_plan": "I would like to inquire about the {{sub}} plan."
 }

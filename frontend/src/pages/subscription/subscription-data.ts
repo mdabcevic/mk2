@@ -4,6 +4,7 @@ export const subscriptionPlans = [
         price: "€5.99",
         textColor: "text-neutral-500",
         bgColor: "bg-neutral-500",
+        hoverColor: "hover:bg-neutral-700",
         features: ["basic_description", "subscription_cancel"],
     },
     {
@@ -11,6 +12,7 @@ export const subscriptionPlans = [
         price: "€15.99",
         textColor: "text-blue-500",
         bgColor: "bg-blue-500",
+        hoverColor: "hover:bg-blue-700",
         features: ["pro_description", "subscription_cancel"],
     },
     {
@@ -18,6 +20,7 @@ export const subscriptionPlans = [
         price: "€34.99",
         textColor: "text-orange-400",
         bgColor: "bg-orange-400",
+        hoverColor: "hover:bg-orange-500",
         features: ["premium_description", "subscription_cancel"],
     },
 ];
