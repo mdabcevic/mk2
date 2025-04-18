@@ -10,7 +10,8 @@ export const AppPaths = {
         menu: "/place/:placeId/menu",
         placeTables:"/place/tables/:id",
         redirectPage: "/table-lookup/:placeId/:salt",
-        login:"/login"
+        login:"/login",
+        subsciption:"/subscription",
     },
     
     admin:{
