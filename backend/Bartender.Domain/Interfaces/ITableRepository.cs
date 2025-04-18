@@ -10,4 +10,5 @@ public interface ITableRepository : IRepository<Tables>
     Task<Tables?> GetByPlaceLabelAsync(int placeId, string label);
     Task<Dictionary<string, Tables>> GetByPlaceAsLabelDictionaryAsync(int placeId);
     Task<List<Tables>> GetActiveByPlaceAsync(int placeId);
+    Task<Tables?> GetBySaltAsync(string salt);
 }

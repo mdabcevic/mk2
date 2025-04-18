@@ -41,4 +41,10 @@ public class TableRepository(AppDbContext context) : Repository<Tables>(context)
             .Where(t => t.PlaceId == placeId && !t.IsDisabled)
             .ToListAsync();
     }
+
+    public async Task<Tables?> GetBySaltAsync(string salt)
+    {
+        return await Query()
+            .FirstOrDefaultAsync(t => t.QrSalt == salt);
+    }
 }

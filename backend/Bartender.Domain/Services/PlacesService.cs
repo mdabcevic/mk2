@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Bartender.Data;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
@@ -9,8 +10,10 @@ namespace Bartender.Domain.Services;
 
 public class PlacesService(
     IRepository<Places> repository,
+    ITableRepository tableRepository,
     ILogger<PlacesService> logger,
     ICurrentUserContext currentUser,
+    INotificationService notificationService,
     IMapper mapper
     )
     : IPlacesService
@@ -81,6 +84,23 @@ public class PlacesService(
         mapper.Map(dto, place);
         await repository.UpdateAsync(place);
         logger.LogInformation("Place updated with ID: {PlaceId}", place.Id);
+        return ServiceResult.Ok();
+    }
+
+    public async Task<ServiceResult> NotifyStaffAsync(string salt)
+    {
+        var table = await tableRepository.GetBySaltAsync(salt);
+
+        if (table is null)
+        {
+            logger.LogWarning("NotifyStaff failed: Table does not exist.");
+            return ServiceResult.Fail("Table not found", ErrorType.NotFound);
+        }
+
+        await notificationService.AddNotificationAsync(table, 
+            NotificationFactory.ForTableStatus(table, $"Waiter requested at table {table.Label}.", NotificationType.StaffNeeded));
+
+        logger.LogInformation("Staff notified for table {Label}", table.Label);
         return ServiceResult.Ok();
     }
 
