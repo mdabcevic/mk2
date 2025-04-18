@@ -8,7 +8,8 @@ export enum Constants{
 export enum UserRole{
     admin = "admin",
     manager  ="manager",
-    guest = "guest"
+    guest = "guest",
+    staff = "regular"
 }
 
 
