@@ -21,6 +21,14 @@
     "credit_card":"Kartica",
     "payment_type":"Način plaćanja(može se promijeniti kasnije)",
     "removed":"uklonjen",
-    "added":"dodan"
+    "added":"dodan",
+    "places_link":"Lista kafića",
+    "invalid_passcode_message": "Kod je istekao ili je neispravan!",
+    "order":"Naruči",
+    "call_bartender":"Pozovi konobara",
+    "sm_message":"Osjećaj se kao kod kuće - ugrabi piće na dohvat ruke",
+    "total":"Ukupno",
+    "next":"Dalje",
+    "request_payment":"Zatraži račun"
 
 }

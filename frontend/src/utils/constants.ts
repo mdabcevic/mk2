@@ -17,15 +17,24 @@ export enum PaymentType{
     creditcard=1
 }
 
+export interface TablePublic{
+  label:string,
+  seats:number,
+  width:number,
+  height:number,
+  x:number,
+  y:number,
+  status:string,
+}
 
 export interface Table {
   label: string;
-  positionX: number;
-  positionY: number;
+  x: number;
+  y: number;
   width: number;
   height: number;
   seats: number;
-  status: number;
+  status: string;
   token?: string;
 }
 
@@ -34,6 +43,13 @@ export enum TableStatus {
   occupied = 1,
   reserved = 2,
 }
+
+export enum TableStatusString {
+  empty = "empty",
+  occupied = "occupied",
+  reserved = "reserved",
+}
+
 export enum BtnVisibility {
   visible = "visible",
   invisible = "invisible",

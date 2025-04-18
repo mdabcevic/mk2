@@ -21,5 +21,13 @@
     "credit_card":"Credit card",
     "payment_type":"Payment type(can be changed later)",
     "removed":"removed",
-    "added":"added"
+    "added":"added",
+    "places_link":"Bars",
+    "invalid_passcode_message": "Passcode is not valid!",
+    "order":"Order",
+    "call_bartender":"Call bartender",
+    "sm_message":"Make yourself at home - drinks are just a tap away",
+    "total":"Total",
+    "next":"Next",
+    "request_payment":"Request payment"
 }

@@ -40,10 +40,17 @@ export const authService = {
         
     },
 
+    joinTable: async (passcode:string, salt: string): Promise<GuestToken> => {   
+        const data ={
+            salt:salt,
+            passphrase:passcode
+        }
+        return await api.post(ApiMethods.joinTable, data);
+    },
+
     userRole: (): string => {
         const token = localStorage.getItem(Constants.tokenKey);
         if (!token) return "";
-
         return decodePayload(token)?.role || "";
     },
 
@@ -61,7 +68,13 @@ export const authService = {
             throw Error("Token not found!");
         }
         return decodePayload(token)?.table_id;
-    }
+    },
+
+    passCode: (): string | null=> {
+        const token = localStorage.getItem(Constants.tokenKey);
+        if (!token) return "";
+        return decodePayload(token)?.passphrase || null;
+    },
 
 }
 function decodePayload(token: string): Payload {

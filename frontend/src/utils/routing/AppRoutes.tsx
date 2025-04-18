@@ -11,6 +11,7 @@ import { UserRole } from "../constants";
 import LoginPage from "../auth/login";
 import RedirectPage from "../redirect-page.tsx";
 import Home from "../../pages/home.tsx";
+import PlaceTablesViewPublic from "../../pages/place-details/place-tables-view.tsx";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
 const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
@@ -26,13 +27,17 @@ function AppRoutes(){
   return (
     <Router>
       <Routes>
+      
+        {/* after scanning qr code redirect here */}
+      <Route path={AppPaths.public.redirectPage} element={<RedirectPage />} />
+      TablesView
         {/* Public routes */}
         <Route path={AppPaths.public.home} element={<Layout />}>
           <Route index element={<Home />} />
           <Route path={AppPaths.public.places} element={<Places />} />
           <Route path={AppPaths.public.placeDetails} element={<PlaceDetails />} />
+          <Route path={AppPaths.public.placeTables} element={<PlaceTablesViewPublic />} />
           <Route path={AppPaths.public.menu} element={<Menu />} />
-          <Route path={AppPaths.public.redirectPage} element={<RedirectPage />} />
           <Route path={AppPaths.public.login} element={<LoginPage />} />
           <Route path="*" element={<Places />} />
         </Route>

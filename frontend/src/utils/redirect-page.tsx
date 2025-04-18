@@ -1,25 +1,54 @@
 import { useParams } from "react-router-dom";
 import { authService } from "./auth/auth.service";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 
 function RedirectPage(){
 
     const { placeId,salt } = useParams();
     const [paramsValid, setParamsValid] = useState<boolean | null>(null);
-    console.log("redirect page ")
+    const [passCodeRequired, setPassCodeRequired] = useState<boolean>(false);
+    const [passcodeInputValue, setPasscodeInputValue] = useState<string>("");
+    const [message, setMessage] = useState<string>("");
+    const { t } = useTranslation("public");
+
     const checkAndGetToken = async () => {
         if (isNaN(Number(placeId)) || salt?.length !== 32) {
             setParamsValid(false);
-            console.log("nije ok ")
             return;
         }
         const response = await authService.getGuestToken(salt!);
-        // if (response.isAvailable && response.guestToken) {
-        if (response.guestToken) {
-            console.log("settiram token")
-            authService.setGuestToken(response.guestToken,placeId!);
+        if (!response.isSessionEstablished) {
+            setPassCodeRequired(true);
         }
+        else
+            authService.setGuestToken(response.guestToken,placeId!);
+    }
+
+    const joinTable = async(e:any) => {
+        e.preventDefault();
+        if(!passcodeInputValue.trim()) return;
+        let response:any = {};
+        try{
+            response = await authService.joinTable(passcodeInputValue,salt!);
+            if (!response.isSessionEstablished) {
+                setPassCodeRequired(true);
+                console.log("set " + t("invalid_passcode_message"))
+                setMessage(t("invalid_passcode_message"))
+            }
+            else
+                authService.setGuestToken(response.guestToken,placeId!);
+        }
+        catch(error:any){
+            console.log(error.response)
+            setPassCodeRequired(true);
+                console.log("set " + t("invalid_passcode_message"))
+                setMessage(t("invalid_passcode_message"))
+        }
+        
+        
+
     }
     useEffect(() => {
         setTimeout(()=>{checkAndGetToken();},5000)
@@ -27,10 +56,35 @@ function RedirectPage(){
     })
     
     return (
-        <div>
-            <h1>Loading...</h1>
-            {paramsValid === false && <h1>Not found!</h1>}
+        <div className="linear-bg-main min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center text-center text-black space-y-4">
+            {passCodeRequired ? (
+                <>
+                    <label className="text-lg font-semibold">Passcode required</label>
+                    <input
+                        type="text"
+                        className="max-w-[200px] p-2 border rounded"
+                        required
+                        onChange={(e) => setPasscodeInputValue(e.target.value)}
+                    />
+                    <button
+                        onClick={(e) => joinTable(e)}
+                        className=" px-7 py-2 rounded-[40px] color-mocha-600 border-mocha "
+                    >
+                        Join table
+                    </button>
+                    <p className="text-red-500">{message}</p>
+                </>
+            ) : (
+                <>
+                    <h1 className="text-xl font-medium">Loading...</h1>
+                    {paramsValid === false && (
+                        <h1 className="text-red-500 font-semibold">Not found!</h1>
+                    )}
+                </>
+            )}
         </div>
+    </div>
     );
     
 }

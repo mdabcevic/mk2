@@ -14,7 +14,8 @@ const Layout = () => {
       <main style={{ paddingTop: `${userRole === UserRole.guest ? 0 : mainPaddingTop}px` }}>
         <Outlet /> {/* This renders the matched route component */}
       </main>
-      <Footer />
+      {userRole !== UserRole.guest && userRole !== UserRole.manager && userRole !== UserRole.admin && <Footer />} 
+      
     </>
   );
 };

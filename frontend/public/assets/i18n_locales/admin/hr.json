@@ -26,5 +26,7 @@
     "table_label":"Kod stola",
     "seats_number":"Broj stolica",
     "add_table":"Dodaj stol",
-    "table_already_exist":"Već postoji stol s tim nazivom"
+    "table_already_exist":"Već postoji stol s tim nazivom",
+    "qr_code_message":"QR kod za stol"
+    
 }

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Rnd } from "react-rnd";
 import { tableService } from "../../../utils/services/tables.service";
-import { BtnVisibility, Table, TableColor, TableStatus } from "../../../utils/constants";
+import { BtnVisibility, Table, TableColor, TableStatus, TableStatusString } from "../../../utils/constants";
 
 
 
@@ -31,12 +31,12 @@ function TableViewPage() {
 
     const newTable: Table = {
       label: newTableName,
-      positionX: 0,
-      positionY: 0,
+      x: 0,
+      y: 0,
       width: 100,
       height: 100,
       seats: newSeats,
-      status: TableStatus.empty,
+      status: TableStatusString.empty,
     };
 
     setTables((prev) => [...prev, newTable]);
@@ -51,8 +51,8 @@ function TableViewPage() {
       const updated = [...prevTables];
       updated[index] = {
         ...updated[index],
-        positionX: position.x,
-        positionY: position.y,
+        x: position.x,
+        y: position.y,
         ...(size && {
           width: size.width,
           height: size.height,
@@ -69,7 +69,7 @@ function TableViewPage() {
   };
 
   const savePlaceGround = async () => {
-    // await tableService.savePlaceTables(tables);
+    await tableService.saveOrUpdateTables(tables);
     setBtnVisibility(BtnVisibility.invisible);
   };
 
@@ -93,6 +93,7 @@ function TableViewPage() {
         return TableColor.empty;
     }
   };
+  
 
   useEffect(() => {
     fetchTables();
@@ -128,7 +129,7 @@ function TableViewPage() {
 
               <button
                 onClick={addTable}
-                className="p-1 bg-neutral-lattel-light text-brown-500 text-sm rounded px-4 ml-4"
+                className="p-1 bg-neutral-latte-light text-brown-500 text-sm rounded px-4 ml-4"
               >
                 {t("add_table")}
               </button>
@@ -137,7 +138,7 @@ function TableViewPage() {
             <div>
               <button
                 onClick={savePlaceGround}
-                className={`p-1 bg-mocha-600 text-white text-sm rounded mt-5 px-4 ${btnVisibility}`}
+                className={`p-1 bg-mocha-600 text-white text-sm rounded mt-5 px-4`}
               >
                 {t("save")}
               </button>
@@ -159,7 +160,7 @@ function TableViewPage() {
                 <Rnd
                   key={index}
                   bounds="parent"
-                  position={{ x: table?.positionX ?? 10, y: table?.positionY ?? 10 }}
+                  position={{ x: table?.x ?? 10, y: table?.y ?? 10 }}
                   size={{ width: table?.width ?? 100, height: table.height ?? 100 }}
                   onMouseDown={(e) => {
                     console.log("mouseDown")

@@ -59,10 +59,10 @@ export function Menu() {
               <button
                 key={group.category}
                 onClick={() => changeCategory(group.category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium ${
+                className={`px-4 py-2 rounded-full text-white  font-extralight text-sm w-fit ${
                   selectedCategory === group.category
-                    ? "bg-black text-white"
-                    : "bg-gray-200 text-gray-700"
+                    ? "font-semibold text-white"
+                    : "font-extralight"
                 }`}
               >
                 {group.category}
@@ -90,9 +90,9 @@ export function Menu() {
           <div className="mt-4">
             <button
               onClick={() => setShowCart(false)}
-              className="px-4 py-2 bg-black text-white rounded"
+              className="text-white bg-mocha-600 font-semibold flex gap-3 flex-row max-w-[250px] py-2 px-10 rounded-[50px] cursor-pointer"
             >
-              ← {t("menu_text")}
+              <img  src="/assets/images/arrow.svg" alt="back_arrow"/>{t("menu_text")}
             </button>
           </div>
         </section>
@@ -102,7 +102,7 @@ export function Menu() {
           <div className="fixed bottom-0 left-0 w-full p-4 text-center z-50">
             <button
               onClick={() => setShowCart(true)}
-              className="bg-black font-semibold max-w-[250px] py-2 px-10 rounded"
+              className="text-white bg-mocha-600 font-semibold max-w-[250px] py-2 px-10 rounded-[50px] cursor-pointer"
             >
               Total {cartStorage.getTotalPrice().toFixed(2)}€ next
             </button>

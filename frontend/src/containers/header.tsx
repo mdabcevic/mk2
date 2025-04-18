@@ -14,9 +14,7 @@ const HeaderComponent = () => {
   const location = useLocation();
 
   const [open, setOpen] = useState(false);
-  const openNavbar = () => {
-    setOpen(!open);
-  };
+
   const [showLanguages,setShowLanguages] = useState(false);
   const [selectedLang, setSelectedLang] = useState(i18n.language);
 
@@ -26,30 +24,54 @@ const HeaderComponent = () => {
     setShowLanguages(false);
   };
   const userRole = authService.userRole();
+  const passcode = authService.passCode();
+  const [showPasscode,setShowPasscode] = useState<boolean>(false);
 
   return userRole !== UserRole.guest ? (
     <header>
 
-      <nav className="flex justify-between items-center text-[1.2rem] bg-brown-500 text-white p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2 z-100000">
+      <nav className="flex justify-between items-center text-[1.2rem] bg-brown-500 text-light p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2 z-100000">
       <h1 className="">Mk2</h1>
-      <div className="hamburger-cross-icons" onClick={openNavbar}>
+      <div className="hamburger-cross-icons" onClick={()=> setOpen(!open)}>
         <Menu size={24} />
       </div>
       <ul className={open ? "menu-items active" : "menu-items"}>
       <Link
           to={AppPaths.public.home}
-          className={`nav-links ${
-            location.pathname === AppPaths.public.home ? "text-orange-500" : ""
+          onClick={()=> setOpen(!open)}
+          className={`nav-links text-light ${
+            location.pathname === AppPaths.public.home ? "text-orange-500" : "text-light"
           }`}
         >
           {t("home_link_text")}
         </Link>
-        <button
-            className={`nav-links`}
-           // onClick={() => {showPasscode } }
+        <Link
+          to={AppPaths.public.places}
+          onClick={()=> setOpen(!open)}
+          className={`nav-links ${
+            location.pathname === AppPaths.public.places ? "text-orange-500" : "text-light"
+          }`}
         >
-          {t("passcode")}
-        </button>
+          {t("places_link")}
+        </Link>
+        {passcode && (
+          <div>
+            <button
+              className={`nav-links`}
+              onClick={() => {setShowPasscode(!false) } }
+            >
+              {t("passcode")}
+          </button>
+          {showPasscode && (
+            <div>
+              <span>{passcode}</span>
+            </div>
+          )}
+          </div>
+          
+          
+        )}
+        
         <div className="relative">
         <button className="m-0 p-0"
                 onClick={() => setShowLanguages(!showLanguages)}>

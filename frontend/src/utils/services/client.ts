@@ -56,6 +56,7 @@ const api = {
   get: (url:string, params?:{}) => sendRequest("get", url, null, params),
   post: (url:string, data:any) => sendRequest("post", url, data),
   put: (url:string, data:any) => sendRequest("put", url, data),
+  patch: (url:string, data:any) => sendRequest("patch",url,data),
   delete: (url:string) => sendRequest("delete", url),
 };
 

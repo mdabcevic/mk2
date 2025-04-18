@@ -1,7 +1,8 @@
 
 export interface GuestToken {
     guestToken: string;
-    isAvailable: boolean;
+    isSessionEstablished: boolean;
+
 }
 
 export interface Payload {

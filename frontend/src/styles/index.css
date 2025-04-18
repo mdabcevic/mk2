@@ -8,7 +8,7 @@
   line-height: 1.5;
   font-weight: 400;
   color-scheme: light dark;
-  /* color: rgba(255, 255, 255, 0.87); */
+  color: #463426;
   padding:0;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -50,7 +50,7 @@ main{
 .neutral-latte{
   background-color: #DFD8CD;
 }
-.bg-neutral-lattel-light{
+.bg-neutral-latte-light{
   background-color: #F6F2EC;
 }
 .border-mocha{
@@ -62,6 +62,15 @@ main{
 .bg-brown-500{
   background-color:#402A1F;
 }
+.text-light{
+  color:#F6F2EC;
+}
+
+.linear-bg-main{
+  background: #402A1F;
+  background: linear-gradient(180deg, rgba(64, 42, 31, 1) 0%, rgba(227, 218, 201, 1) 50%, rgba(227, 218, 201, 1) 64%, rgba(255, 255, 255, 1) 87%);
+  color:#F6F2EC;
+}
 
 .menu-items {
   list-style: none;
@@ -71,7 +80,6 @@ main{
 }
 .nav-links {
   text-decoration: none;
-  color: rgb(53, 53, 53);
   padding: 10px 12px;
 }
 
@@ -84,6 +92,13 @@ main{
   display: none;
 }
 
+
+.tables-container {
+  background-image: url("/assets/images/place_view.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: relative;
+}
 
 @media screen and (max-width: 850px) {
   .NavbarItems {

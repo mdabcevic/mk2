@@ -51,26 +51,26 @@ const Cart = () => {
       {Object.values(cart).map((item) => (
         <div
           key={item.name}
-          className="flex justify-between items-center rounded-2xl shadow-md p-4"
+          className="py-2 pl-8 border rounded-[40px] shadow-sm flex justify-between items-center w-full bg-neutral-latte-light"
         >
           <div className="flex flex-col">
-            <p className="font-semibold text-black text-[14px]">{item.name}</p>
-            <p className="text-gray-500 text-sm">
+            <p className="font-semibold text-[14px]">{item.name}</p>
+            <p className=" text-sm">
               €{(item.quantity * item.price).toFixed(2)}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pr-3">
             <button
               onClick={() => handleRemove(item)}
-              className="bg-red-100 text-red-600 hover:bg-red-200 px-2 py-1 rounded-full"
+              className="color-mocha-600 hover:bg-red-200 px-2 py-1 rounded-full"
             >
               <Minus size={16} />
             </button>
-            <span className="min-w-[24px] text-center text-black text-[14px]">{item.quantity}</span>
+            <span className="text-[14px]">{item.quantity}</span>
             <button
               onClick={() => handleAdd(item)}
-              className="bg-green-100 text-green-600 hover:bg-green-200 px-2 py-1 rounded-full"
+              className="color-mocha-600 hover:bg-green-200 px-2 py-1 rounded-full"
             >
               <Plus size={16} />
             </button>
@@ -78,14 +78,14 @@ const Cart = () => {
         </div>
       ))}
 
-<div className="space-y-4 text-black">
-        <div>
+<div className="space-y-4 text-black mt-30">
+        <div className="">
           <label className="block text-lg font-semibold mb-2" htmlFor="payment-method">{t("payment_type")}</label>
           <select
             id="payment-method"
             value={paymentType}
             onChange={paymentTypeChange}
-            className="block w-[150px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="block w-[150px] py-2 px-4 border border-gray-300 rounded-[40px] bg-neutral-latte-light focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value={PaymentType.cash}>{t("cash")}</option>
             <option value={PaymentType.creditcard}>{t("credit_card")}</option>
@@ -99,7 +99,7 @@ const Cart = () => {
             maxLength={100}
             value={note}
             onChange={noteChange}
-            className="block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="block w-full p-2 rounded-md bg-neutral-latte-light"
             placeholder=""
           ></textarea>
         </div>
@@ -109,7 +109,7 @@ const Cart = () => {
       <div className="fixed bottom-10 left-0 w-full p-4 text-center z-50">
         <button
           onClick={() => createOrder()}
-          className="bg-black font-semibold max-w-[250px] py-2 px-10 rounded"
+          className="text-white bg-mocha-600 font-semibold max-w-[250px] py-2 px-10 rounded-[50px] cursor-pointer"
         >
           Order {cartStorage.getTotalPrice().toFixed(2)}€
         </button>

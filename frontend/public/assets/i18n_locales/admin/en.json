@@ -26,6 +26,7 @@
     "table_label":"Table code",
     "seats_number":"Number of seats",
     "add_table":"Add table",
-    "table_already_exist":"Table name already exists"
+    "table_already_exist":"Table name already exists",
+    "qr_code_message":"QR Code for Table"
     
 }

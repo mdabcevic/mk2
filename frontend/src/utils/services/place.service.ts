@@ -1,3 +1,4 @@
+import { TablePublic } from "../constants";
 import { ApiMethods } from "./api-methods"
 import api from "./client";
 
@@ -12,5 +13,10 @@ export const placeService = {
 
         const response = await api.get(ApiMethods.getPlaceById.replace("{id}",id.toString()));
         return response;
-    }
+    },
+
+    getPlaceTables: async (id:number): Promise<TablePublic[]> => {
+        const response = await api.get(ApiMethods.getPlaceTablesByPlaceId.replace("{id}",id.toString()));
+        return response;
+    },
 }

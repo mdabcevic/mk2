@@ -4,6 +4,7 @@ export const ApiMethods ={
 
     getPlaces: "/api/places",
     getPlaceById: "/api/places/{id}",
+    getPlaceTablesByPlaceId: "/api/tables/{id}/all",
 
     getMenuByPlaceId: "/api/menu/{id}",
     saveProductsToPlace: "/api/menu",
@@ -14,10 +15,18 @@ export const ApiMethods ={
 
     getGuestToken: "/api/tables/lookup",
     login:"api/auth",
+    joinTable:"api/tables/join",
 
     createOrder:"/api/order",
     getMyOrders:"/api/order/my-orders",
 
-    getPlaceTablesByCurrentUser:"/api/tables"
+    saveOrUpdateTables:"/api/tables/bulk-upsert",
+
+    getPlaceTablesByCurrentUser:"/api/tables",
+    changeTableStatus:"/api/tables/{salt}/status",
+
+    regenerateQrCode:"/api/tables/{label}/rotate-token"
+
+
 
 }

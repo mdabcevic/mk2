@@ -8,7 +8,7 @@ import { showToast, ToastType } from "../../../utils/toast";
 
 const ITEMS_VISIBLE = 10;
 const EMPTY_DIV_HEIGHT = 20;
-const ITEM_HEIGHT = 60; 
+const ITEM_HEIGHT = 40; 
 
 export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],userRole:string}) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -45,15 +45,18 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
         ref={containerRef}
         className="overflow-y-auto h-[calc(10*60px)] relative overflow-x-hidden"
       >
-        <div className="relative" style={{ height: `${items.length * (ITEM_HEIGHT)}px` }}>
-        <AnimatePresence mode="popLayout">
+        {/* <div className="relative" style={{ height: `${items.length * (ITEM_HEIGHT)}px` }}> */}
+        <div className="relative pt-3" >
+        <div >
+        {/* <AnimatePresence mode="popLayout"> */}
             {items.map((item, index) => {
               const isVisible = index >= visibleStart && index < visibleStart + ITEMS_VISIBLE;
               const quantity = cart[item.product.name]?.quantity || 0;
               return (
-                  <div key={index} className="relative">
-                      <motion.div
-                  
+                  <div key={index} className="relative px-3">
+                      {/* <motion.div */}
+                      
+{/*                   
                   layout
                   initial={{
                     opacity: 0,
@@ -72,14 +75,17 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
                     height: ITEM_HEIGHT,
                     top: index * (ITEM_HEIGHT),
                   }}
-                >
+                > */}
+                  <div className={`py-0 pl-5 border rounded-[40px] shadow-sm flex justify-between items-center w-full ${
+                    !item.isAvailable ? "bg-gray-200" : "bg-neutral-latte-light"
+                  }`}>
                   <div className="max-w-[250px]">
-                    <h4 className="text-sm font-bold text-black">{item.product.name}</h4>
+                    <h4 className="text-sm font-medium">{item.product.name}</h4>
                     <p className="text-gray-600 text-sm">{item.description}</p>
                   </div>
                 
-                  <div className="text-right">
-                    <p className="text-[#03af3a] font-bold">€{item.price}</p>
+                  <div className="text-right flex flex-row items-center">
+                    <p className=" font-normal">€{item.price}</p>
                 
                     {!item.isAvailable ? (
                       <span className="px-2 mt-1 bg-gray-200 rounded text-gray-500 inline-block text-sm">
@@ -87,12 +93,12 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
                       </span>
                     ) : (
                       userRole === UserRole.guest && (
-                        <div className="flex gap-1 justify-end">
+                        <div className="">
                           <button
-                            className="px-2 py-1 rounded text-black"
+                            className="p-0 rounded ml-5 relative left-1 top-1 cursor-pointer"
                             onClick={() => {cartStorage.addItem(item); showToast(`${item.product.name} ${t("added")}`,ToastType.info)}}
                           >
-                            +
+                            <img src="/assets/images/plus.svg" width={"35px"} />
                           </button>
                         </div>
                       )
@@ -100,20 +106,23 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
 
 
                     {userRole === UserRole.guest && quantity > 0 && (
-                      <div className="absolute bottom-6 left-0 text-gray-600 mb-8 p-1 px-4 bg-white rounded-full shadow-md test">
+                      <div className="absolute bottom-2 left-0 text-white flex items-center mb-8 p-1 px-4 bg-mocha-600 rounded-full shadow-md test">
                         <span>{quantity} x</span>
-                        <button className="px-2 bg-white ml-1 rounded" onClick={() => {cartStorage.removeItem(item); showToast(`${item.product.name} ${t("removed")}`,ToastType.info)}}>-</button>
+                        <button className="px-2 bg-white ml-1 cursor-pointer rounded ml-5" onClick={() => {cartStorage.removeItem(item); showToast(`${item.product.name} ${t("removed")}`,ToastType.info)}}>
+                          <img src="/assets/images/minus.svg" width="5px"/>
+                        </button>
                       </div>
                     )}
                   </div>
-                </motion.div>
+                  </div>
+                {/* </motion.div> */}
                 <div className="bottom-0 left-0 right-0 text-black text-center"
                   style={{ height: EMPTY_DIV_HEIGHT }}></div>
                 </div>
                   
               );
             })}
-          </AnimatePresence>
+          {/* </AnimatePresence> */}</div>
         </div>
       </div>
     );
