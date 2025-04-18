@@ -11,7 +11,7 @@ import { UserRole } from "../constants";
 import LoginPage from "../auth/login";
 import RedirectPage from "../redirect-page.tsx";
 import Home from "../../pages/home.tsx";
-import Subscription from "../../pages/subscription.tsx";
+import Subscription from "../../pages/subscription/subscription.tsx";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
 const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
