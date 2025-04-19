@@ -16,11 +16,10 @@ public class NotificationService(
 
     private static string Key(int tableId) => $"notifications:table:{tableId}";
 
-    //TODO: any time notification is added, forward it to frontend via signalR hub?
     public async Task AddNotificationAsync(Tables table, TableNotification notification)
     {
         var json = JsonSerializer.Serialize(notification);
-        await _db.ListRightPushAsync(Key(table.Id), json);
+        await _db.HashSetAsync(Key(table.Id), notification.Id, json);
 
         // Notify staff group for the place
         var placeGroupKey = $"place_{table.PlaceId}_staff"; 
@@ -29,8 +28,16 @@ public class NotificationService(
 
     public async Task<List<TableNotification>> GetNotificationsAsync(int tableId)
     {
-        var items = await _db.ListRangeAsync(Key(tableId));
-        return [.. items.Select(i => JsonSerializer.Deserialize<TableNotification>(i!)!)];
+        var entries = await _db.HashGetAllAsync(Key(tableId));
+        return [.. entries.Select(entry => JsonSerializer.Deserialize<TableNotification>(entry.Value!)!)];
+    }
+
+    public async Task MarkNotificationComplete(int tableId, int notificationId)
+    {
+        var entry = await _db.HashGetAsync(Key(tableId), notificationId);
+        var notif = JsonSerializer.Deserialize<TableNotification>(entry!);
+        notif.Pending = false;
+        await _db.HashSetAsync(Key(tableId), notificationId, JsonSerializer.Serialize(notif));
     }
 
     public Task ClearNotificationsAsync(int tableId) =>
