@@ -11,19 +11,19 @@ public class NotificationsController(INotificationService service) : ControllerB
 {
     [Authorize(Roles = "manager, employee")]
     [HttpGet]
-    public async Task<ActionResult<List<TableNotification>>> Get(int tableId)
+    public async Task<IActionResult> Get(int tableId)
     {
-        var notifs = await service.GetNotificationsAsync(tableId);
-        return Ok(notifs);
+        var result = await service.GetNotificationsAsync(tableId);
+        return result.ToActionResult();
     }
 
-    [Authorize(Roles = "manager, employee")]
-    [HttpDelete]
-    public async Task<IActionResult> Clear(int tableId)
-    {
-        await service.ClearNotificationsAsync(tableId);
-        return NoContent();
-    }
+    //[Authorize(Roles = "manager, employee")]
+    //[HttpDelete]
+    //public async Task<IActionResult> Clear(int tableId)
+    //{
+    //    await service.ClearNotificationsAsync(tableId);
+    //    return NoContent();
+    //}
 
     [Authorize(Roles = "manager, employee")]
     [HttpPatch("{notificationId}/mark-complete")]

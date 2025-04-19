@@ -9,7 +9,9 @@ namespace Bartender.Domain.Services;
 
 public class NotificationService(
     IConnectionMultiplexer redis,
-    IHubContext<PlaceHub> hub
+    IHubContext<PlaceHub> hub,
+    ICurrentUserContext currentUser,
+    IValidationService validationService
     ) : INotificationService
 {
     private readonly IDatabase _db = redis.GetDatabase();
@@ -26,10 +28,15 @@ public class NotificationService(
         await hub.Clients.Group(placeGroupKey).SendAsync("ReceiveNotification", notification);
     }
 
-    public async Task<List<TableNotification>> GetNotificationsAsync(int tableId)
+    public async Task<ServiceResult<List<TableNotification>>> GetNotificationsAsync(int tableId)
     {
-        var entries = await _db.HashGetAllAsync(Key(tableId));
-        return [.. entries.Select(entry => JsonSerializer.Deserialize<TableNotification>(entry.Value!)!)];
+        var validUser = await validationService.VerifyUserGuestAccess(tableId);
+        if (validUser.Success)
+        {
+            var entries = await _db.HashGetAllAsync(Key(tableId));
+            return ServiceResult<List<TableNotification>>.Ok([.. entries.Select(entry => JsonSerializer.Deserialize<TableNotification>(entry.Value!)!)]);
+        }
+        return ServiceResult<List<TableNotification>>.Fail("Cannot access notifications for this table.", ErrorType.Unauthorized);
     }
 
     public async Task MarkNotificationComplete(int tableId, string notificationId)
