@@ -229,7 +229,7 @@ public class TableInteractionService(
 
         await notificationService.AddNotificationAsync(table,
             NotificationFactory.ForTableStatus(table, $"Guests have left table {table.Label}.", NotificationType.GuestLeftTable));
-
+        await notificationService.ClearNotificationsAsync(table.Id);
         logger.LogInformation("Table {TableId} set to empty and all sessions/orders cleared.", table.Id);
     }
 }

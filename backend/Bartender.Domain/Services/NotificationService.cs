@@ -26,6 +26,11 @@ public class NotificationService(
         logger.LogInformation("Notification added: {NotificationId} to table {TableId} (place {PlaceId})",
         notification.Id, table.Id, table.PlaceId);
 
+        if (notification.OrderId is not null)
+        {
+            await MarkOrderNotificationsAsCompleteAsync(table.Id, notification.OrderId.Value);
+        }
+
         // Notify staff group for the place
         var placeGroupKey = $"place_{table.PlaceId}_staff"; 
         await hub.Clients.Group(placeGroupKey).SendAsync("ReceiveNotification", notification);
@@ -91,5 +96,22 @@ public class NotificationService(
         await _db.KeyDeleteAsync(Key(tableId));
         logger.LogInformation("All notifications cleared for table {TableId}", tableId);
         return ServiceResult.Ok();
+    }
+
+    private async Task MarkOrderNotificationsAsCompleteAsync(int tableId, int orderId)
+    {
+        var entries = await _db.HashGetAllAsync(Key(tableId));
+        int updated = 0;
+        foreach (var entry in entries)
+        {
+            var existing = JsonSerializer.Deserialize<TableNotification>(entry.Value!)!;
+            if (existing.OrderId == orderId && existing.Pending)
+            {
+                existing.Pending = false;
+                await _db.HashSetAsync(Key(tableId), existing.Id, JsonSerializer.Serialize(existing));
+                updated++;
+            }
+        }
+        logger.LogInformation("Previous {Count} notifications for Order {OrderId} marked as complete.", updated, orderId);
     }
 }
