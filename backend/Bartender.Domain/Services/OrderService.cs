@@ -5,8 +5,6 @@ using Bartender.Domain.DTO.Orders;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO;
-using Bartender.Data;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Bartender.Domain.Services;
 
@@ -18,7 +16,6 @@ public class OrderService(
     ILogger<OrderService> logger,
     ICurrentUserContext currentUser,
     IValidationService validationService,
-    INotificationService notificationService,
     IMapper mapper
     ) : IOrderService
 {
@@ -29,7 +26,7 @@ public class OrderService(
             return validUser;
 
         // validate order requirements
-        var (validationResult, table) = await ValidateOrderAsync(order);
+        var validationResult = await ValidateOrderAsync(order);
         if (!validationResult.Success)
             return validationResult;
 
@@ -244,19 +241,19 @@ public class OrderService(
         return ServiceResult< List<OrderDto>>.Ok(dto);
     }
 
-    private async Task<(ServiceResult, Tables?)> ValidateOrderAsync(UpsertOrderDto order)
+    private async Task<ServiceResult> ValidateOrderAsync(UpsertOrderDto order)
     {
         var table = await tableRepository.GetByIdAsync(order.TableId);
         var menuItems = await GetOrderItemsAsync(order);
 
         if (!order.Items.Any())
-            return (ServiceResult.Fail("Cannot create an order with no items", ErrorType.Validation), null);
+            return ServiceResult.Fail("Cannot create an order with no items", ErrorType.Validation);
 
         if (table == null)
-            return (ServiceResult.Fail($"Table not found", ErrorType.NotFound), null);
+            return ServiceResult.Fail($"Table not found", ErrorType.NotFound);
 
         if (table.Status != TableStatus.occupied)
-            return (ServiceResult.Fail("Cannot create an order on an unoccupied table", ErrorType.Unauthorized), table);
+            return ServiceResult.Fail("Cannot create an order on an unoccupied table", ErrorType.Unauthorized);
 
         var missingItems = order.Items
             .Where(oi => !menuItems.Any(mi => mi.Id == oi.MenuItemId))
@@ -264,7 +261,7 @@ public class OrderService(
             .ToList();
 
         if (missingItems.Any())
-            return (ServiceResult.Fail($"One or more menu items do not exist or are not available: {string.Join(", ", missingItems)}", ErrorType.NotFound), table);
+            return ServiceResult.Fail($"One or more menu items do not exist or are not available: {string.Join(", ", missingItems)}",ErrorType.NotFound);
 
         var unavailableItems = menuItems
             .Where(mi => !mi.IsAvailable || mi.PlaceId != table.PlaceId)
@@ -274,9 +271,9 @@ public class OrderService(
             .ToList();
 
         if (unavailableItems.Any())
-            return (ServiceResult.Fail($"These items are currently unavailable: {string.Join(", ", unavailableItems)}", ErrorType.Validation), table);
+            return ServiceResult.Fail($"These items are currently unavailable: {string.Join(", ", unavailableItems)}", ErrorType.Validation);
 
-        return (ServiceResult.Ok(), table);
+        return ServiceResult.Ok();
     }
 
     private async Task<List<MenuItems>> GetOrderItemsAsync(UpsertOrderDto order)
