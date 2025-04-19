@@ -3,15 +3,23 @@ services:
 
   backend:
     build:
-      context: ../
-      dockerfile: Dockerfile
+      context: ./backend
+    env_file:
+      - ./backend/.env
     ports:
       - "7214:8080"
-    env_file:
-      - ../.env
     depends_on:
       - postgres
       - redis
+  
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
   postgres:
     image: postgres:latest
     container_name: bartender_postgres
