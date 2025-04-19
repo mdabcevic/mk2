@@ -70,6 +70,8 @@ public class OrderService(
         if (!validUser.Success)
             return validUser;
 
+        TableNotification notification;
+
         if (currentUser.IsGuest)
         {
             if ((newStatus.Status == OrderStatus.payment_requested && existingOrder.Status == OrderStatus.delivered)
@@ -78,6 +80,8 @@ public class OrderService(
                 existingOrder.Status = newStatus.Status;
                 existingOrder.PaymentType = newStatus.PaymentType ?? existingOrder.PaymentType;
                 logger.LogInformation("Guest updated status of OrderId {OrderId} to {NewStatus}", id, newStatus.Status);
+                notification = NotificationFactory.ForOrder
+                    (existingOrder.Table, existingOrder.Id, $"Guest updated Order {existingOrder.Id} status to {existingOrder.Status}.", NotificationType.OrderStatusUpdated);
             }
             else
             {
@@ -90,9 +94,13 @@ public class OrderService(
             existingOrder.Status = newStatus.Status;
             existingOrder.PaymentType = newStatus.PaymentType ?? existingOrder.PaymentType;
             logger.LogInformation("Staff updated status of OrderId {OrderId} to {NewStatus}", id, newStatus.Status);
+            notification = NotificationFactory.ForOrder
+                    (existingOrder.Table, existingOrder.Id, $"Staff updated Order {existingOrder.Id} status to {existingOrder.Status}.", NotificationType.OrderStatusUpdated, false);
         }
         existingOrder.CreatedAt = DateTime.SpecifyKind(existingOrder.CreatedAt, DateTimeKind.Utc);
         await repository.UpdateAsync(existingOrder);
+
+        await notificationService.AddNotificationAsync(existingOrder.Table, notification);
         return ServiceResult.Ok();      
     }
 
@@ -128,6 +136,11 @@ public class OrderService(
         // create order transaction - either completes both order and items creation or rolls back completely on any failure
         await repository.UpdateOrderWithItemsAsync(existingOrder, newOrderItems);
         logger.LogInformation("Successfully updated OrderId {OrderId} with new items and total price: {TotalPrice}", id, order.TotalPrice);
+
+        await notificationService.AddNotificationAsync(existingOrder.Table,
+            NotificationFactory.ForOrder(existingOrder.Table, existingOrder.Id, 
+                        $"Contents of order {existingOrder.Id} have changed. Order status: {existingOrder.Status}.", NotificationType.OrderContentUpdated));
+
         return ServiceResult.Ok();
     }
 

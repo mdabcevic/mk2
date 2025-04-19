@@ -3,11 +3,10 @@ namespace Bartender.Data;
 
 public enum NotificationType
 {
+    StaffNeeded,
     GuestJoinedTable,
     GuestLeftTable,
-    StaffNeeded,
     OrderCreated,
-    OrderCancelled,
-    PaymentRequested,
-    TableStatusChanged
+    OrderStatusUpdated,
+    OrderContentUpdated,
 }
