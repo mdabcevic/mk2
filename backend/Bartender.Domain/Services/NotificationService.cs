@@ -32,7 +32,7 @@ public class NotificationService(
         return [.. entries.Select(entry => JsonSerializer.Deserialize<TableNotification>(entry.Value!)!)];
     }
 
-    public async Task MarkNotificationComplete(int tableId, int notificationId)
+    public async Task MarkNotificationComplete(int tableId, string notificationId)
     {
         var entry = await _db.HashGetAsync(Key(tableId), notificationId);
         var notif = JsonSerializer.Deserialize<TableNotification>(entry!);
