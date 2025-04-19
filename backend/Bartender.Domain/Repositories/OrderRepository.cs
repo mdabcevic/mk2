@@ -7,12 +7,8 @@ using System.Linq.Expressions;
 
 namespace Bartender.Domain.Repositories;
 
-public class OrderRepository : Repository<Orders>, IOrderRepository
+public class OrderRepository(AppDbContext context) : Repository<Orders>(context), IOrderRepository
 {
-    public OrderRepository(AppDbContext context) : base(context)
-    {
-    }
-
     private static Expression<Func<Orders, bool>> IsActiveOrderForPlace(int placeId)
     => o => o.Table.PlaceId == placeId &&
         o.Status != OrderStatus.closed &&
@@ -24,7 +20,7 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
                         o.Status == OrderStatus.created ||
                         o.Status == OrderStatus.approved);
 
-    public async Task CreateOrderWithItemsAsync(Orders order, List<ProductsPerOrder> items)
+    public async Task<Orders?> CreateOrderWithItemsAsync(Orders order, List<ProductsPerOrder> items)
     {
         using var transaction = await context.Database.BeginTransactionAsync();
 
@@ -36,13 +32,15 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
             items.ForEach(i => i.OrderId = order.Id);
             await context.ProductsPerOrders.AddRangeAsync(items);
             await context.SaveChangesAsync();
-
+            
             await transaction.CommitAsync();
+            await context.Entry(order).Reference(o => o.Table).LoadAsync();
+            return order;
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            throw new ApplicationException("Error creating order.", ex);
+            throw new ApplicationException("Error creating order.", ex); //TODO: custom exception?
         }
     }
 

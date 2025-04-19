@@ -5,6 +5,7 @@ using Bartender.Domain.DTO.Orders;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO;
+using Bartender.Data;
 
 namespace Bartender.Domain.Services;
 
@@ -16,6 +17,7 @@ public class OrderService(
     ILogger<OrderService> logger,
     ICurrentUserContext currentUser,
     IValidationService validationService,
+    INotificationService notificationService,
     IMapper mapper
     ) : IOrderService
 {
@@ -50,7 +52,10 @@ public class OrderService(
         }
 
         // create order transaction - either completes both order and items creation or rolls back completely on any failure 
-        await repository.CreateOrderWithItemsAsync(mapper.Map<Orders>(order), newOrderItems);
+        var newOrder = await repository.CreateOrderWithItemsAsync(mapper.Map<Orders>(order), newOrderItems);
+
+        await notificationService.AddNotificationAsync(newOrder.Table,
+            NotificationFactory.ForOrder(newOrder.Table, newOrder.Id, $"Order {newOrder.Id} created at table {newOrder.Table.Label}.", NotificationType.OrderCreated));
         return ServiceResult.Ok();
     }
 
