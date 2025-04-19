@@ -5,6 +5,7 @@ using Bartender.Domain.Interfaces;
 using Bartender.Domain.Mappings;
 using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
+using Bartender.Domain.Utility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -20,13 +21,16 @@ var builder = WebApplication.CreateBuilder(args);
 //IdentityModelEventSource.ShowPII = true;
 
 var allowedOrigins = "AllowedOrigins";
+var frontendOrigins = builder.Configuration
+    .GetSection("Frontend:AllowedOrigins")
+    .Get<string[]>() ?? throw new InvalidOperationException("Frontend:AllowedOrigins config missing.");
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: allowedOrigins,
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")
+            policy.WithOrigins(frontendOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -38,6 +42,18 @@ builder.Logging.ClearProviders();
 builder.Host.UseSerilog((context, services, config) => config
     .ReadFrom.Configuration(context.Configuration)
 );
+
+var jwtSettingsSection = builder.Configuration.GetSection("Jwt");
+var jwtSettings = jwtSettingsSection.Get<JwtSettings>() ?? throw new InvalidOperationException("Missing Jwt configuration.");
+
+builder.Services.Configure<JwtSettings>(jwtSettingsSection); // for IOptions<JwtSettings> injection
+builder.Services.AddSingleton(jwtSettings); // optional: direct injection without IOptions
+
+var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection")
+    ?? throw new InvalidOperationException("Missing Redis configuration.");
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    await ConnectionMultiplexer.ConnectAsync(redisConnectionString));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -51,7 +67,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+                Encoding.UTF8.GetBytes(jwtSettings.Key)),
         };
     });
 
@@ -88,10 +104,6 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ITableSessionService, GuestSessionService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
-
-
-builder.Services.AddSingleton<IConnectionMultiplexer>(
-    await ConnectionMultiplexer.ConnectAsync("localhost:6379"));
 
 builder.Services.AddSignalR();
 
