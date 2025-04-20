@@ -1,17 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { AppPaths } from "../../utils/routing/routes";
 import { languages } from "../../utils/languages";
 import { authService } from "../../utils/auth/auth.service";
+import { startConnection } from "../../utils/auth/signalR.service";
 
 const HeaderAdminComponent = () => {
   const { t, i18n } = useTranslation("admin");
   const location = useLocation();
   const [showLanguages,setShowLanguages] = useState(false);
   const [selectedLang, setSelectedLang] = useState(i18n.language);
-
+  
   const changeLanguage = (lang:string) => {
     i18n.changeLanguage(lang);
     setSelectedLang(lang);
@@ -22,7 +23,12 @@ const HeaderAdminComponent = () => {
   const openNavbar = () => {
     setOpen(!open);
   };
-
+  const openConnection = async () => {
+    await startConnection(authService.placeId());
+  };
+  useEffect(()=>{
+    openConnection();
+    },[]);
   return (
     <header>
 

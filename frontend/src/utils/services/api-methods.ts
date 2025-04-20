@@ -19,11 +19,14 @@ export const ApiMethods ={
 
     createOrder:"/api/order",
     getMyOrders:"/api/order/my-orders",
+    getActiveOrders:"/api/order/{placeId}",
 
     saveOrUpdateTables:"/api/tables/bulk-upsert",
 
     getPlaceTablesByCurrentUser:"/api/tables",
     changeTableStatus:"/api/tables/{salt}/status",
+
+    callBartender:"/api/places/notify-staff/{salt}",
 
     regenerateQrCode:"/api/tables/{label}/rotate-token"
 

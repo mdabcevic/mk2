@@ -29,8 +29,7 @@
     "sm_message":"Make yourself at home - drinks are just a tap away",
     "total":"Total",
     "next":"Next",
-    "request_payment":"Request payment"
-    "added":"added",
+    "request_payment":"Request payment",
     "basic_description": "For small cafés getting started",
     "pro_description": "Perfect for growing cafés",
     "premium_description": "For data-driven and high-traffic cafés",
@@ -59,5 +58,24 @@
     "message": "Message",
     "close": "Close",
     "send": "Send",
-    "inquire_plan": "I would like to inquire about the {{sub}} plan."
+    "inquire_plan": "I would like to inquire about the {{sub}} plan.",
+
+    "aboutUs": {
+        "title": "Boost Your Café’s Service with QR Ordering",
+        "subtitle": "Reduce wait times, streamline orders, and keep customers happy—all with a simple scan.",
+        "contact_us": "Contact Us",
+        "discover": "Discover",
+        "how_it_works": "How it works",
+        "step1_title": "Scan the QR Code",
+        "step1_desc": "Customers simply scan the code at their table.",
+        "step2_title": "Browse & Order",
+        "step2_desc": "No app needed. See the full menu and order instantly.",
+        "step3_title": "Relax & Enjoy",
+        "step3_desc": "Orders go directly to staff – no delays, no confusion.",
+        "analytics_title": "Built-in Analytics. Smarter Café Management",
+        "analytics_desc": "From order trends and best-selling items to staff performance insights — our powerful dashboard gives you the data you need to optimize your business and serve smarter.",
+        "view_pricing": "View our pricing",
+        "upgrade_text": "Upgrade your café experience in minutes",
+        "get_started": "Get Started"
+    }
 }
