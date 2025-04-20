@@ -14,11 +14,6 @@ services:
         condition: service_healthy
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 15
 
   frontend:
     build:
@@ -26,8 +21,7 @@ services:
     ports:
       - "5173:80"
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     networks:
       - app-network
     healthcheck:
