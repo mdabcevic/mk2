@@ -1,4 +1,4 @@
-name: Build & Test
+name: Build
 
 on:
   push:     # Triggers on push to any branch
@@ -21,9 +21,6 @@ jobs:
 
       - name: Build
         run: dotnet build --no-restore ./backend
-
-      - name: Run Tests
-        run: dotnet test --no-build --verbosity normal ./backend
 
   build-frontend:
     name: React Frontend

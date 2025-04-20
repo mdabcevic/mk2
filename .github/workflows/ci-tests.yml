@@ -1,0 +1,40 @@
+name: CI - Unit Tests
+
+on:
+  push:
+    branches: [main, dev]  # or use: `push:` for all branches
+  pull_request:
+  workflow_dispatch:       # manual trigger
+
+jobs:
+  unit-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # Backend Tests
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore backend deps
+        run: dotnet restore ./backend
+
+      - name: Run backend unit tests
+        run: dotnet test --no-build --verbosity normal ./backend/tests  # adjust path if needed
+
+      # Frontend Tests (if applicable)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install frontend deps
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Run frontend unit tests
+        run: npm run test
+        working-directory: ./frontend
