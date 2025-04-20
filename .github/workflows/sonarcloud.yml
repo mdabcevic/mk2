@@ -1,0 +1,58 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Required for accurate analysis
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      # 3. Cache NuGet packages
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Begin Sonar Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          export PATH="$PATH:/home/runner/.dotnet/tools"
+          dotnet sonarscanner begin \
+            /k:"mk2" \
+            /o:"mdabcevic" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.login="${SONAR_TOKEN}" 
+
+      - name: Build and test
+        run: |
+          dotnet restore
+          dotnet build
+          dotnet test --no-build
+
+      - name: End Sonar Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          export PATH="$PATH:/home/runner/.dotnet/tools"
+          dotnet sonarscanner end /d:sonar.login="${SONAR_TOKEN}"
