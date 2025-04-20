@@ -48,7 +48,7 @@ jobs:
         with:
           target: 'http://localhost:7214'
           fail_action: false
-          artifact_name: zap-report
+          artifact_name: zap_report
           allow_issue_writing: false
 
       - name: Cleanup
