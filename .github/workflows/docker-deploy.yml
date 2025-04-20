@@ -47,7 +47,7 @@ jobs:
         run: |
           docker run --user root -v ${{ github.workspace }}:/zap/wrk/:rw \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-            -t http://localhost:7214 \
+            -t http://host.docker.internal:7214 \
             -J report_json.json -w report_md.md -r report_html.html
 
       - name: Upload ZAP Report
