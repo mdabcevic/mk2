@@ -1,6 +1,29 @@
-version: '3.8'
 
 services:
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "7214:8080"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app-network
+  
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
   postgres:
     image: postgres:latest
     container_name: bartender_postgres
@@ -14,6 +37,8 @@ services:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql # Runs on first startup
     ports:
       - "5442:5432"
+    networks:
+      - app-network
 
   redis:
     image: redis:7
@@ -21,6 +46,12 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Constants } from "../constants";
 
-const API_BASE_URL = "https://localhost:7281";
+const API_BASE_URL = "http://localhost:7214"; 
 
 const httpClient = axios.create({
   baseURL: API_BASE_URL,
@@ -45,6 +45,7 @@ httpClient.interceptors.response.use(
 
 const sendRequest = async (method:string, url:string, data = null, params = {}) => {
   try {
+    console.log(httpClient.getUri);
     const response = await httpClient({ method, url, data, params });
     return response.data;
   } catch (error:any) {
