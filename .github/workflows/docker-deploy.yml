@@ -16,7 +16,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and start all services
-        run: docker-compose up -d --build
+        run: docker compose up -d --build
 
       - name: Wait for startup
         run: sleep 20  
@@ -44,4 +44,4 @@ jobs:
 
       - name: Clean up
         if: always()
-        run: docker-compose down -v
+        run: docker compose down -v
