@@ -46,9 +46,9 @@ jobs:
 
       - name: Build and test
         run: |
-          dotnet restore
-          dotnet build
-          dotnet test --no-build
+          dotnet restore ./backend/Backend.sln
+          dotnet build ./backend/Backend.sln
+          dotnet test --no-build ./backend/BartenderTests/BartenderTests.csproj --no-build
 
       - name: End Sonar Analysis
         env:
