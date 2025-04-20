@@ -1,10 +1,8 @@
 import axios from "axios";
 import { Constants } from "../constants";
 
-const API_BASE_URL = "https://localhost:7281";
-
 const httpClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: Constants.api_base_url.toString(),
   headers: {
     "Content-Type": "application/json",
   },
