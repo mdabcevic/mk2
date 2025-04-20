@@ -43,21 +43,13 @@ jobs:
       - name: Check frontend
         run: curl -f http://localhost:5173
 
-      - name: Prepare zap workspace
-        run: mkdir zap-sandbox
-
-      - name: OWASP ZAP scan
-        working-directory: ./zap-sandbox
+      - name: OWASP ZAP Scan
         uses: zaproxy/action-baseline@v0.10.0
         with:
           target: 'http://localhost:7214'
           fail_action: false
-
-      - name: Upload ZAP Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report
-          path: zap-sandbox/report_html.html
+          artifact_name: zap-report
+          allow_issue_writing: false
 
       - name: Cleanup
         if: always()
