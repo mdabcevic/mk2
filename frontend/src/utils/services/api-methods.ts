@@ -19,6 +19,7 @@ export const ApiMethods ={
 
     createOrder:"/api/order",
     getMyOrders:"/api/order/my-orders",
+    getActiveOrders:"/api/order/{placeId}",
 
     saveOrUpdateTables:"/api/tables/bulk-upsert",
 

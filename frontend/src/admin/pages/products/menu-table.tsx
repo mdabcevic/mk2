@@ -78,7 +78,7 @@ function MenuTable({ placeId }: { placeId: number }) {
   const filterMenuItems = () => {
     const search = searchTerm.toLowerCase();
     const filtered = search
-      ? menu.filter((item) => item.product.name.toLowerCase().includes(search))
+      ? menu.filter((item:any) => item.product.name.toLowerCase().includes(search))
       : menu;
 
     const total = Math.ceil(filtered.length / itemsPerPage);

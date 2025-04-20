@@ -3,6 +3,11 @@ export enum Constants{
     tokenKey = "token",
     cartKey = "cart",
     passcode = "passcode",
+    salt = "salt",
+    url_qr = "http://localhost:5173/table-lookup/{placeId}/{salt}",
+    create_tables_container_width = 550, // Matches the width of the 'place_view.png' template image
+    create_tables_container_height = 471 , // Matches the height of the 'place_view.png' template image
+    template_image = "assets/images/place_view.png",
 }
 
 export enum UserRole{
