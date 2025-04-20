@@ -18,29 +18,35 @@ jobs:
       - name: Build and start all services
         run: docker compose up -d --build
 
-      - name: Wait for startup
-        run: sleep 20  
-      - name: Show container status
-        run: docker ps -a
-
-      - name: Ensure all services are healthy
+      - name: Wait for all containers to become healthy
         run: |
-          EXITED=$(docker ps -a --filter "status=exited" --format '{{.Names}}')
+          services=(postgres redis backend frontend)
+          for service in "${services[@]}"; do
+            echo "⏳ Waiting for $service to be healthy..."
+            timeout 60 bash -c \
+              'until [ "$(docker inspect -f "{{ .State.Health.Status }}" '"$service"')" == "healthy" ]; do sleep 2; done'
+            echo "✅ $service is healthy"
+          done
+
+      - name: Show container status
+        run: docker compose ps -a
+
+      - name: Fail if any container exited
+        run: |
+          EXITED=$(docker compose ps --status=exited --format '{{.Name}}')
           if [ -n "$EXITED" ]; then
             echo "❌ Some containers exited unexpectedly:"
             echo "$EXITED"
-            docker-compose logs
+            docker compose logs
             exit 1
           fi
-          echo "✅ All containers running"
+          echo "✅ No containers exited"
 
-      - name: (Optional) Check backend HTTP health
-        run: |
-          curl -f http://localhost:7214 || exit 1
+      - name: Check backend health
+        run: curl -f http://localhost:7214/health
 
-      - name: (Optional) Check frontend is up
-        run: |
-          curl -f http://localhost:5173 || exit 1
+      - name: Check frontend
+        run: curl -f http://localhost:5173
 
       - name: Clean up
         if: always()

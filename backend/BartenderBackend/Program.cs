@@ -139,4 +139,8 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<PlaceHub>("/hubs/place");
 
+app.MapGet("/health", () => Results.Ok("Application is healthy."))
+   .WithName("HealthCheck")
+   .WithTags("System");
+
 await app.RunAsync();
