@@ -20,6 +20,20 @@ jobs:
       - name: Start services
         run: docker compose up -d
 
+      - name: Wait for backend to be ready (retry loop)
+        run: |
+          for i in {1..20}; do
+            echo "⏳ Attempt $i: checking backend..."
+            if curl -sf http://localhost:7214/health; then
+              echo "✅ Backend is ready"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "❌ Backend failed to respond within timeout"
+          docker compose logs backend
+          exit 1
+          
       - name: Show status
         run: docker compose ps -a
 
