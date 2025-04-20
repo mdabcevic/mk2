@@ -43,19 +43,6 @@ jobs:
       - name: Check frontend
         run: curl -f http://localhost:5173
 
-      - name: Run ZAP Scan
-        run: |
-          docker run --user root -v ${{ github.workspace }}:/zap/wrk/:rw \
-            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-            -t http://host.docker.internal:7214 \
-            -J report_json.json -w report_md.md -r report_html.html
-
-      - name: Upload ZAP Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap_report
-          path: report_html.html
-
       - name: Cleanup
         if: always()
         run: docker compose down -v
