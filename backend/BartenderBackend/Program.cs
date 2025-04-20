@@ -21,18 +21,15 @@ var builder = WebApplication.CreateBuilder(args);
 //IdentityModelEventSource.ShowPII = true;
 
 var allowedOrigins = "AllowedOrigins";
-var frontendOrigins = builder.Configuration
-    .GetSection("Frontend:AllowedOrigins")
-    .Get<string[]>() ?? throw new InvalidOperationException("Frontend:AllowedOrigins config missing.");
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: allowedOrigins,
+    options.AddPolicy(allowedOrigins,
         policy =>
         {
-            policy.WithOrigins(frontendOrigins)
+            policy.WithOrigins("http://localhost:5173/", "http://localhost:8080/", "http://localhost:5173", "http://localhost:8080")
                   .AllowAnyHeader()
-                  .AllowAnyMethod()
+                  .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                   .AllowCredentials();
         });
 });
@@ -136,7 +133,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowedOrigins");
+app.UseCors(allowedOrigins);
 app.UseAuthentication(); // <--- MUST come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();

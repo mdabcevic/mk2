@@ -11,6 +11,8 @@ services:
     depends_on:
       - postgres
       - redis
+    networks:
+      - app-network
   
   frontend:
     build:
@@ -19,6 +21,8 @@ services:
       - "5173:80"
     depends_on:
       - backend
+    networks:
+      - app-network
 
   postgres:
     image: postgres:latest
@@ -33,6 +37,8 @@ services:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql # Runs on first startup
     ports:
       - "5442:5432"
+    networks:
+      - app-network
 
   redis:
     image: redis:7
@@ -40,6 +46,12 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
