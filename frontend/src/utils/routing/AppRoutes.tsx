@@ -13,15 +13,16 @@ import RedirectPage from "../redirect-page.tsx";
 import Home from "../../pages/home.tsx";
 import PlaceTablesViewPublic from "../../pages/place-details/place-tables-view.tsx";
 import Subscription from "../../pages/subscription/subscription.tsx";
+import { NotificationScreen } from "../../admin/pages/table-view/notifications.tsx";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
 const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
 const ProductsViewPage = lazy(() => import("../../admin/pages/products/products"));
-const TableViewPage = lazy(() => import("../../admin/pages/table-view/tables-view.tsx"));
+const TablesPage = lazy(() => import("../../admin/pages/table-view/tables.tsx"));
 
 
 function ProtectedAdminRoute() {
-  return (authService.userRole() == UserRole.admin || authService.userRole() == UserRole.manager ) ? <Outlet /> : <Navigate to={AppPaths.public.login} replace />;
+  return (authService.userRole() == UserRole.admin || authService.userRole() == UserRole.manager) ? <Outlet /> : authService.userRole() == UserRole.staff ? <Navigate to={AppPaths.admin.notifications} replace /> : <Navigate to={AppPaths.public.login} replace />;
 }
 
 function AppRoutes(){
@@ -29,9 +30,6 @@ function AppRoutes(){
     <Router>
       <Routes>
       
-        {/* after scanning qr code redirect here */}
-      <Route path={AppPaths.public.redirectPage} element={<RedirectPage />} />
-      TablesView
         {/* Public routes */}
         <Route path={AppPaths.public.home} element={<Layout />}>
           <Route index element={<Home />} />
@@ -41,6 +39,8 @@ function AppRoutes(){
           <Route path={AppPaths.public.menu} element={<Menu />} />
           <Route path={AppPaths.public.login} element={<LoginPage />} />
           <Route path={AppPaths.public.subsciption} element={<Subscription />} />
+          {/* after scanning qr code redirect here */}
+          <Route path={AppPaths.public.redirectPage} element={<RedirectPage />} />
           <Route path="*" element={<Places />} />  
         </Route>
 
@@ -56,7 +56,8 @@ function AppRoutes(){
             >
               <Route index element={<Dashboard />} />
               <Route path={AppPaths.admin.products} element={<ProductsViewPage />} />
-              <Route path={AppPaths.admin.tables} element={<TableViewPage />} />       
+              <Route path={AppPaths.admin.tables} element={<TablesPage />} />
+              <Route path={AppPaths.admin.notifications} element={<NotificationScreen />} />              
               <Route path="*" element={<Dashboard />} />
             </Route>
           </Route>

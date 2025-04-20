@@ -25,6 +25,8 @@ export const ApiMethods ={
     getPlaceTablesByCurrentUser:"/api/tables",
     changeTableStatus:"/api/tables/{salt}/status",
 
+    callBartender:"/api/places/notify-staff/{salt}",
+
     regenerateQrCode:"/api/tables/{label}/rotate-token"
 
 
