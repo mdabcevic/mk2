@@ -33,7 +33,7 @@ jobs:
           echo "❌ Backend failed to respond within timeout"
           docker compose logs backend
           exit 1
-          
+
       - name: Show status
         run: docker compose ps -a
 
@@ -42,6 +42,20 @@ jobs:
 
       - name: Check frontend
         run: curl -f http://localhost:5173
+
+      - name: OWASP ZAP scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: 'http://localhost:7214'
+          fail_action: false
+          format: html
+          output_file: zap-report.html
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: report.html
 
       - name: Cleanup
         if: always()
