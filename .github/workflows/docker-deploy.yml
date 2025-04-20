@@ -48,14 +48,12 @@ jobs:
         with:
           target: 'http://localhost:7214'
           fail_action: false
-          format: html
-          output_file: zap-report.html
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
-          path: report.html
+          path: report_html.html
 
       - name: Cleanup
         if: always()
