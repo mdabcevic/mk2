@@ -1,19 +1,22 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 
 export enum ToastType{
     success="success",
     error="error",
-    info="info"
+    info="info",
+    requestPayment="requestPayment",
+    callBartender="callBartender",
+    order="order",
 }
 
 type ToastProps = {
   message: string;
-  type?: "success" | "error" | "info";
+  type?: ToastType;
   onClose?: () => void;
 };
 
-const Toast = ({ message, type = "info", onClose }: ToastProps) => {
+const Toast = ({ message, type = ToastType.info, onClose }: ToastProps) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose?.();
@@ -38,7 +41,7 @@ const Toast = ({ message, type = "info", onClose }: ToastProps) => {
 
 export const showToast = (
   message: string,
-  type: "success" | "error" | "info" = "info"
+  type: ToastType
 ) => {
   const container = document.createElement("div");
   document.body.appendChild(container);
