@@ -2,9 +2,8 @@ name: Run Tests
 
 on:
   push:
-    #branches: [main, dev]  # or use: `push:` for all branches
   pull_request:
-  workflow_dispatch:       # manual trigger
+  workflow_dispatch:
 
 jobs:
   unit-tests:
@@ -23,7 +22,7 @@ jobs:
         run: dotnet restore ./backend
 
       - name: Run backend unit tests
-        run: dotnet test --no-build --verbosity normal ./backend/tests  # adjust path if needed
+        run: dotnet test --verbosity normal ./backend/BartenderTests/BartenderTests.csproj 
 
       # Frontend Tests (if applicable)
       - name: Setup Node.js
