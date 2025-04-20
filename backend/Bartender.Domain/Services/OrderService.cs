@@ -148,7 +148,7 @@ public class OrderService(
         return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult<List<OrderDto>>> GetAllClosedOrdersByPlaceIdAsync(int placeId)
+    public async Task<ServiceResult<List<OrderDto>>> GetAllClosedOrdersByPlaceIdAsync(int placeId,int page)
     {
         var validationResult = await ValidatePlaceAccessAsync(placeId);
         if (!validationResult.Success)
@@ -173,14 +173,14 @@ public class OrderService(
         return ServiceResult<List<OrderDto>>.Ok(dto);
     }
 
-    public async Task<ServiceResult<List<GroupedOrderStatusDto>>> GetAllActiveOrdersByPlaceIdGroupedAsync(int placeId, bool onlyWaitingForStaff = false)
+    public async Task<ServiceResult<ListResponse<GroupedOrderStatusDto>>> GetAllActiveOrdersByPlaceIdGroupedAsync(int placeId,int page, bool onlyWaitingForStaff = false)
     {
         var validationResult = await ValidatePlaceAccessAsync(placeId);
         if (!validationResult.Success)
-            return ServiceResult<List<GroupedOrderStatusDto>>.Fail(validationResult.Error!, validationResult.errorType!.Value);
+            return ServiceResult<ListResponse<GroupedOrderStatusDto>>.Fail(validationResult.Error!, validationResult.errorType!.Value);
 
-        var groupedOrders = onlyWaitingForStaff ? await repository.GetPendingByPlaceIdGroupedAsync(placeId) :
-                    await repository.GetActiveByPlaceIdGroupedAsync(placeId);
+        var (groupedOrders,total) = onlyWaitingForStaff ? await repository.GetPendingByPlaceIdGroupedAsync(placeId,page) :
+                    await repository.GetActiveByPlaceIdGroupedAsync(placeId, page);
 
         var result = groupedOrders.Select(g => new GroupedOrderStatusDto
         {
@@ -188,7 +188,8 @@ public class OrderService(
             Orders = mapper.Map<List<OrderDto>>(g.Value)
         }).ToList();
 
-        return ServiceResult<List<GroupedOrderStatusDto>>.Ok(result);
+        var response = new ListResponse<GroupedOrderStatusDto> { Items = result, Total = total };
+        return ServiceResult<ListResponse<GroupedOrderStatusDto>>.Ok(response);
     }
 
     public async Task<ServiceResult<List<BusinessOrdersDto>>> GetAllByBusinessIdAsync(int businessId)

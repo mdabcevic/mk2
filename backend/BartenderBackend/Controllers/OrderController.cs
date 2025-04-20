@@ -25,18 +25,18 @@ public class OrderController(IOrderService orderService) : ControllerBase
 
     [Authorize(Roles = "admin, owner, manager")]
     [HttpGet("closed/{placeId}")]
-    public async Task<IActionResult> GetAllByPlace(int placeId)
+    public async Task<IActionResult> GetAllByPlace(int placeId, [FromQuery] int page = 1)
     {
-        var result = await orderService.GetAllClosedOrdersByPlaceIdAsync(placeId);
+        var result = await orderService.GetAllClosedOrdersByPlaceIdAsync(placeId, page);
         return result.ToActionResult();
     }
 
     [Authorize(Roles = "admin, owner, manager, regular")]
     [HttpGet("active/{placeId}")]
-    public async Task<IActionResult> GetAllActiveByPlace(int placeId, [FromQuery] bool onlyWaitingForStaff = false, [FromQuery] bool grouped = false)
+    public async Task<IActionResult> GetAllActiveByPlace(int placeId, [FromQuery] bool onlyWaitingForStaff = false, [FromQuery] int page = 1, [FromQuery] bool grouped = false)
     {
         if (grouped)
-            return (await orderService.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, onlyWaitingForStaff)).ToActionResult();
+            return Ok(await orderService.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page, onlyWaitingForStaff));
 
         var result = await orderService.GetAllActiveOrdersByPlaceIdAsync(placeId, onlyWaitingForStaff);
         return result.ToActionResult();

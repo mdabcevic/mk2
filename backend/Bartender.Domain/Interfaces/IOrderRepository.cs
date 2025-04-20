@@ -19,8 +19,8 @@ public interface IOrderRepository : IRepository<Orders>
     Task<List<Orders>> GetAllByPlaceIdAsync(int placeId);
     Task<List<Orders>> GetActiveOrdersByGuestIdAsync(Guid guestSessionId);
     Task<List<Orders>> GetActiveOrdersByTableIdAsync(int tableId);
-    Task<Dictionary<OrderStatus, List<Orders>>> GetActiveByPlaceIdGroupedAsync(int placeId);
-    Task<Dictionary<OrderStatus, List<Orders>>> GetPendingByPlaceIdGroupedAsync(int placeId);
+    Task<(Dictionary<OrderStatus, List<Orders>>, int)> GetActiveByPlaceIdGroupedAsync(int placeId,int page);
+    Task<(Dictionary<OrderStatus, List<Orders>>, int)> GetPendingByPlaceIdGroupedAsync(int placeId, int page);
     Task<Dictionary<Places, List<Orders>>> GetAllOrdersByBusinessIdAsync(int businessId);
     Task UpdateOrderWithItemsAsync(Orders existingOrder, List<ProductsPerOrder> newItems);
     Task SetTableOrdersAsClosedAsync(int tableId);

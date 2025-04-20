@@ -4,6 +4,7 @@ using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace Bartender.Domain.Repositories;
 
@@ -12,7 +13,7 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
     public OrderRepository(AppDbContext context) : base(context)
     {
     }
-
+    private const int pageSize = 30;
     private static Expression<Func<Orders, bool>> IsActiveOrderForPlace(int placeId)
     => o => o.Table.PlaceId == placeId &&
         o.Status != OrderStatus.closed &&
@@ -113,31 +114,38 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
         return await GetOrdersAsync(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed);
     }
 
-    private async Task<List<Orders>> GetOrdersForGroupingAsync(
-    Expression<Func<Orders, bool>> predicate)
+    private async Task<(List<Orders>,int)> GetOrdersForGroupingAsync(
+    Expression<Func<Orders, bool>> predicate, int page)
     {
-        return await _dbSet
-            .Include(o => o.Table)
-            .Include(o => o.Products)
-                .ThenInclude(p => p.MenuItem)
-                    .ThenInclude(m => m.Product)
-            .Where(predicate)
+        var query = _dbSet
+        .Include(o => o.Table)
+        .Include(o => o.Products)
+            .ThenInclude(p => p.MenuItem)
+                .ThenInclude(m => m.Product)
+        .Where(predicate);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
             .OrderByDescending(o => o.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
+        return (items, totalCount);
     }
 
-    public async Task<Dictionary<OrderStatus, List<Orders>>> GetActiveByPlaceIdGroupedAsync(int placeId)
+    public async Task<(Dictionary<OrderStatus, List<Orders>>,int)> GetActiveByPlaceIdGroupedAsync(int placeId,int page)
     {
-        var orders = await GetOrdersForGroupingAsync(IsActiveOrderForPlace(placeId));
-        return orders.GroupBy(o => o.Status)
-                    .ToDictionary(g => g.Key, g => g.ToList());
+        var (orders,total) = await GetOrdersForGroupingAsync(IsActiveOrderForPlace(placeId),page);
+        return (orders.GroupBy(o => o.Status).ToDictionary(g => g.Key, g => g.ToList()), total);
     }
 
-    public async Task<Dictionary<OrderStatus, List<Orders>>> GetPendingByPlaceIdGroupedAsync(int placeId)
+    public async Task<(Dictionary<OrderStatus, List<Orders>>, int)> GetPendingByPlaceIdGroupedAsync(int placeId, int page)
     {
-        var orders = await GetOrdersForGroupingAsync(IsPendingOrderForPlace(placeId));
-        return orders.GroupBy(o => o.Status)
-                    .ToDictionary(g => g.Key, g => g.ToList());
+        var (orders,total) = await GetOrdersForGroupingAsync(IsPendingOrderForPlace(placeId), page);
+        return (orders.GroupBy(o => o.Status)
+                    .ToDictionary(g => g.Key, g => g.ToList()) , total);
     }
 
 
