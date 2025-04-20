@@ -18,7 +18,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 15
 
   frontend:
     build:
@@ -34,7 +34,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   postgres:
     image: postgres:latest
@@ -55,7 +55,7 @@ services:
       test: ["CMD", "pg_isready", "-U", "admin"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   redis:
     image: redis:7
@@ -69,7 +69,7 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
-      retries: 5
+      retries: 10
 
 volumes:
   postgres_data:
