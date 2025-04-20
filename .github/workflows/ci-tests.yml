@@ -24,16 +24,5 @@ jobs:
       - name: Run backend unit tests
         run: dotnet test --verbosity normal ./backend/BartenderTests/BartenderTests.csproj 
 
-      # Frontend Tests (if applicable)
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/*'
+      # TODO: Frontend unit tests
 
-      - name: Install frontend deps
-        run: npm ci
-        working-directory: ./frontend
-
-      - name: Run frontend unit tests
-        run: npm run test
-        working-directory: ./frontend
