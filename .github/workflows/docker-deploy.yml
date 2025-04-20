@@ -43,21 +43,21 @@ jobs:
       - name: Check frontend
         run: curl -f http://localhost:5173
 
-      - name: Set write permissions for ZAP
-        run: chmod -R a+w .
+      - name: Prepare zap workspace
+        run: mkdir zap-sandbox
 
       - name: OWASP ZAP scan
+        working-directory: ./zap-sandbox
         uses: zaproxy/action-baseline@v0.10.0
         with:
           target: 'http://localhost:7214'
           fail_action: false
-          allow_issue_writing: false
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
-          path: report_html.html
+          path: zap-sandbox/report_html.html
 
       - name: Cleanup
         if: always()
