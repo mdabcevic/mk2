@@ -22,7 +22,7 @@ jobs:
         run: dotnet restore ./backend
 
       - name: Run backend unit tests
-        run: dotnet test --no-build --verbosity normal ./backend/BartenderTests/BartenderTests.csproj 
+        run: dotnet test --verbosity normal ./backend/BartenderTests/BartenderTests.csproj 
 
       # Frontend Tests (if applicable)
       - name: Setup Node.js
