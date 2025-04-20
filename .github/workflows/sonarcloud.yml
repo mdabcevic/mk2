@@ -39,7 +39,7 @@ jobs:
         run: |
           export PATH="$PATH:/home/runner/.dotnet/tools"
           dotnet sonarscanner begin \
-            /k:"mk2" \
+            /k:"mdabcevic_mk2" \
             /o:"mdabcevic" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.login="${SONAR_TOKEN}" 
