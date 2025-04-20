@@ -2,7 +2,7 @@ name: CI - Unit Tests
 
 on:
   push:
-    branches: [main, dev]  # or use: `push:` for all branches
+    #branches: [main, dev]  # or use: `push:` for all branches
   pull_request:
   workflow_dispatch:       # manual trigger
 
