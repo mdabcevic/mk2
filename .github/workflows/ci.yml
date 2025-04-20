@@ -1,0 +1,45 @@
+name: Build & Test
+
+on:
+  push:     # Triggers on push to any branch
+  pull_request:
+
+jobs:
+  build-backend:
+    name: .NET Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+          
+      - name: Restore dependencies
+        run: dotnet restore ./backend
+
+      - name: Build
+        run: dotnet build --no-restore ./backend
+
+      - name: Run Tests
+        run: dotnet test --no-build --verbosity normal ./backend
+
+  build-frontend:
+    name: React Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install deps
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./frontend
