@@ -29,9 +29,7 @@
     "sm_message":"Osjećaj se kao kod kuće - ugrabi piće na dohvat ruke",
     "total":"Ukupno",
     "next":"Dalje",
-    "request_payment":"Zatraži račun"
-
-    "added":"dodan",
+    "request_payment":"Zatraži račun",
     "basic_description": "Za male kafiće koji tek počinju",
     "pro_description": "Savršen za rastuće kafiće",
     "premium_description": "Za kafiće usmjerene na podatke i visoki promet",
@@ -60,5 +58,24 @@
     "message": "Poruka",
     "close": "Zatvori",
     "send": "Pošalji",
-    "inquire_plan": "Želio bih se informirati o {{sub}} planu."
+    "inquire_plan": "Želio bih se informirati o {{sub}} planu.",
+
+    "aboutUs": {
+        "title": "Poboljšajte uslugu u svom kafiću uz QR naručivanje",
+        "subtitle": "Smanjite vrijeme čekanja, ubrzajte narudžbe i usrećite goste – sve jednim skeniranjem.",
+        "contact_us": "Kontaktirajte nas",
+        "discover": "Saznajte više",
+        "how_it_works": "Kako funkcionira",
+        "step1_title": "Skenirajte QR kod",
+        "step1_desc": "Gosti jednostavno skeniraju kod na svom stolu.",
+        "step2_title": "Pregledajte i naručite",
+        "step2_desc": "Bez aplikacije. Pogledajte cijeli meni i naručite odmah.",
+        "step3_title": "Opustite se i uživajte",
+        "step3_desc": "Narudžbe idu izravno osoblju – bez kašnjenja i zabune.",
+        "analytics_title": "Ugrađena analitika. Pametnije upravljanje kafićem",
+        "analytics_desc": "Od trendova narudžbi i najprodavanijih artikala do uvida u rad osoblja – naša moćna nadzorna ploča daje vam podatke za optimizaciju poslovanja.",
+        "view_pricing": "Pogledajte cijene",
+        "upgrade_text": "Unaprijedite iskustvo svog kafića za nekoliko minuta",
+        "get_started": "Započnite"
+  }
 }
