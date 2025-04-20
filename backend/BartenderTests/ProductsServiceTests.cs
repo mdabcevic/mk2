@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Products;
-using Bartender.Domain.Exceptions;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services;
 using Microsoft.EntityFrameworkCore;
