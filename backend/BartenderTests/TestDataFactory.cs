@@ -107,5 +107,18 @@ public static class TestDataFactory
         OpensAt = "09:00",
         ClosesAt = "17:00"
     };
+
+    public static Tables CreateValidTable(string salt, TableStatus status = TableStatus.occupied)
+    {
+        return new Tables
+        {
+            Id = 1,
+            Label = "1",
+            PlaceId = 1,
+            QrSalt = salt,
+            Status = status,
+            IsDisabled = false
+        };
+    }
 }
 
