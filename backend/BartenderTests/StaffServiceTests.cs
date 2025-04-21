@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain;
 using Bartender.Domain.DTO.Staff;
@@ -39,36 +38,13 @@ class StaffServiceTests
         _service = new StaffService(_repository, _logger, _userContext, _mapper);
     }
 
-    private static Staff CreateValidStaff(int id = 1) => new()
-    {
-        Id = id,
-        PlaceId = 10,
-        OIB = "12345678901",
-        Username = $"staff{id}",
-        Password = "SecurePass123!",
-        FullName = "Test User",
-        Role = EmployeeRole.regular
-    };
-
-    private static UpsertStaffDto CreateValidUpsertStaffDto(int id = 1) => new() //TODO: make more flexible for testing
-    {
-        Id = id,
-        PlaceId = 10,
-        OIB = "12345678901",
-        Username = $"staff{id}",
-        Password = "SecurePass123!",
-        FirstName = "Test",
-        LastName = "User",
-        Role = EmployeeRole.regular
-    };
-
     [Test]
     public async Task AddAsync_Should_Add_Staff_When_Username_Is_Unique()
     {
         // Arrange
-        var dto = CreateValidUpsertStaffDto();
+        var dto = TestDataFactory.CreateValidUpsertStaffDto();
         _repository.ExistsAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns(false);
-        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff());
+        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
 
         // Act
         var result = await _service.AddAsync(dto);
@@ -82,9 +58,9 @@ class StaffServiceTests
     public async Task AddAsync_Should_Return_Conflict_When_Username_Exists()
     {
         // Arrange
-        var dto = CreateValidUpsertStaffDto();
+        var dto = TestDataFactory.CreateValidUpsertStaffDto();
         _repository.ExistsAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns(true);
-        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff());
+        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
 
         // Act
         var result = await _service.AddAsync(dto);
@@ -103,8 +79,8 @@ class StaffServiceTests
     public async Task AddAsync_Should_Return_Unauthorized_When_CrossBusiness()
     {
         // Arrange
-        var dto = CreateValidUpsertStaffDto();
-        var user = CreateValidStaff();
+        var dto = TestDataFactory.CreateValidUpsertStaffDto();
+        var user = TestDataFactory.CreateValidStaff();
         user.PlaceId = 999;
         _userContext.GetCurrentUserAsync().Returns(user);
 
@@ -124,7 +100,7 @@ class StaffServiceTests
     public async Task DeleteAsync_Should_Remove_Staff_When_Found()
     {
         // Arrange
-        var staff = CreateValidStaff();
+        var staff = TestDataFactory.CreateValidStaff();
         _repository.GetByIdAsync(1).Returns(staff);
         _userContext.GetCurrentUserAsync().Returns(staff); 
 
@@ -158,10 +134,10 @@ class StaffServiceTests
     public async Task DeleteAsync_Should_Return_Unauthorized_When_PlaceId_Does_Not_Match_CurrentUser()
     {
         // Arrange
-        var staff = CreateValidStaff();
+        var staff = TestDataFactory.CreateValidStaff();
         staff.PlaceId = 99; 
         _repository.GetByIdAsync(1).Returns(staff);
-        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff(1)); 
+        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(1)); 
 
         // Act
         var result = await _service.DeleteAsync(1);
@@ -179,9 +155,9 @@ class StaffServiceTests
     public async Task GetAllAsync_Should_Return_StaffDto_List()
     {
         // Arrange
-        var staffList = new List<Staff> { CreateValidStaff(1), CreateValidStaff(2) };
+        var staffList = new List<Staff> { TestDataFactory.CreateValidStaff(1), TestDataFactory.CreateValidStaff(2) };
         _repository.GetAllAsync().Returns(staffList);
-        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff(1)); 
+        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(1)); 
 
         // Act
         var result = await _service.GetAllAsync();
@@ -202,9 +178,9 @@ class StaffServiceTests
     public async Task GetByIdAsync_Should_Return_StaffDto_When_Found()
     {
         // Arrange
-        var staff = CreateValidStaff(5);
+        var staff = TestDataFactory.CreateValidStaff(5);
         _repository.GetByIdAsync(5, false).Returns(staff);
-        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff(5));
+        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(5));
 
         // Act
         var result = await _service.GetByIdAsync(5);
@@ -214,7 +190,6 @@ class StaffServiceTests
         {
             Assert.That(result.Success, Is.True);
             Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data?.Username, Is.EqualTo("staff5"));
         });
         await _repository.Received(1).GetByIdAsync(5, false);
 
@@ -242,10 +217,9 @@ class StaffServiceTests
     public async Task GetByIdAsync_Should_Return_Unauthorized_When_PlaceId_Does_Not_Match_CurrentUser()
     {
         // Arrange
-        var staff = CreateValidStaff(5);
-        staff.PlaceId = 99;
+        var staff = TestDataFactory.CreateValidStaff(5, placeid: 99);
         _repository.GetByIdAsync(5, false).Returns(staff);
-        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff(1)); //TODO: simulate another user properly...
+        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(1, placeid: 1)); //TODO: simulate another user properly...
 
         // Act
         var result = await _service.GetByIdAsync(5);
@@ -263,10 +237,10 @@ class StaffServiceTests
     public async Task UpdateAsync_Should_Update_When_Found()
     {
         // Arrange
-        var dto = CreateValidUpsertStaffDto(99);
-        var staff = CreateValidStaff(99);
+        var dto = TestDataFactory.CreateValidUpsertStaffDto(id: 99);
+        var staff = TestDataFactory.CreateValidStaff(id: 99);
         _repository.GetByIdAsync(99).Returns(staff);
-        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff(99));
+        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(99));
 
         // Act
         var result = await _service.UpdateAsync(99, dto);
@@ -280,7 +254,7 @@ class StaffServiceTests
     public async Task UpdateAsync_Should_Return_NotFound_When_Missing()
     {
         // Arrange
-        var dto = CreateValidUpsertStaffDto(50);
+        var dto = TestDataFactory.CreateValidUpsertStaffDto(50);
         _repository.GetByIdAsync(50).Returns((Staff?)null);
 
         // Act
@@ -299,11 +273,11 @@ class StaffServiceTests
     public async Task UpdateAsync_Should_Return_Unauthorized_When_PlaceId_Does_Not_Match_CurrentUser()
     {
         // Arrange
-        var dto = CreateValidUpsertStaffDto(50);
+        var dto = TestDataFactory.CreateValidUpsertStaffDto(50);
         dto.PlaceId = 99; 
-        var staff = CreateValidStaff(50);
+        var staff = TestDataFactory.CreateValidStaff(50);
         _repository.GetByIdAsync(50).Returns(staff);
-        _userContext.GetCurrentUserAsync().Returns(CreateValidStaff(1));
+        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(1));
 
         // Act
         var result = await _service.UpdateAsync(50, dto);

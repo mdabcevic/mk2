@@ -29,9 +29,7 @@ public class BusinessService(
             logger.LogWarning("Cross-entity request detected.");
             return ServiceResult<BusinessDto>.Fail($"Failure fetching business with requested id.", ErrorType.NotFound);
         }
-        //var business = await repository.QueryIncluding(
-        //b => b.Places
-        //).FirstOrDefaultAsync(b => b.Id == id);
+
         var business = await repository.GetByIdAsync(id, true);
 
         if (business is null) { 

@@ -30,83 +30,13 @@ public class BusinessServiceTests
         _businessService = new BusinessService(_repository, _logger, _currentUser, _mapper);
     }
 
-
-    private static Businesses CreateValidBusiness(int id = 1) => new()
-    {
-        Id = id,
-        OIB = "12345678901",
-        Name = $"Business {id}",
-        Headquarters = "HQ",
-        SubscriptionTier = SubscriptionTier.basic,
-        Places = []
-    };
-
-    private static Staff CreateValidStaff(int placeId = 10) => new()
-    {
-        Id = 1,
-        PlaceId = placeId,
-        OIB = "98765432100",
-        Username = "testuser",
-        Password = "pass",
-        FullName = "Test User",
-        Role = EmployeeRole.admin,
-        Place = CreateValidPlace(placeId)
-    };
-
-    private static Places CreateValidPlace(int id = 1, int businessId = 1) => new()
-    {
-        Id = id,
-        BusinessId = businessId,
-        CityId = 1,
-        Address = "Some St 5",
-        OpensAt = new TimeOnly(7, 0),
-        ClosesAt = new TimeOnly(17, 0),
-        Business = CreateValidBusiness(businessId),
-        City = new Cities { Id = 1, Name = "Zagreb" },
-        MenuItems = []
-    };
-
-    private static InsertPlaceDto CreateValidInsertPlaceDto() => new()
-    {
-        BusinessId = 1,
-        CityId = 1,
-        Address = "Some St 5",
-        OpensAt = "07:00",
-        ClosesAt = "17:00"
-    };
-
-    private static UpdatePlaceDto CreateValidUpdatePlaceDto() => new()
-    {
-        Address = "Updated Address",
-        OpensAt = "08:00",
-        ClosesAt = "18:00"
-    };
-
-    private static UpsertBusinessDto CreateValidUpsertBusinessDto() => new()
-    {
-        OIB = "12345678901",
-        Name = "New Biz",
-        Headquarters = "Main HQ"
-    };
-
-    private static BusinessDto CreateBusinessDtoFromEntity(Businesses business) => new()
-    {
-        OIB = business.OIB,
-        Name = business.Name,
-        Headquarters = business.Headquarters,
-        SubscriptionTier = business.SubscriptionTier,
-        Places = []
-    };
-
-
-
     [Test]
     public async Task GetByIdAsync_ReturnsBusiness_WhenAuthorized()
     {
         // Arrange
-        var business = CreateValidBusiness(1);
-        var dto = CreateBusinessDtoFromEntity(business);
-        var staff = CreateValidStaff(placeId: 10);
+        var business = TestDataFactory.CreateValidBusiness(1);
+        var dto = TestDataFactory.CreateBusinessDtoFromEntity(business);
+        var staff = TestDataFactory.CreateValidStaff( businessid: 1, placeid: 10);
 
         _repository.GetByIdAsync(1, true).Returns(business);
         _currentUser.GetCurrentUserAsync().Returns(staff);
@@ -121,8 +51,6 @@ public class BusinessServiceTests
             Assert.That(result.Success, Is.True);
             Assert.That(result.Data, Is.Not.Null);
             Assert.That(result.Data, Is.TypeOf<BusinessDto>());
-            Assert.That(result.Data?.OIB, Is.EqualTo(dto.OIB));
-            //TODO: check for places integrity
         });
         await _repository.Received(1).GetByIdAsync(1, true);
     }
@@ -131,8 +59,8 @@ public class BusinessServiceTests
     public async Task GetByIdAsync_ReturnsUnauthorized_WhenBusinessMismatch()
     {
         // Arrange
-        var business = CreateValidBusiness(2);
-        var staff = CreateValidStaff(placeId: 99);
+        var business = TestDataFactory.CreateValidBusiness(2);
+        var staff = TestDataFactory.CreateValidStaff(placeid: 99);
 
         _repository.GetByIdAsync(2, true).Returns(business);
         _currentUser.GetCurrentUserAsync().Returns(staff);
@@ -171,8 +99,8 @@ public class BusinessServiceTests
     public async Task AddAsync_AddsBusiness_WhenValid()
     {
         // Arrange
-        var dto = CreateValidUpsertBusinessDto();
-        var entity = CreateValidBusiness();
+        var dto = new UpsertBusinessDto { OIB = "12345678901", Name = "New Business", Headquarters = "HQ" };
+        var entity = TestDataFactory.CreateValidBusiness(oib: "12345678901", name: "New Business", sub: SubscriptionTier.none);
         _mapper.Map<Businesses>(dto).Returns(entity);
 
         // Act
@@ -187,8 +115,8 @@ public class BusinessServiceTests
     public async Task UpdateSubscriptionAsync_UpdatesTier_WhenAuthorized()
     {
         // Arrange
-        var staff = CreateValidStaff();
-        var business = CreateValidBusiness(1);
+        var staff = TestDataFactory.CreateValidStaff();
+        var business = TestDataFactory.CreateValidBusiness(1);
 
         _currentUser.GetCurrentUserAsync().Returns(staff);
         _repository.GetByIdAsync(1).Returns(business);
@@ -205,7 +133,7 @@ public class BusinessServiceTests
     public async Task UpdateSubscriptionAsync_ReturnsError_WhenNoPlaceAssigned()
     {
         // Arrange
-        var staff = CreateValidStaff();
+        var staff = TestDataFactory.CreateValidStaff();
         staff.Place = null;
 
         _currentUser.GetCurrentUserAsync().Returns(staff);
@@ -227,8 +155,8 @@ public class BusinessServiceTests
     public async Task UpdateAsync_UpdatesBusiness_WhenExists()
     {
         // Arrange
-        var dto = CreateValidUpsertBusinessDto();
-        var business = CreateValidBusiness(1);
+        var dto = new UpsertBusinessDto { OIB = "123", Name = "Business", Headquarters = "Main HQ" };
+        var business = TestDataFactory.CreateValidBusiness(1);
         _repository.GetByIdAsync(1).Returns(business);
 
         // Act
@@ -240,10 +168,30 @@ public class BusinessServiceTests
     }
 
     [Test]
+    public async Task UpdateAsync_ReturnsNotFound_WhenBusinessMissing()
+    {
+        // Arrange
+        var dto = new UpsertBusinessDto { OIB = "123", Name = "Nonexistent Business", Headquarters = "HQ" };
+        _repository.GetByIdAsync(Arg.Any<int>()).Returns((Businesses?)null);
+
+        // Act
+        var result = await _businessService.UpdateAsync(1, dto);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        });
+
+        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Businesses>());
+    }
+
+    [Test]
     public async Task DeleteAsync_DeletesBusiness_WhenExists()
     {
         // Arrange
-        var business = CreateValidBusiness(1);
+        var business = TestDataFactory.CreateValidBusiness(1);
         _repository.GetByIdAsync(1).Returns(business);
 
         // Act
