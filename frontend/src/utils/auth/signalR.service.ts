@@ -2,13 +2,14 @@ import * as signalR from "@microsoft/signalr";
 import { authService } from "./auth.service";
 import { showToast, ToastType } from "../toast";
 import { notifyListeners } from "../notification-store";
+import { Constants } from "../constants";
 
 let connection: signalR.HubConnection | null = null;
 
 export const startConnection = async (placeId:number) => {
   if (!connection) {
     connection = new signalR.HubConnectionBuilder()
-      .withUrl("https://localhost:7281/hubs/place", {
+      .withUrl(Constants.signalR_hub_url, {
         accessTokenFactory: () => authService.token() ?? "",
       })
       .withAutomaticReconnect()
@@ -17,7 +18,7 @@ export const startConnection = async (placeId:number) => {
 
     connection.on("ReceiveNotification", (message: string) => {
       showToast(message, ToastType.info);
-
+      console.log("notf: " + message)
       notifyListeners({
         id: "Bartender" + Date.now() ,
         message,
