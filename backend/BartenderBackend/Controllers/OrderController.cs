@@ -36,7 +36,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
     public async Task<IActionResult> GetAllActiveByPlace(int placeId, [FromQuery] bool onlyWaitingForStaff = false, [FromQuery] int page = 1, [FromQuery] bool grouped = false)
     {
         if (grouped)
-            return Ok(await orderService.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page, onlyWaitingForStaff));
+            return (await orderService.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page, onlyWaitingForStaff)).ToActionResult();
 
         var result = await orderService.GetAllActiveOrdersByPlaceIdAsync(placeId, onlyWaitingForStaff);
         return result.ToActionResult();
