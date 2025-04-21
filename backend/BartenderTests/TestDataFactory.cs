@@ -2,6 +2,7 @@
 using Bartender.Data.Models;
 using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Staff;
+using System.Diagnostics.Eventing.Reader;
 
 namespace BartenderTests;
 
@@ -108,7 +109,8 @@ public static class TestDataFactory
         ClosesAt = "17:00"
     };
 
-    public static Tables CreateValidTable(int id = 1, int placeid = 1, string label = "1", string salt = "somesalt", TableStatus status = TableStatus.occupied)
+    public static Tables CreateValidTable(int id = 1, int placeid = 1, string label = "1", 
+        string salt = "somesalt", TableStatus status = TableStatus.occupied, bool disabled = false)
     {
         return new Tables
         {
@@ -117,7 +119,19 @@ public static class TestDataFactory
             PlaceId = placeid,
             QrSalt = salt,
             Status = status,
-            IsDisabled = false
+            IsDisabled = disabled
+        };
+    }
+
+    public static GuestSession CreateValidGuestSession(Tables table, string token = "guest-token", int expiresInMinutes = 5)
+    {
+        return new GuestSession
+        {
+            Id = Guid.NewGuid(),
+            TableId = table.Id,
+            Table = table,
+            Token = token,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(expiresInMinutes)
         };
     }
 }
