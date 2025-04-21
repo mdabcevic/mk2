@@ -134,5 +134,14 @@ public static class TestDataFactory
             ExpiresAt = DateTime.UtcNow.AddMinutes(expiresInMinutes)
         };
     }
+
+    public static BusinessDto CreateBusinessDtoFromEntity(Businesses business) => new()
+    {
+        OIB = business.OIB,
+        Name = business.Name,
+        Headquarters = business.Headquarters,
+        SubscriptionTier = business.SubscriptionTier,
+        Places = []
+    };
 }
 

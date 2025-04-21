@@ -22,7 +22,7 @@ jobs:
         run: dotnet restore ./backend
 
       - name: Run backend unit tests
-        run: dotnet test --verbosity normal ./backend/BartenderTests/BartenderTests.csproj 
+        run: dotnet test ./backend/BartenderTests/BartenderTests.csproj --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
       # TODO: Frontend unit tests
 

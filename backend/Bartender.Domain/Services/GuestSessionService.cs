@@ -27,7 +27,7 @@ public class GuestSessionService(
     }
 
     //TODO: refactor this one a bit
-    public async Task<string> CreateSessionAsync(int tableId, string passphrase) // always send passphrase, on new group session and existing?
+    public async Task<string> CreateSessionAsync(int tableId, string passphrase)
     {
         if (string.IsNullOrEmpty(passphrase))
         {

@@ -30,21 +30,12 @@ public class BusinessServiceTests
         _businessService = new BusinessService(_repository, _logger, _currentUser, _mapper);
     }
 
-    private static BusinessDto CreateBusinessDtoFromEntity(Businesses business) => new()
-    {
-        OIB = business.OIB,
-        Name = business.Name,
-        Headquarters = business.Headquarters,
-        SubscriptionTier = business.SubscriptionTier,
-        Places = []
-    };
-
     [Test]
     public async Task GetByIdAsync_ReturnsBusiness_WhenAuthorized()
     {
         // Arrange
         var business = TestDataFactory.CreateValidBusiness(1);
-        var dto = CreateBusinessDtoFromEntity(business);
+        var dto = TestDataFactory.CreateBusinessDtoFromEntity(business);
         var staff = TestDataFactory.CreateValidStaff( businessid: 1, placeid: 10);
 
         _repository.GetByIdAsync(1, true).Returns(business);
@@ -174,6 +165,26 @@ public class BusinessServiceTests
         // Assert
         Assert.That(result.Success, Is.True);
         await _repository.Received(1).UpdateAsync(business);
+    }
+
+    [Test]
+    public async Task UpdateAsync_ReturnsNotFound_WhenBusinessMissing()
+    {
+        // Arrange
+        var dto = new UpsertBusinessDto { OIB = "123", Name = "Nonexistent Business", Headquarters = "HQ" };
+        _repository.GetByIdAsync(Arg.Any<int>()).Returns((Businesses?)null);
+
+        // Act
+        var result = await _businessService.UpdateAsync(1, dto);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        });
+
+        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Businesses>());
     }
 
     [Test]

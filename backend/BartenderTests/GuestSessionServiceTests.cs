@@ -56,57 +56,6 @@ public class GuestSessionServiceTests
         Assert.That(result, Is.False);
     }
 
-
-    //[Test]
-    //public async Task CanResumeExpiredSessionAsync_ShouldReturnTrue_IfLatestExpiredMatches()
-    //{
-    //    var latestExpired = new GuestSession
-    //    {
-    //        TableId = 1,
-    //        Token = "expired.token",
-    //        ExpiresAt = DateTime.UtcNow.AddMinutes(-1)
-    //    };
-
-    //    _sessionRepo.Query().Returns(new List<GuestSession> { latestExpired }.AsQueryable());
-
-    //    var result = await _service.CanResumeExpiredSessionAsync(1, "expired.token");
-
-    //    Assert.That(result, Is.True);
-    //}
-
-    //[Test]
-    //public async Task CanResumeExpiredSessionAsync_ShouldReturnFalse_IfLatestExpiredDoesNotMatch()
-    //{
-    //    var latestExpired = new GuestSession
-    //    {
-    //        TableId = 1,
-    //        Token = "expired.token",
-    //        ExpiresAt = DateTime.UtcNow.AddMinutes(-1)
-    //    };
-
-    //    _sessionRepo.Query().Returns(new List<GuestSession> { latestExpired }.AsQueryable());
-
-    //    var result = await _service.CanResumeExpiredSessionAsync(1, "wrong.token");
-
-    //    Assert.That(result, Is.False);
-    //}
-
-    //[Test]
-    //public async Task CreateSessionAsync_ShouldCreateSessionAndReturnToken()
-    //{
-    //    // Arrange
-    //    var passphrase = "any passphrase";
-    //    _jwtService.GenerateGuestToken(1, Arg.Any<Guid>(), Arg.Any<DateTime>(), passphrase)
-    //        .Returns("mock.token");
-
-    //    // Act
-    //    string token = await _service.CreateSessionAsync(1, passphrase);
-
-    //    // Assert
-    //    Assert.That(token, Is.EqualTo("mock.token"));
-    //    await _sessionRepo.Received().AddAsync(Arg.Any<GuestSession>());
-    //}
-
     [Test]
     public async Task DeleteSessionAsync_ShouldRemoveSession_WhenExists()
     {
@@ -149,4 +98,75 @@ public class GuestSessionServiceTests
         // Assert
         Assert.That(result, Is.EqualTo(session));
     }
+
+    [Test]
+    public async Task GetConflictingSessionAsync_ShouldReturnSession_WhenExists()
+    {
+        var session = new GuestSession { TableId = 2, Token = "xyz", IsValid = true };
+        _sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(session);
+
+        var result = await _service.GetConflictingSessionAsync("xyz", 1);
+
+        Assert.That(result, Is.EqualTo(session));
+    }
+
+    //[Test]
+    //public async Task CreateSessionAsync_ShouldCreateNewGroup_IfNoneExists()
+    //{
+    //    var passphrase = "welcome";
+    //    _groupSessionRepo.Query().Returns(new List<GuestSessionGroup>().AsQueryable());
+    //    _jwtService.GenerateGuestToken(1, Arg.Any<Guid>(), Arg.Any<DateTime>(), passphrase).Returns("mock.token");
+
+    //    var token = await _service.CreateSessionAsync(1, passphrase);
+
+    //    Assert.That(token, Is.EqualTo("mock.token"));
+    //    await _groupSessionRepo.Received(1).AddAsync(Arg.Any<GuestSessionGroup>());
+    //    await _sessionRepo.Received(1).AddAsync(Arg.Any<GuestSession>());
+    //}
+
+    [Test]
+    public async Task RevokeSessionAsync_ShouldSetInvalid_WhenSessionExists()
+    {
+        var session = new GuestSession { Id = Guid.NewGuid(), IsValid = true };
+        _sessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(session);
+
+        await _service.RevokeSessionAsync(session.Id);
+
+        Assert.That(session.IsValid, Is.False);
+        await _sessionRepo.Received().UpdateAsync(session);
+    }
+
+    //[Test]
+    //public async Task RevokeAllSessionsForTableAsync_ShouldRevokeAllValidSessions()
+    //{
+    //    var sessions = new List<GuestSession>
+    //{
+    //    new() { Id = Guid.NewGuid(), TableId = 1, IsValid = true, CreatedAt = DateTime.UtcNow, ExpiresAt = DateTime.UtcNow.AddMinutes(5) },
+    //    new() { Id = Guid.NewGuid(), TableId = 1, IsValid = true, CreatedAt = DateTime.UtcNow, ExpiresAt = DateTime.UtcNow.AddMinutes(10) },
+    //};
+
+    //    _sessionRepo.Query().Returns(sessions.AsQueryable());
+
+    //    await _service.RevokeAllSessionsForTableAsync(1);
+
+    //    Assert.That(sessions.All(s => s.IsValid == false));
+    //    await _sessionRepo.Received(1).UpdateRangeAsync(Arg.Is<List<GuestSession>>(list => list.Count == 2));
+    //}
+
+    //[Test]
+    //public async Task EndGroupSessionAsync_ShouldRevokeSessionsAndDeleteGroup()
+    //{
+    //    var group = new GuestSessionGroup { Id = Guid.NewGuid(), TableId = 1 };
+    //    _groupSessionRepo.Query().Returns(new List<GuestSessionGroup> { group }.AsQueryable());
+
+    //    _sessionRepo.Query().Returns(new List<GuestSession>
+    //{
+    //    new() { Id = Guid.NewGuid(), TableId = 1, IsValid = true, CreatedAt = DateTime.UtcNow, ExpiresAt = DateTime.UtcNow.AddMinutes(1) }
+    //}.AsQueryable());
+
+    //    await _service.EndGroupSessionAsync(1);
+
+    //    await _sessionRepo.Received(1).UpdateRangeAsync(Arg.Any<List<GuestSession>>());
+    //    await _groupSessionRepo.Received(1).DeleteAsync(group);
+    //}
 }

@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using Bartender.Data;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Mappings;
 using Bartender.Domain.Services;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
@@ -183,6 +185,39 @@ public class PlacesServiceTests
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
         });
         await _repository.DidNotReceive().UpdateAsync(Arg.Any<Places>());
+    }
+
+    [Test]
+    public async Task NotifyStaffAsync_Should_SendNotification_WhenTableFound()
+    {
+        // Arrange
+        var table = TestDataFactory.CreateValidTable(label: "A1", salt: "salt123");
+        _tableRepository.GetBySaltAsync("salt123").Returns(table);
+
+        // Act
+        var result = await _service.NotifyStaffAsync("salt123");
+
+        // Assert
+        Assert.That(result.Success, Is.True);
+        await _notificationService.Received().AddNotificationAsync(table, Arg.Any<TableNotification>());
+    }
+
+    [Test]
+    public async Task NotifyStaffAsync_Should_ReturnNotFound_WhenTableMissing()
+    {
+        // Arrange
+        _tableRepository.GetBySaltAsync("salt123").Returns((Tables?)null);
+
+        // Act
+        var result = await _service.NotifyStaffAsync("salt123");
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        });
+        await _notificationService.DidNotReceive().AddNotificationAsync(Arg.Any<Tables>(), Arg.Any<TableNotification>());
     }
 }
 
