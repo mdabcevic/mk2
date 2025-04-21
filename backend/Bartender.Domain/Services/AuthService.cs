@@ -13,6 +13,9 @@ public class AuthService(
 {
     public async Task<ServiceResult<string>> LoginAsync(LoginStaffDto loginDto)
     {
+        if (string.IsNullOrWhiteSpace(loginDto.Username) || string.IsNullOrWhiteSpace(loginDto.Password))
+            return ServiceResult<string>.Fail("Username and password are required.", ErrorType.Validation);
+
         var staff = await staffRepo.GetByKeyAsync(s => s.Username == loginDto.Username);
         if (staff is null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, staff.Password))
         {

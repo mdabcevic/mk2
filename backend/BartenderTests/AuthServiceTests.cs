@@ -42,17 +42,20 @@ public class AuthServiceTests
             Assert.That(result.Success, Is.True);
             Assert.That(result.Data, Is.EqualTo("test-token"));
         });
+        _jwtService.Received(1).GenerateStaffToken(staff);
     }
 
-    [Test]
-    public async Task LoginAsync_WrongPassword_ReturnsValidationError()
+    [TestCase("", TestName = "WrongPassword_Empty")]
+    [TestCase("wrongpassword", TestName = "WrongPassword")]
+    public async Task LoginAsync_WrongPassword_ReturnsValidationError(string password)
     {
         // Arrange
         var staff = TestDataFactory.CreateValidStaff(1, username: "testuser", password: "testpassword");
         _repo.GetByKeyAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns(staff);
+        var loginDto = TestDataFactory.CreateLoginDto("testuser", password);
 
         // Act
-        var result = await _service.LoginAsync(TestDataFactory.CreateLoginDto("testuser", "wrongpassword"));
+        var result = await _service.LoginAsync(loginDto);
 
         // Assert
         Assert.Multiple(() =>
