@@ -48,7 +48,6 @@ jobs:
         with:
           target: 'http://localhost:7214'
           fail_action: false
-          cmd_options: '-r zap-report.html -J zap-report.json -w zap-report.md'
           allow_issue_writing: false
 
 
