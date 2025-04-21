@@ -108,13 +108,13 @@ public static class TestDataFactory
         ClosesAt = "17:00"
     };
 
-    public static Tables CreateValidTable(string salt, TableStatus status = TableStatus.occupied)
+    public static Tables CreateValidTable(int id = 1, int placeid = 1, string label = "1", string salt = "somesalt", TableStatus status = TableStatus.occupied)
     {
         return new Tables
         {
-            Id = 1,
-            Label = "1",
-            PlaceId = 1,
+            Id = id,
+            Label = label,
+            PlaceId = placeid,
             QrSalt = salt,
             Status = status,
             IsDisabled = false
