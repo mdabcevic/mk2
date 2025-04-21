@@ -42,13 +42,14 @@ jobs:
             /k:"mdabcevic_mk2" \
             /o:"mdabcevic" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.login="${SONAR_TOKEN}" 
+            /d:sonar.login="${SONAR_TOKEN}" \
+            /d:sonar.cs.cobertura.reportsPaths="**/coverage.cobertura.xml"
 
       - name: Build and test
         run: |
           dotnet restore ./backend/Backend.sln
           dotnet build ./backend/Backend.sln
-          dotnet test --no-build ./backend/BartenderTests/BartenderTests.csproj --no-build
+          dotnet test --no-build ./backend/BartenderTests/BartenderTests.csproj --collect:"XPlat Code Coverage"
 
       - name: End Sonar Analysis
         env:
