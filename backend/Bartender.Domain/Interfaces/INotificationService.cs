@@ -7,7 +7,7 @@ namespace Bartender.Domain.Interfaces;
 public interface INotificationService
 {
     Task AddNotificationAsync(Tables table, TableNotification notification);
-    Task<List<TableNotification>> GetNotificationsAsync(int tableId);
-    //Task MarkAllAsReadAsync(int tableId);
-    Task ClearNotificationsAsync(int tableId);
+    Task<ServiceResult<List<TableNotification>>> GetNotificationsAsync(int tableId);
+    Task<ServiceResult> MarkNotificationComplete(int tableId, string notificationId);
+    Task<ServiceResult> ClearNotificationsAsync(int tableId);
 }

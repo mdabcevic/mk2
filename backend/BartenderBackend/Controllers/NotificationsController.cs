@@ -1,5 +1,5 @@
-﻿using Bartender.Data;
-using Bartender.Domain.Interfaces;
+﻿using Bartender.Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BartenderBackend.Controllers;
@@ -8,17 +8,27 @@ namespace BartenderBackend.Controllers;
 [ApiController]
 public class NotificationsController(INotificationService service) : ControllerBase
 {
+    [Authorize(Roles = "manager, employee")]
     [HttpGet]
-    public async Task<ActionResult<List<TableNotification>>> Get(int tableId)
+    public async Task<IActionResult> Get(int tableId)
     {
-        var notifs = await service.GetNotificationsAsync(tableId);
-        return Ok(notifs);
+        var result = await service.GetNotificationsAsync(tableId);
+        return result.ToActionResult();
     }
 
+    [Authorize(Roles = "manager, employee")]
     [HttpDelete]
     public async Task<IActionResult> Clear(int tableId)
     {
-        await service.ClearNotificationsAsync(tableId);
-        return NoContent();
+        var result = await service.ClearNotificationsAsync(tableId);
+        return result.ToActionResult();
+    }
+
+    [Authorize(Roles = "manager, employee")]
+    [HttpPatch("{notificationId}/mark-complete")]
+    public async Task<IActionResult> MarkAsRead(int tableId, string notificationId)
+    {
+        var result = await service.MarkNotificationComplete(tableId, notificationId);
+        return result.ToActionResult();
     }
 }
