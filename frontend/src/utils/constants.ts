@@ -1,14 +1,16 @@
 
 export enum Constants{
+    backend_port = 7281,
     tokenKey = "token",
     cartKey = "cart",
     passcode = "passcode",
     salt = "salt",
-    api_base_url = "https://localhost:7281",
+    api_base_url =`https://localhost:${backend_port}`,
     url_qr = "http://localhost:5173/table-lookup/{placeId}/{salt}",
     create_tables_container_width = 550, // Matches the width of the 'place_view.png' template image
     create_tables_container_height = 471 , // Matches the height of the 'place_view.png' template image
     template_image = "assets/images/place_view.png",
+    signalR_hub_url = `https://localhost:${backend_port}/hubs/place`
 }
 
 export enum UserRole{

@@ -16,7 +16,7 @@ public interface IOrderRepository : IRepository<Orders>
     Task<Orders?> getOrderById(int id);
     Task<List<Orders>> GetActiveByPlaceIdAsync(int placeId);
     Task<List<Orders>> GetPendingByPlaceIdAsync(int placeId);
-    Task<List<Orders>> GetAllByPlaceIdAsync(int placeId);
+    Task<(List<Orders>, int)> GetAllByPlaceIdAsync(int placeId, int page);
     Task<List<Orders>> GetActiveOrdersByGuestIdAsync(Guid guestSessionId);
     Task<List<Orders>> GetActiveOrdersByTableIdAsync(int tableId);
     Task<(Dictionary<OrderStatus, List<Orders>>, int)> GetActiveByPlaceIdGroupedAsync(int placeId,int page);

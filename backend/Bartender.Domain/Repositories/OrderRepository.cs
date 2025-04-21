@@ -3,8 +3,10 @@ using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Bartender.Domain.Repositories;
 
@@ -76,7 +78,7 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
 
     private async Task<List<Orders>> GetOrdersAsync(
     Expression<Func<Orders, bool>> predicate,
-    bool includeCustomer = false)
+    bool includeCustomer = false, int? page = null)
     {
         return await _dbSet
             .Include(o => o.Table)
@@ -86,7 +88,23 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
             .Include(o => o.Customer)
             .Where(predicate)
             .OrderByDescending(o => o.CreatedAt)
+            .Skip((page - 1) ?? 0 * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+    }
+
+    private async Task<int> TotalCountAsync(
+    Expression<Func<Orders, bool>> predicate,
+    bool includeCustomer = false)
+    {
+        return await _dbSet
+            .Include(o => o.Table)
+            .Include(o => o.Products)
+                .ThenInclude(p => p.MenuItem)
+                    .ThenInclude(m => m.Product)
+            .Include(o => o.Customer)
+            .Where(predicate)
+            .CountAsync();
     }
 
     public async Task<List<Orders>> GetActiveOrdersByGuestIdAsync(Guid guestSessionId)
@@ -109,9 +127,10 @@ public class OrderRepository : Repository<Orders>, IOrderRepository
         return await GetOrdersAsync(IsPendingOrderForPlace(placeId));
     }
 
-    public async Task<List<Orders>> GetAllByPlaceIdAsync(int placeId)
+    public async Task<(List<Orders>,int)> GetAllByPlaceIdAsync(int placeId, int page)
     {
-        return await GetOrdersAsync(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed);
+        return (await GetOrdersAsync(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed),
+                await TotalCountAsync(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed));
     }
 
     private async Task<(List<Orders>,int)> GetOrdersForGroupingAsync(

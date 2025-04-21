@@ -148,16 +148,17 @@ public class OrderService(
         return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult<List<OrderDto>>> GetAllClosedOrdersByPlaceIdAsync(int placeId,int page)
+    public async Task<ServiceResult<ListResponse<OrderDto>>> GetAllClosedOrdersByPlaceIdAsync(int placeId,int page)
     {
         var validationResult = await ValidatePlaceAccessAsync(placeId);
         if (!validationResult.Success)
-            return ServiceResult<List<OrderDto>>.Fail(validationResult.Error!, validationResult.errorType!.Value);
+            return ServiceResult<ListResponse<OrderDto>>.Fail(validationResult.Error!, validationResult.errorType!.Value);
 
-        var orders = await repository.GetAllByPlaceIdAsync(placeId);
+        var (orders,total) = await repository.GetAllByPlaceIdAsync(placeId,page);
 
         var dto = mapper.Map<List<OrderDto>>(orders);
-        return ServiceResult<List<OrderDto>>.Ok(dto);
+        var response = new ListResponse<OrderDto> { Items = dto, Total = total };
+        return ServiceResult<ListResponse<OrderDto>>.Ok(response);
     }
 
     public async Task<ServiceResult<List<OrderDto>>> GetAllActiveOrdersByPlaceIdAsync(int placeId, bool onlyWaitingForStaff = false)
