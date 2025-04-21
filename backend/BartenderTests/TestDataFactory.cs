@@ -1,15 +1,16 @@
 ﻿using Bartender.Data.Enums;
 using Bartender.Data.Models;
+using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Staff;
 
 namespace BartenderTests;
 
 public static class TestDataFactory
 {
-    public static Staff CreateValidStaff(int id = 1, int placeid = 1, string username = "testuser",
+    public static Staff CreateValidStaff(int id = 1, int placeid = 1, int businessid = 1, string username = "testuser",
         string password = "testpassword", EmployeeRole role = EmployeeRole.regular)
     {
-        var business = CreateValidBusiness();
+        var business = CreateValidBusiness(businessid);
         var place = CreateValidPlace(placeid);
         place.Business = business;
 
@@ -56,17 +57,55 @@ public static class TestDataFactory
         Places = []
     };
 
-    public static Places CreateValidPlace(int id = 1, int businessId = 1) => new()
+    public static Cities CreateValidCity(int id = 5) => new()
     {
         Id = id,
-        BusinessId = businessId,
-        CityId = 1,
-        Address = "Some St 5",
-        OpensAt = new TimeOnly(7, 0),
-        ClosesAt = new TimeOnly(17, 0),
-        Business = CreateValidBusiness(businessId),
-        City = new Cities { Id = 1, Name = "Zagreb" },
-        MenuItems = []
+        Name = "Zagreb"
+    };
+
+    public static Products CreateValidProduct(int id = 1) => new()
+    {
+        Id = id,
+        Name = "Espresso"
+    };
+
+    private static MenuItems CreateValidMenuItem(int placeId = 1, int productId = 1) => new()
+    {
+        PlaceId = placeId,
+        ProductId = productId,
+        Price = 1.50m,
+        IsAvailable = true,
+        Description = "Strong and black",
+        Product = CreateValidProduct(productId)
+    };
+
+    public static Places CreateValidPlace(int id = 1, int businessid = 1, int cityid = 1) => new()
+    {
+        Id = id,
+        BusinessId = businessid,
+        CityId = cityid,
+        Address = "Test Address",
+        OpensAt = new TimeOnly(8, 0),
+        ClosesAt = new TimeOnly(16, 0),
+        Business = CreateValidBusiness(),
+        City = CreateValidCity(),
+        MenuItems = [CreateValidMenuItem(id)]
+    };
+
+    public static InsertPlaceDto CreateValidInsertPlaceDto(int businessid = 1, int cityid = 1) => new()
+    {
+        BusinessId = businessid,
+        CityId = cityid,
+        Address = "Test Address",
+        OpensAt = "08:00",
+        ClosesAt = "16:00"
+    };
+
+    public static UpdatePlaceDto CreateValidUpdatePlaceDto() => new()
+    {
+        Address = "Updated Address",
+        OpensAt = "09:00",
+        ClosesAt = "17:00"
     };
 }
 

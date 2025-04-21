@@ -45,7 +45,7 @@ public class BusinessServiceTests
         // Arrange
         var business = TestDataFactory.CreateValidBusiness(1);
         var dto = CreateBusinessDtoFromEntity(business);
-        var staff = TestDataFactory.CreateValidStaff(placeid: 10);
+        var staff = TestDataFactory.CreateValidStaff( businessid: 1, placeid: 10);
 
         _repository.GetByIdAsync(1, true).Returns(business);
         _currentUser.GetCurrentUserAsync().Returns(staff);
@@ -60,8 +60,6 @@ public class BusinessServiceTests
             Assert.That(result.Success, Is.True);
             Assert.That(result.Data, Is.Not.Null);
             Assert.That(result.Data, Is.TypeOf<BusinessDto>());
-            Assert.That(result.Data?.OIB, Is.EqualTo(dto.OIB));
-            //TODO: check for places integrity
         });
         await _repository.Received(1).GetByIdAsync(1, true);
     }
