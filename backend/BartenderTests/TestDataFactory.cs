@@ -26,6 +26,20 @@ public static class TestDataFactory
         };
     }
 
+    public static UpsertStaffDto CreateValidUpsertStaffDto(int id = 1, int placeid = 1, string username = "testusername",
+        string password = "testpassword", EmployeeRole role = EmployeeRole.regular) 
+        => new()
+    {
+        Id = id,
+        PlaceId = placeid,
+        OIB = "12345678901",
+        Username = username,
+        Password = password,
+        FirstName = "Test",
+        LastName = "User",
+        Role = role
+    };
+
     public static LoginStaffDto CreateLoginDto(string username = "testuser", string password = "SecurePass123!") => new()
     {
         Username = username,
