@@ -46,7 +46,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "admin"]
+      test: ["CMD", "pg_isready", "-U", "admin", "-d", "bartenderdb"]
       interval: 10s
       timeout: 5s
       retries: 10
