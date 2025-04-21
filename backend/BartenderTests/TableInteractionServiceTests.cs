@@ -6,7 +6,6 @@ using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using NSubstitute;
 using System.Linq.Expressions;
 
@@ -105,7 +104,6 @@ public class TableInteractionServiceTests
             Assert.That(result.Success, Is.True);
             Assert.That(result.Data, Is.Not.Null);
             Assert.That(result.Data, Is.TypeOf<TableScanDto>());
-            Assert.That(result.Data!.GuestToken, Is.Empty); // no token for staff
             Assert.That(table.Status, Is.EqualTo(TableStatus.occupied));
         });
 
@@ -207,7 +205,7 @@ public class TableInteractionServiceTests
     //}
 
     [Test]
-    public async Task GetBySaltAsync_ShouldCreateSessionAndReturnToken_WhenAllValid()
+    public async Task GetBySaltAsync_ShouldCreateSession_WhenAllValid()
     {
         // Arrange
         var table = new Tables { Id = 1, QrSalt = "salt123", Status = TableStatus.empty };
@@ -224,7 +222,7 @@ public class TableInteractionServiceTests
             Assert.That(result.Success, Is.True);
             Assert.That(result.Data, Is.Not.Null);
             Assert.That(result.Data, Is.TypeOf<TableScanDto>());
-            Assert.That(result.Data!.GuestToken, Is.EqualTo("generated.token"));
+            Assert.That(result.Data!.IsSessionEstablished, Is.EqualTo(true));
             Assert.That(table.Status, Is.EqualTo(TableStatus.occupied));
         });
 
@@ -296,14 +294,13 @@ public class TableInteractionServiceTests
     public async Task ChangeStatusAsync_GuestFreesAlreadyEmptyTableShouldSucceed()
     {
         // Arrange
-        var table = TestDataFactory.CreateValidTable(id: 1, label: "1", status: TableStatus.empty);
+        var table = TestDataFactory.CreateValidTable(id: 1, label: "1", salt: "qrsalt", status: TableStatus.empty);
         var token = "guest-token";
-        var session = TestDataFactory.CreateValidGuestSession(table, token: token);
 
         _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
         _userContext.IsGuest.Returns(true);
         _userContext.GetRawToken().Returns(token);
-        _guestSession.GetByTokenAsync(table.Id, token).Returns(session);
+        _tableSession.HasActiveSessionAsync(table.Id, token).Returns(true);
 
         // Act
         var result = await _service.ChangeStatusAsync("1", TableStatus.empty);
@@ -315,7 +312,6 @@ public class TableInteractionServiceTests
             Assert.That(result.Success, Is.True);
             Assert.That(table.Status, Is.EqualTo(TableStatus.empty));
         });
-        await _guestSession.DidNotReceive().DeleteSessionAsync(session.Id);
         await _tableRepo.DidNotReceive().UpdateAsync(table); // nothing changed, table already empty
     }
 
