@@ -1,12 +1,10 @@
 ﻿using Bartender.Data.Models;
-using Bartender.Domain.DTO.Staff;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services;
 using Bartender.Domain;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.Linq.Expressions;
-using Bartender.Data.Enums;
 
 namespace BartenderTests;
 
@@ -27,32 +25,16 @@ public class AuthServiceTests
         _service = new AuthService(_repo, _logger, _jwtService);
     }
 
-    private static Staff CreateValidStaff(int id = 1) => new()
-    {
-        Id = id,
-        PlaceId = 1,
-        OIB = "12345678901",
-        Username = "testuser",
-        Password = BCrypt.Net.BCrypt.HashPassword("SecurePass123!"),
-        FullName = "Test User",
-        Role = EmployeeRole.regular
-    };
-
     [Test]
     public async Task LoginAsync_ValidCredentials_ReturnsToken()
     {
         // Arrange
-        var staff = CreateValidStaff(1);
-
+        var staff = TestDataFactory.CreateValidStaff(1, username: "testuser", password: "testpassword");
         _repo.GetByKeyAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns(staff);
         _jwtService.GenerateStaffToken(staff).Returns("test-token");
 
         // Act
-        var result = await _service.LoginAsync(new LoginStaffDto
-        {
-            Username = "testuser",
-            Password = "SecurePass123!"
-        });
+        var result = await _service.LoginAsync(TestDataFactory.CreateLoginDto("testuser", "testpassword"));
 
         // Assert
         Assert.Multiple(() =>
@@ -66,15 +48,11 @@ public class AuthServiceTests
     public async Task LoginAsync_WrongPassword_ReturnsValidationError()
     {
         // Arrange
-        var staff = CreateValidStaff(1);
+        var staff = TestDataFactory.CreateValidStaff(1, username: "testuser", password: "testpassword");
         _repo.GetByKeyAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns(staff);
 
         // Act
-        var result = await _service.LoginAsync(new LoginStaffDto
-        {
-            Username = "testuser",
-            Password = "wrongpass"
-        });
+        var result = await _service.LoginAsync(TestDataFactory.CreateLoginDto("testuser", "wrongpassword"));
 
         // Assert
         Assert.Multiple(() =>
@@ -91,11 +69,7 @@ public class AuthServiceTests
         _repo.GetByKeyAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns((Staff?)null);
 
         // Act
-        var result = await _service.LoginAsync(new LoginStaffDto
-        {
-            Username = "nonexistent",
-            Password = "irrelevant"
-        });
+        var result = await _service.LoginAsync(TestDataFactory.CreateLoginDto("nonexistent", "irrelevant"));
 
         // Assert
         Assert.Multiple(() =>
