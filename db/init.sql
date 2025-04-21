@@ -526,10 +526,7 @@ INSERT INTO MenuItems(place_id, product_id, price, isAvailable) VALUES
 (1, 123, 2.40, true),
 (1, 128, 3.40, true),
 (1, 129, 3.40, true),
-(1, 130, 3.40, true),
-(1, 134, 4.90, true),
-(1, 137, 5.00, true),
-(1, 138, 5.20, true);
+(1, 130, 3.40, true);
 
 -- second bar
 INSERT INTO MenuItems(place_id, product_id, price, isAvailable) VALUES
