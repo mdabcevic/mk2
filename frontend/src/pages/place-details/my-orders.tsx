@@ -3,6 +3,8 @@ import { orderService } from "./menu/order.service";
 import { AppPaths } from "../../utils/routing/routes";
 import { Link } from "react-router-dom";
 import { t } from "i18next";
+import { notificationService } from "../../utils/services/notification.service";
+import { authService } from "../../utils/auth/auth.service";
 
 export interface OrderItem {
     menuItem: string;
@@ -31,6 +33,10 @@ function MyOrders({placeId}:{placeId:string}) {
         const response = await orderService.getMyOrders();
         setMyOrders(response);
     };
+
+    const callBartender = async () =>{
+        await notificationService.callBartender(authService.salt()!); 
+    }
 
     useEffect(() => {
         fetchMyOrders();
@@ -64,7 +70,9 @@ function MyOrders({placeId}:{placeId:string}) {
         <div className={`flex items-center justify-center w-full pl-2 pr-2
             ${myOrders.length > 0 ? 'fixed bottom-0 left-0 pb-4 z-10 flex-row' : 'flex-col'}`}>
             
-            <button className={`px-5 py-1 border-mocha rounded-[40px] ${myOrders?.length >= 0 ? 'mt-3 bg-mocha-600 text-white' : 'bg-neutral-latte-light text-black'}` }>{t("call_bartender").toUpperCase()}</button>
+            <button className={`px-5 py-1 border-mocha rounded-[40px] ${myOrders?.length >= 0 ? 'mt-3 bg-mocha-600 text-white' : 'bg-neutral-latte-light text-black'}`}
+                    onClick={()=> callBartender()}
+                    >{t("call_bartender").toUpperCase()}</button>
             <button className={` px-5 py-1 rounded-[40px] border-mocha ml-1 mr-1 ${myOrders?.length == 0 ? 'mt-3 bg-mocha-600 text-white' : 'bg-neutral-latte-light text-black'}`}>
                 <Link to={AppPaths.public.menu.replace(":placeId",placeId)}>
                 {t("order").toUpperCase()}

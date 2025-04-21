@@ -47,12 +47,9 @@ function RedirectPage(){
                 setMessage(t("invalid_passcode_message"))
         }
         
-        
-
     }
     useEffect(() => {
-        setTimeout(()=>{checkAndGetToken();},5000)
-        
+        checkAndGetToken();
     })
     
     return (

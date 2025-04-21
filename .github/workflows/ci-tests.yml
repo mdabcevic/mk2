@@ -1,0 +1,28 @@
+name: Run Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # Backend Tests
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore backend deps
+        run: dotnet restore ./backend
+
+      - name: Run backend unit tests
+        run: dotnet test --verbosity normal ./backend/BartenderTests/BartenderTests.csproj 
+
+      # TODO: Frontend unit tests
+

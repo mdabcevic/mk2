@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { placeService } from "../../utils/services/place.service";
-import { Table, TablePublic, TableStatus, TableStatusString } from "../../utils/constants";
+import { Constants, Table, TablePublic, TableStatus, TableStatusString } from "../../utils/constants";
 import TableActionModal from "../../utils/table-actions-modal";
 import { tableService } from "../../utils/services/tables.service";
 import QRCode from "qrcode";
 import jsPDF from "jspdf";
 import { useTranslation } from "react-i18next";
+import { getTableColor } from "../../utils/table-color";
 const initial_div_width = 750;
 const initial_div_height = 550;
 
-const URL_QR = "http://localhost:5173/table-lookup/{placeId}/{salt}"
+const URL_QR = Constants.url_qr;
 
 const PlaceTablesViewPublic = () => {
   const placeId = 1;
@@ -26,8 +27,8 @@ const PlaceTablesViewPublic = () => {
 
 
   const calculateScale = () => {
-    const screenWidth = window.innerWidth * 0.95; 
-    const screenHeight = window.innerHeight * 0.85;
+    const screenWidth = window.innerWidth; 
+    const screenHeight = window.innerHeight;
     const scaleX = screenWidth / initial_div_width;
     const scaleY = screenHeight / initial_div_height;
     const finalScale = Math.max(Math.min(scaleX, scaleY), 0.7);
@@ -41,11 +42,6 @@ const PlaceTablesViewPublic = () => {
     return () => window.removeEventListener("resize", calculateScale);
   }, []);
 
-  const getBackgroundColor = (status: string) => {
-    if (status === TableStatusString.empty) return "green";
-    if (status === TableStatusString.occupied) return "red";
-    return "gray";
-  };
 
   const handleSetStatus = async (status: TableStatusString) => {
     const response = await tableService.changeStatus(status,selectedTable?.token!);
@@ -79,8 +75,7 @@ const PlaceTablesViewPublic = () => {
 
   return (
     <div
-      className="flex justify-center items-center w-full h-full"
-      style={{ padding: "16px" }}
+      className="flex justify-center items-center w-full h-full p-[16px]"
     >
       <div
         style={{
@@ -90,28 +85,20 @@ const PlaceTablesViewPublic = () => {
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
           position: "relative",
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
         }}
       >
         {tables.map((table, index) => (
           <div
             key={index}
+            className="absolute flex items-center justify-center text-white font-bold border border-black box-border"
             style={{
-              position: "absolute",
               left: table.x,
               top: table.y,
               width: table.width,
               height: table.height,
-              backgroundColor: getBackgroundColor(table.status),
+              backgroundColor: getTableColor(table.status),
               borderRadius: `${Math.min(table.width, table.height) / 2}px`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              fontWeight: "bold",
-              border: "1px solid black",
-              boxSizing: "border-box",
+              
             }}
             onClick={() => setSelectedTable(table)}
           >

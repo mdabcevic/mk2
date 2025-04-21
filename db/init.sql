@@ -275,23 +275,22 @@ INSERT INTO ProductCategory(name, parentcategory_id) VALUES
 -- Insert products
 INSERT INTO Products(name, volume, category_id) VALUES
 ('Espresso', 'ŠAL', 1),
-('Kava s Mlijekom Mala', 'ŠAL', 1),
-('Kava s Mlijekom Velika', 'ŠAL', 1),
+('Kava s Mlijekom S', 'ŠAL', 1),
+('Kava s Mlijekom L', 'ŠAL', 1),
 ('Cappucino', 'ŠAL', 1),
 ('Bijela Kava', 'ŠAL', 1),
-('Kava sa Šlagom Mala', 'ŠAL', 1),
-('Kava sa Šlagom Velika', 'ŠAL', 1),
-('Kava sa Zobenim Mlijekom Mala', 'ŠAL', 1),
-('Kava sa Zobenim Mlijekom Velika', 'ŠAL', 1),
+('Kava sa Šlagom S', 'ŠAL', 1),
+('Kava sa Šlagom L', 'ŠAL', 1),
+('Kava sa Zobenim Mlijekom S', 'ŠAL', 1),
+('Kava sa Zobenim Mlijekom L', 'ŠAL', 1),
 ('Bijela Kava sa Zobenim Mlijekom', 'ŠAL', 1),
 ('Matcha Latte', 'ŠAL', 1),
 ('Espresso Bez Kofeina', 'ŠAL', 1),
-('Kava Bez Kofeina s Mlijekom Mala', 'ŠAL', 1),
-('Kava Bez Kofeina s Mlijekom Velika', 'ŠAL', 1),
-('Cappuccino Bez Kofeina s Mlijekom Velika', 'ŠAL', 1),
+('Kava Bez Kofeina S', 'ŠAL', 1),
+('Kava Bez Kofeina L', 'ŠAL', 1),
+('Cappuccino Bez Kofeina L', 'ŠAL', 1),
 ('Bijela Kava Bez Kofeina', 'ŠAL', 1),
-('Kava sa Zobenim Mlijekom Bez Kofeina Mala', 'ŠAL', 1),
-('Kava sa Zobenim Mlijekom Bez Kofeina Velika', 'ŠAL', 1),
+
 
 ('Kakao', 'ŠAL', 3),
 ('Nescafe Classic', 'ŠAL', 3),
@@ -527,10 +526,7 @@ INSERT INTO MenuItems(place_id, product_id, price, isAvailable) VALUES
 (1, 123, 2.40, true),
 (1, 128, 3.40, true),
 (1, 129, 3.40, true),
-(1, 130, 3.40, true),
-(1, 134, 4.90, true),
-(1, 137, 5.00, true),
-(1, 138, 5.20, true);
+(1, 130, 3.40, true);
 
 -- second bar
 INSERT INTO MenuItems(place_id, product_id, price, isAvailable) VALUES

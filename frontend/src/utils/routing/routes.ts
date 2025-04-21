@@ -18,7 +18,9 @@ export const AppPaths = {
         dashboard:AdminRoot,
         products:`${AdminRoot}/products`,
         tables:`${AdminRoot}/tables`,
+        notifications:`${AdminRoot}/notifications`,
         scanner:`${AdminRoot}/scanner`,
+        
     }
 
 

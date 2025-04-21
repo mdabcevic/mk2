@@ -4,15 +4,11 @@ import { ApiMethods } from "../services/api-methods";
 import api from "../services/client";
 import { GuestToken, Payload } from "./guest-token";
 
-
 export const authService = {
 
     login: async (username: string, password: string): Promise<any> => {
         const response = await api.post(ApiMethods.login, { username: username, password: password });
-        const token = localStorage.getItem(Constants.tokenKey);
-        if (token)
-            localStorage.removeItem(Constants.tokenKey);
-        localStorage.setItem(Constants.tokenKey, response);
+        setToken(response);
         return response;
     },
 
@@ -24,16 +20,14 @@ export const authService = {
 
     getGuestToken: async (salt: string): Promise<GuestToken> => {
         const params = { salt: salt }
+        setSalt(salt);
+        localStorage.removeItem(Constants.tokenKey);
         return await api.get(ApiMethods.getGuestToken, params);
     },
 
     setGuestToken: (token: string,placeId:string) => {
-        const existingtoken = localStorage.getItem(Constants.tokenKey);
-        if (existingtoken)
-            localStorage.removeItem(Constants.tokenKey);
-        localStorage.setItem(Constants.tokenKey, token);
-
-        const passcode = decodePayload(token)?.passphrase;
+        setToken(token);
+        const passcode = getTokenPayload()?.passphrase;
         if (passcode)
             setPassCode(passcode);
         setTimeout(()=>{window.location.href = AppPaths.public.placeDetails.replace(":id", placeId);},5000)
@@ -45,44 +39,53 @@ export const authService = {
             salt:salt,
             passphrase:passcode
         }
-        return await api.post(ApiMethods.joinTable, data);
+        return await api.get(ApiMethods.getGuestToken, data);
+    },
+
+    token:():string | null =>{
+        return localStorage.getItem(Constants.tokenKey);
     },
 
     userRole: (): string => {
-        const token = localStorage.getItem(Constants.tokenKey);
-        if (!token) return "";
-        return decodePayload(token)?.role || "";
+        return getTokenPayload()?.role || "";
     },
 
     placeId: (): number => {
-        const token = localStorage.getItem(Constants.tokenKey);
-        if (!token) {
-            throw Error("Token not found!");
-        }
-        return decodePayload(token)?.place_id;
+        return Number(getTokenPayload()?.place_id) ?? null;
     },
 
     tableId: (): number => {
-        const token = localStorage.getItem(Constants.tokenKey);
-        if (!token) {
-            throw Error("Token not found!");
-        }
-        return decodePayload(token)?.table_id;
+        return getTokenPayload()?.table_id ?? null;
     },
 
-    passCode: (): string | null=> {
-        const token = localStorage.getItem(Constants.tokenKey);
-        if (!token) return "";
-        return decodePayload(token)?.passphrase || null;
+    passCode: (): string => {
+        return getTokenPayload()?.passphrase ?? null;
+    },
+
+    salt: (): string | null=> {
+        return localStorage.getItem(Constants.salt);
     },
 
 }
-function decodePayload(token: string): Payload {
-    const payload = token!.split(".")[1];
-    if (!payload) throw new Error("Invalid token");
 
-    const decodedPayload = JSON.parse(atob(payload));
-    return decodedPayload;
+function setSalt (salt:string){
+    const existingSalt = localStorage.getItem(Constants.salt);
+    if (existingSalt) // Remove if already present because a guest may scan multiple tables
+        localStorage.removeItem(Constants.salt);
+    localStorage.setItem(Constants.salt, salt);
+}
+
+function setToken (token:string){
+    const existingtoken = localStorage.getItem(Constants.tokenKey);
+    if (existingtoken)
+        localStorage.removeItem(Constants.tokenKey);
+    localStorage.setItem(Constants.tokenKey, token);
+}
+
+function getTokenPayload(): Payload{
+    const token = localStorage.getItem(Constants.tokenKey);
+    const payload = token?.split(".")[1];
+    return payload ? JSON.parse(atob(payload)) : {} as Payload;
 }
 
 function setPassCode(passcode: string) {

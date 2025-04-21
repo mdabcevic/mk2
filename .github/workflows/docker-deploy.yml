@@ -1,0 +1,48 @@
+name: Deploy Smoke Test
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  deploy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build images
+        run: docker compose build
+
+      - name: Start services
+        run: docker compose up -d
+
+      - name: Wait for backend to be ready (retry loop)
+        run: |
+          for i in {1..20}; do
+            echo "⏳ Attempt $i: checking backend..."
+            if curl -sf http://localhost:7214/health; then
+              echo "✅ Backend is ready"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "❌ Backend failed to respond within timeout"
+          docker compose logs backend
+          exit 1
+
+      - name: Show status
+        run: docker compose ps -a
+
+      - name: Check backend
+        run: curl -f http://localhost:7214/health
+
+      - name: Check frontend
+        run: curl -f http://localhost:5173
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
