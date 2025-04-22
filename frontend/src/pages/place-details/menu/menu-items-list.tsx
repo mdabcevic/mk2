@@ -1,32 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { UserRole } from "../../../utils/constants";
 import { CartItem, cartStorage } from "../../../utils/storage";
 import { MenuGroupedItemDto } from "../../../admin/pages/products/product";
 import { useTranslation } from "react-i18next";
-import { AnimatePresence, motion } from "framer-motion";
+
 import { showToast, ToastType } from "../../../utils/toast";
 
-const ITEMS_VISIBLE = 10;
 const EMPTY_DIV_HEIGHT = 20;
-const ITEM_HEIGHT = 40; 
 
 export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],userRole:string}) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [visibleStart, setVisibleStart] = useState(0);
-    const [scrollDirection, setScrollDirection] = useState<"up" | "down">("down");
-    const [lastScrollTop, setLastScrollTop] = useState(0);
+
     const [cart, setCart] = useState<Record<string, CartItem>>(cartStorage.getCart());
     const { t } = useTranslation("public");
     const handleScroll = () => {
       const container = containerRef.current;
       if (!container) return;
   
-      const scrollTop = container.scrollTop;
-      const newStart = Math.floor(scrollTop / ITEM_HEIGHT);
-  
-      setScrollDirection(scrollTop > lastScrollTop ? "down" : "up");
-      setLastScrollTop(scrollTop);
-      setVisibleStart(newStart);
     };
   
     useEffect(() => {
@@ -45,40 +35,16 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
         ref={containerRef}
         className="overflow-y-auto h-[calc(10*60px)] relative overflow-x-hidden"
       >
-        {/* <div className="relative" style={{ height: `${items.length * (ITEM_HEIGHT)}px` }}> */}
         <div className="relative pt-3" >
         <div >
-        {/* <AnimatePresence mode="popLayout"> */}
+
             {items.map((item, index) => {
-              const isVisible = index >= visibleStart && index < visibleStart + ITEMS_VISIBLE;
               const quantity = cart[item.product.name]?.quantity || 0;
               return (
-                  <div key={index} className="relative px-3">
-                      {/* <motion.div */}
-                      
-{/*                   
-                  layout
-                  initial={{
-                    opacity: 0,
-                    x: scrollDirection === "down" ? 100 : -100,
-                  }}
-                  animate={{
-                    opacity: isVisible ? 1 : 0,
-                    x: isVisible ? 0 : scrollDirection === "down" ? -100 : 100,
-                    pointerEvents: isVisible ? "auto" : "none",
-                  }}
-                  transition={{ duration: 0.3 }}
-                  className={`p-3 border rounded-[40px] shadow-sm flex justify-between items-start absolute w-full ${
-                    !item.isAvailable ? "bg-gray-200" : "bg-white"
-                  }`}
-                  style={{
-                    height: ITEM_HEIGHT,
-                    top: index * (ITEM_HEIGHT),
-                  }}
-                > */}
-                  <div className={`py-0 pl-5 border rounded-[40px] shadow-sm flex justify-between items-center w-full ${
+                  <div key={index} className={`relative px-3`}>
+                  <div className={`pl-5 border rounded-[40px] shadow-sm flex justify-between items-center w-full ${
                     !item.isAvailable ? "bg-gray-200" : "bg-neutral-latte-light"
-                  }`}>
+                  } ${userRole !== UserRole.guest ? "py-3 pr-5" : "py-0"}`}>
                   <div className="max-w-[250px]">
                     <h4 className="text-sm font-medium">{item.product.name}</h4>
                     <p className="text-gray-600 text-sm">{item.description}</p>
@@ -115,14 +81,14 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
                     )}
                   </div>
                   </div>
-                {/* </motion.div> */}
+
                 <div className="bottom-0 left-0 right-0 text-black text-center"
                   style={{ height: EMPTY_DIV_HEIGHT }}></div>
                 </div>
                   
               );
             })}
-          {/* </AnimatePresence> */}</div>
+        </div>
         </div>
       </div>
     );
