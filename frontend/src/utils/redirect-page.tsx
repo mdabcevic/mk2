@@ -19,11 +19,15 @@ function RedirectPage(){
             return;
         }
         const response = await authService.getGuestToken(salt!);
-        if (!response.isSessionEstablished) {
-            setPassCodeRequired(true);
-        }
-        else
-            authService.setGuestToken(response.guestToken,placeId!);
+        console.log(response);
+        setTimeout(()=>{
+            if (!response.isSessionEstablished) {
+                setPassCodeRequired(true);
+            }
+            else
+                authService.setGuestToken(response.guestToken,placeId!);
+        }, 3000)
+        
     }
 
     const joinTable = async(e:any) => {
@@ -50,7 +54,7 @@ function RedirectPage(){
     }
     useEffect(() => {
         checkAndGetToken();
-    })
+    },[])
     
     return (
         <div className="linear-bg-main min-h-screen flex items-center justify-center">

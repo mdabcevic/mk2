@@ -22,6 +22,7 @@ export const authService = {
         const params = { salt: salt }
         setSalt(salt);
         localStorage.removeItem(Constants.tokenKey);
+        
         return await api.get(ApiMethods.getGuestToken, params);
     },
 

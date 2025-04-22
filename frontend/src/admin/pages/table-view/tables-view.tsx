@@ -7,10 +7,10 @@ import { tableService } from "../../../utils/services/tables.service";
 import { getTableColor } from "../../../utils/table-color";
 import TableActionModal from "../../../utils/table-actions-modal";
 import OrdersTable from "./orders-table";
+import { NotificationScreen } from "./notifications";
 
 const initial_div_width = Constants.create_tables_container_width;
 const initial_div_height = Constants.create_tables_container_height;
-
 const URL_QR = Constants.url_qr;
 
 const TablesView = () => {
@@ -77,9 +77,10 @@ const TablesView = () => {
   return (
     <div>
       <section className="flex justify-center items-start w-full h-full p-[16px]">
-        <div id="notifications flex flex-start flex-col">
-          <h3>Notifications</h3>
-        </div>
+        <section id="notifications" className="flex flex-col items-start mr-4">
+          <h3 className="text-lg font-bold mb-2">Notifications</h3>
+          <NotificationScreen />
+        </section>
         <div
           style={{
             width: `${initial_div_width}px`,

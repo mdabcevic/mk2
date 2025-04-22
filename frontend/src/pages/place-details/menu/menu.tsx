@@ -41,7 +41,7 @@ export function Menu() {
 
   return (
     <div className="relative h-screen overflow-hidden">
-      <h2 className="text-xl font-bold mb-4 text-black text-center mt-2">
+      <h2 className="text-xl font-bold mb-4 text-white text-center mt-2">
         {t("menu_text")}
       </h2>
 
@@ -59,7 +59,7 @@ export function Menu() {
               <button
                 key={group.category}
                 onClick={() => changeCategory(group.category)}
-                className={`px-4 py-2 rounded-full text-white  font-extralight text-sm w-fit ${
+                className={`px-4 py-2 rounded-full text-white  font-extralight text-sm w-fit cursor-pointer ${
                   selectedCategory === group.category
                     ? "font-semibold text-white"
                     : "font-extralight"
@@ -98,7 +98,7 @@ export function Menu() {
         </section>
       </div>
       {
-        !showCart && (
+        !showCart && userRole === UserRole.guest && (
           <div className="fixed bottom-0 left-0 w-full p-4 text-center z-50">
             <button
               onClick={() => setShowCart(true)}

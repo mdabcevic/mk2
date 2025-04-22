@@ -16,14 +16,9 @@ export const startConnection = async (placeId:number) => {
       .configureLogging(signalR.LogLevel.Information)
       .build();
 
-    connection.on("ReceiveNotification", (message: string) => {
-      showToast(message, ToastType.info);
-      console.log("notf: " + message)
-      notifyListeners({
-        id: "Bartender" + Date.now() ,
-        message,
-        type: ToastType.info,
-      });
+    connection.on("ReceiveNotification", (notf) => {
+      console.log(notf)
+      notifyListeners(notf);
     });
     connection.onreconnecting(error => {
       console.warn("Reconnecting to SignalR hub...", error);

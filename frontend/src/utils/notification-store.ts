@@ -1,22 +1,25 @@
-import { ToastType } from "./toast";
-
-export type Notification = {
+export interface Notification {
   id: string;
   message: string;
-  type: ToastType;
-};
+  orderId: number | null;
+  pending: boolean;
+  tableLabel: string;
+  timestamp: string;
+  type: number;
+}
 
-type Listener = (n: Notification) => void;
+type NotificationListener = (notification: Notification) => void;
 
-let listeners: Listener[] = [];
+const listeners: NotificationListener[] = [];
 
 export const notifyListeners = (notification: Notification) => {
-  listeners.forEach((l) => l(notification));
+  listeners.forEach((listener) => listener(notification));
 };
 
-export const subscribeToNotifications = (listener: Listener) => {
+export const subscribeToNotifications = (listener: NotificationListener) => {
   listeners.push(listener);
   return () => {
-    listeners = listeners.filter((l) => l !== listener);
+    const index = listeners.indexOf(listener);
+    if (index > -1) listeners.splice(index, 1);
   };
 };

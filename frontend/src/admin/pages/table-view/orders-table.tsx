@@ -51,10 +51,10 @@ const OrdersTable = () => {
 
   const fetchOrders = async () => {
     const response = await placeOrderService.getOrders(activeTab == OrderTabs.activeOrders ? true : false,page,tablePageSize);
-    const allOrders = response?.data?.items?.flatMap((group: { orders: Order[] }) => group.orders);
+    const allOrders = response?.items?.flatMap((group: { orders: Order[] }) => group.orders);
     setOrders(allOrders);
     console.log(response)
-    setTotal(response?.data?.total);
+    setTotal(response?.total);
   };
 
   const updateStatus = async (id: number, newStatus: OrderStatusValue) => {
@@ -107,20 +107,20 @@ const OrdersTable = () => {
           </tr>
         </thead>
         <tbody>
-          {orders?.map((order) => (
+          { orders?.length > 0 && (orders?.map((order) => (
             <tr
               key={order.id}
               className="text-sm hover:bg-gray-50"
             >
-              <td>{order.createdAt}</td>
-              <td>{order.table}</td>
+              <td>{order?.createdAt}</td>
+              <td>{order?.table}</td>
               <td className="text-center">
                 <select
-                  value={order.status}
+                  value={order?.status}
                   onChange={(e) =>
-                    updateStatus(order.id, e.target.value as OrderStatusValue)
+                    updateStatus(order?.id, e.target.value as OrderStatusValue)
                   }
-                  style={{ backgroundColor: getStatusColor(order.status), color: order.status == OrderStatusValue.payment_requested ? "black" : "white" }}
+                  style={{ backgroundColor: getStatusColor(order?.status), color: order?.status == OrderStatusValue.payment_requested ? "black" : "white" }}
                   className="border border-gray-300 rounded-[30px] py-[10px] pl-[40px]"
                 >
                   {statusOptions.map((status) => (
@@ -130,7 +130,7 @@ const OrdersTable = () => {
                   ))}
                 </select>
               </td>
-              <td>{order.totalPrice.toFixed(2)}€</td>
+              <td>{order?.totalPrice.toFixed(2)}€</td>
               <td>
                 <button
                   onClick={() => openModal(order)}
@@ -139,7 +139,7 @@ const OrdersTable = () => {
                   <img src="/assets/images/icons/search_showmore_icon.svg" alt="show"/>
                 </button>
               </td>
-            </tr>
+            </tr>)
           ))}
         </tbody>
       </table>
