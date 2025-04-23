@@ -12,7 +12,7 @@ const Products = () => {
   const [activeTab, setActiveTab] = useState<string>(menu);
   
   return (
-    <div className="p-4 bg-gray-50 rounded-lg shadow-md">
+    <div className="p-4 bg-gray-50 rounded-lg shadow-md mt-25">
       <div className="flex gap-4 mb-4 border-b border-gray-200">
         <button
           onClick={() => setActiveTab("menu")}

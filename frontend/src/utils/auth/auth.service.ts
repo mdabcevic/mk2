@@ -13,22 +13,22 @@ export const authService = {
     },
 
     logout: () => {
-        localStorage.removeItem(Constants.tokenKey);
+        removePreviousState();
         window.location.href = AppPaths.admin.dashboard;
     },
 
 
     getGuestToken: async (salt: string): Promise<GuestToken> => {
         const params = { salt: salt }
-        setSalt(salt);
-        localStorage.removeItem(Constants.tokenKey);
-        
+        removePreviousState();
+        setSalt(salt);    
         return await api.get(ApiMethods.getGuestToken, params);
     },
 
     setGuestToken: (token: string,placeId:string) => {
         setToken(token);
         const passcode = getTokenPayload()?.passphrase;
+        localStorage.setItem(Constants.place_id,placeId);
         if (passcode)
             setPassCode(passcode);
         setTimeout(()=>{window.location.href = AppPaths.public.placeDetails.replace(":id", placeId);},5000)
@@ -47,12 +47,34 @@ export const authService = {
         return localStorage.getItem(Constants.tokenKey);
     },
 
+    tokenValid: (): boolean => {
+        const token = authService.token();
+        if (!token) return false;
+    
+        try {
+            const payload = JSON.parse(atob(token.split(".")[1]));
+            const exp = payload.exp;
+            if (!exp) return false;
+    
+            const currentTime = Math.floor(Date.now() / 1000);
+            return exp > currentTime;
+        } catch (error) {
+            console.error("Invalid token format", error);
+            return false;
+        }
+    },
+
     userRole: (): string => {
+        console.log(getTokenPayload()?.role || "");
         return getTokenPayload()?.role || "";
     },
 
     placeId: (): number => {
-        return Number(getTokenPayload()?.place_id) ?? null;
+        const tokenPlaceId = Number(getTokenPayload()?.place_id);
+        if (!isNaN(tokenPlaceId)) {
+            return tokenPlaceId;
+        }
+        return Number(localStorage.getItem(Constants.place_id));
     },
 
     tableId: (): number => {
@@ -77,9 +99,9 @@ function setSalt (salt:string){
 }
 
 function setToken (token:string){
-    const existingtoken = localStorage.getItem(Constants.tokenKey);
-    if (existingtoken)
-        localStorage.removeItem(Constants.tokenKey);
+    // const existingtoken = localStorage.getItem(Constants.tokenKey);
+    // if (existingtoken)
+    //     localStorage.removeItem(Constants.tokenKey);
     localStorage.setItem(Constants.tokenKey, token);
 }
 
@@ -94,4 +116,11 @@ function setPassCode(passcode: string) {
     if (existingPasscode)
         localStorage.removeItem(Constants.passcode);
     localStorage.setItem(Constants.passcode, passcode);
+}
+
+function removePreviousState(){
+    localStorage.removeItem(Constants.tokenKey);
+    localStorage.removeItem(Constants.salt);
+    localStorage.removeItem(Constants.passcode);
+    localStorage.removeItem(Constants.cartKey);
 }

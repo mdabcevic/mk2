@@ -6,7 +6,7 @@ export const AppPaths = {
         home:"/",
         aboutUs:"/aboutus",
         places:"/places",
-        placeDetails:"/bar/:id",
+        placeDetails:"/place/:id",
         menu: "/place/:placeId/menu",
         placeTables:"/place/tables/:id",
         redirectPage: "/table-lookup/:placeId/:salt",

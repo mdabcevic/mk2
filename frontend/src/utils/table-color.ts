@@ -54,3 +54,17 @@ export enum OrderStatusValue {
 export function getStatusColor(status: OrderStatusValue): string {
     return statusColors[status] || "#ffffff";
   }
+
+  const notificationColors: Record<number, string> = {
+    0: "bg-[#FCD34D] text-black", // StaffNeeded
+    1: "bg-[#FCD34D] text-white", // GuestJoinedTable
+    2: "bg-[#10B981] text-white", // GuestLeftTable
+    3: "bg-[#10B981] text-black", // OrderCreated
+    4: "bg-[#3B82F6] text-white", // OrderStatusUpdated
+    5: "bg-[#3B82F6] text-white", // OrderContentUpdated
+  };
+  
+
+  export function getNotificationColor(type: number):string{
+    return notificationColors[type] || "#D4D4D4";
+  }
