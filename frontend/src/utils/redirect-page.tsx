@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { authService } from "./auth/auth.service";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-
+import { useRef } from "react";
 
 function RedirectPage(){
 
@@ -12,7 +12,8 @@ function RedirectPage(){
     const [passcodeInputValue, setPasscodeInputValue] = useState<string>("");
     const [message, setMessage] = useState<string>("");
     const { t } = useTranslation("public");
-
+    const hasRun = useRef(false);
+    
     const checkAndGetToken = async () => {
         if (isNaN(Number(placeId)) || salt?.length !== 32) {
             setParamsValid(false);
@@ -20,14 +21,11 @@ function RedirectPage(){
         }
         const response = await authService.getGuestToken(salt!);
         console.log(response);
-        setTimeout(()=>{
-            if (!response.isSessionEstablished) {
-                setPassCodeRequired(true);
-            }
-            else
-                authService.setGuestToken(response.guestToken,placeId!);
-        }, 3000)
-        
+        if (!response.isSessionEstablished) {
+            setPassCodeRequired(true);
+        }
+        else
+            authService.setGuestToken(response.guestToken,placeId!);
     }
 
     const joinTable = async(e:any) => {
@@ -38,7 +36,6 @@ function RedirectPage(){
             response = await authService.joinTable(passcodeInputValue,salt!);
             if (!response.isSessionEstablished) {
                 setPassCodeRequired(true);
-                console.log("set " + t("invalid_passcode_message"))
                 setMessage(t("invalid_passcode_message"))
             }
             else
@@ -47,14 +44,14 @@ function RedirectPage(){
         catch(error:any){
             console.log(error.response)
             setPassCodeRequired(true);
-                console.log("set " + t("invalid_passcode_message"))
                 setMessage(t("invalid_passcode_message"))
         }
-        
     }
     useEffect(() => {
+        if (hasRun.current) return;
+        hasRun.current = true;
         checkAndGetToken();
-    },[])
+    }, []);
     
     return (
         <div className="linear-bg-main min-h-screen flex items-center justify-center">

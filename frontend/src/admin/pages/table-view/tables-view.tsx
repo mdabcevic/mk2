@@ -77,10 +77,7 @@ const TablesView = () => {
   return (
     <div>
       <section className="flex justify-center items-start w-full h-full p-[16px]">
-        <section id="notifications" className="flex flex-col items-start mr-4">
-          <h3 className="text-lg font-bold mb-2">Notifications</h3>
-          <NotificationScreen />
-        </section>
+        <NotificationScreen />
         <div
           style={{
             width: `${initial_div_width}px`,

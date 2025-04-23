@@ -21,7 +21,9 @@ const TablesPage = lazy(() => import("../../admin/pages/table-view/tables.tsx"))
 
 
 function ProtectedAdminRoute() {
-  return (authService.userRole() == UserRole.admin || authService.userRole() == UserRole.manager) ? <Outlet /> : authService.userRole() == UserRole.staff ? <Navigate to={AppPaths.admin.notifications} replace /> : <Navigate to={AppPaths.public.login} replace />;
+  return ((authService.userRole() == UserRole.admin || authService.userRole() == UserRole.manager) && authService.tokenValid()) ? <Outlet /> : 
+          authService.userRole() == UserRole.staff ? <Navigate to={AppPaths.admin.notifications}  /> : 
+          <Navigate to={AppPaths.public.login} replace />;
 }
 
 function AppRoutes(){
@@ -54,9 +56,10 @@ function AppRoutes(){
               }
             >
               <Route index element={<Dashboard />} />
+              <Route path={AppPaths.admin.notifications} element={<NotificationScreen />} />   
               <Route path={AppPaths.admin.products} element={<ProductsViewPage />} />
               <Route path={AppPaths.admin.tables} element={<TablesPage />} />
-              <Route path={AppPaths.admin.notifications} element={<NotificationScreen />} />              
+                         
               <Route path="*" element={<Dashboard />} />
             </Route>
           </Route>

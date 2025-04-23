@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { productMenuService } from '../../../utils/services/product-menu.service';
-import { CategoryGroup, MenuGroupedItemDto, MenuItemDto } from "../../../admin/pages/products/product";
+import { CategoryGroup, MenuGroupedItemDto } from "../../../admin/pages/products/product";
 import { cartStorage } from "../../../utils/storage";
 import { authService } from "../../../utils/auth/auth.service";
 import { UserRole } from "../../../utils/constants";
-import React from "react";
 import { MenuItemsList } from "./menu-items-list";
 import Cart from "./cart";
 

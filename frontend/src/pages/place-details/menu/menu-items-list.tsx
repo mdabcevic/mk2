@@ -43,7 +43,7 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
               return (
                   <div key={index} className={`relative px-3`}>
                   <div className={`pl-5 border rounded-[40px] shadow-sm flex justify-between items-center w-full ${
-                    !item.isAvailable ? "bg-gray-200" : "bg-neutral-latte-light"
+                    !item.isAvailable && UserRole.guest == userRole ? "bg-gray-200" : "bg-neutral-latte-light"
                   } ${userRole !== UserRole.guest ? "py-3 pr-5" : "py-0"}`}>
                   <div className="max-w-[250px]">
                     <h4 className="text-sm font-medium">{item.product.name}</h4>
@@ -53,9 +53,9 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
                   <div className="text-right flex flex-row items-center">
                     <p className=" font-normal">€{item.price}</p>
                 
-                    {!item.isAvailable ? (
+                    {!item.isAvailable && UserRole.guest == userRole ? (
                       <span className="px-2 mt-1 bg-gray-200 rounded text-gray-500 inline-block text-sm">
-                        {t("unavailable_text") ?? "Trenutno nedostupno"}
+                        {t("unavailable") ?? "Trenutno nedostupno"}
                       </span>
                     ) : (
                       userRole === UserRole.guest && (
