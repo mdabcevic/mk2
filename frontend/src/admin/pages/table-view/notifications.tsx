@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { subscribeToNotifications,Notification } from "../../../utils/notification-store";
-import { ToastType } from "../../../utils/toast";
+import { getNotificationColor } from "../../../utils/table-color";
 
 
 export function NotificationScreen() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-
+  console.log("aaaa")
   useEffect(() => {
+    console.log("cc")
     const unsubscribe = subscribeToNotifications((n) => {
       setNotifications((prev) => [...prev, n]);
     });
@@ -19,17 +20,13 @@ export function NotificationScreen() {
   };
 
   return (
-    <div className="flex flex-col gap-2 max-w-sm">
+    <section id="notifications" className="flex flex-col items-start mr-4">
+      <h3 className="text-lg font-bold mb-2">Notifications</h3>
+      <div className="flex flex-col gap-2 max-w-sm">
       {notifications.map((n) => (
         <div
           key={n.id}
-          className={`p-4 rounded shadow text-white flex justify-between items-center ${
-            n.type === ToastType.success
-              ? "bg-green-600"
-              : n.type === ToastType.error
-              ? "bg-red-600"
-              : "bg-blue-600"
-          }`}
+          className={`p-4 rounded shadow  flex justify-between items-center ${getNotificationColor(n.type)}`}
         >
           <span>{n.message}</span>
           <button
@@ -41,5 +38,7 @@ export function NotificationScreen() {
         </div>
       ))}
     </div>
+    </section>
+    
   );
 }

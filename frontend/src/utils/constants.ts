@@ -5,6 +5,7 @@ export enum Constants{
     cartKey = "cart",
     passcode = "passcode",
     salt = "salt",
+    place_id = "place_id",
     api_base_url =`https://localhost:${backend_port}`,
     url_qr = "http://localhost:5173/table-lookup/{placeId}/{salt}",
     create_tables_container_width = 550, // Matches the width of the 'place_view.png' template image
