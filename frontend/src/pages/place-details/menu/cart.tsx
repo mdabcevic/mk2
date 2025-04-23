@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { cartStorage, CartItem } from "../../../utils/storage";
 import { PaymentType } from "../../../utils/constants";
 import { orderService } from "./order.service";
+import { AppPaths } from "../../../utils/routing/routes";
+import { authService } from "../../../utils/auth/auth.service";
 
 const Cart = () => {
   const [cart, setCart] = useState<Record<string, CartItem>>(cartStorage.getCart());
@@ -16,11 +18,11 @@ const Cart = () => {
     return unsubscribe;
   }, []);
 
-  const handleAdd = (item: CartItem) => {
+  const addItem = (item: CartItem) => {
     cartStorage.addItem(item);
   };
 
-  const handleRemove = (item: CartItem) => {
+  const removeItem = (item: CartItem) => {
     cartStorage.removeItem(item);
   };
 
@@ -33,8 +35,10 @@ const Cart = () => {
 
     const response = await orderService.createOrder(orderItems, paymentType, note);
     if (response) {
+      cartStorage.deleteCart();
       console.log("Order created successfully", response);
     }
+    window.location.href = AppPaths.public.placeDetails.replace(":id",authService.placeId().toString());
   };
 
   const paymentTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -62,14 +66,14 @@ const Cart = () => {
 
           <div className="flex items-center gap-2 pr-3">
             <button
-              onClick={() => handleRemove(item)}
+              onClick={() => removeItem(item)}
               className="color-mocha-600 hover:bg-red-200 px-2 py-1 rounded-full"
             >
               <Minus size={16} />
             </button>
             <span className="text-[14px]">{item.quantity}</span>
             <button
-              onClick={() => handleAdd(item)}
+              onClick={() => addItem(item)}
               className="color-mocha-600 hover:bg-green-200 px-2 py-1 rounded-full"
             >
               <Plus size={16} />
@@ -78,7 +82,7 @@ const Cart = () => {
         </div>
       ))}
 
-<div className="space-y-4 text-black mt-30">
+      <div className="space-y-4 text-black mt-30">
         <div className="">
           <label className="block text-lg font-semibold mb-2" htmlFor="payment-method">{t("payment_type")}</label>
           <select
