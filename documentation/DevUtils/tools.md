@@ -19,3 +19,13 @@ For visual representation of database schema.
 Paste in entire content of .dbml file.
 
 ### EF Migrations
+To be continued
+
+### Sonarcloud
+https://sonarcloud.io/summary/overall?id=mdabcevic_mk2&branch=main
+Static code analysis that highlights code issues that should be fixed before production.
+
+### Docker Desktop
+Run the docker compose stack for testing frontend and backend
+Build images: docker build -no-cache
+Run stack: docker compose up

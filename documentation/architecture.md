@@ -2,13 +2,17 @@
 
 # Solution architecture (EN)
 
-Web application designed as RESTful communication between .NET backend and React frontend. In future, might get upgraded into using WebSockets.
+Web application designed as RESTful communication between .NET backend and React frontend. 
+In addition to REST API, SignalR Hubs are utilized for dispatching real-time notifications based on customer interaction on table status changes (occupied <> empt), order updates (status changes, content modifications), staff assistance, bill requests.
 
 ## Database
 
 For development purposes, we are using Postgres latest that is setup in docker container with initialization script that contains structure and initial seed data required for testing workflow of solution. Whenever the script is 'merged' from main, local database should be reinitialized in order to maintain same state locally.
 We opted for using multi-tenant database while cross-entity ownership constraints will be handled on backend.
 Custom „types“ are defined as postgres enums in order to reduce number of infrastructure tables (table status, payment type, employee roles, subscription tiers, etc.)
+
+In addition to persisting data, stored in postgres, solution contains a redis container for storing temporary notifications on current table activity.
+Activities are stored as hashset per table.
  
 See Figure 1: Database Schema for visual design.
  
@@ -27,6 +31,7 @@ Currently contains following items:
 -	utilities
 -	interfaces
 -	DTOs
+
 It was decided that each service will have access only to necessary repository instances, rather than entire database context, especially for Create, Update and Delete. Any „custom“ querying is achievable via exposed IQueryable on repository, but such implementations should be done carefully.
 Services call upon repositories to fetch data (via models) which are then transformed into dedicated DTO based on request from controller. Transformation is done via AutoMapper tool that uses defined maps for each DTO <-> Entity pair.
 Authorization and Cross-entity constraints are handled with JWT from request. It includes verifying the role of user before performing a request, and extracting the placeid used for filtering entities based on facility/business where user is stationed at.
@@ -46,7 +51,8 @@ It was decided to use typescript and tsx based files.
 
 # Arhitektura rješenja (HR)
 
-Web-aplikacija dizajnirana na temelju RESTful komunikacije između .NET pozadinskog sustava i React korisničkog sučelja. U budućnosti je plan unaprijediti komunikaciju korištenjem WebSocket-a gdje ima potrebe za time.
+Web-aplikacija dizajnirana na temelju RESTful komunikacije između .NET pozadinskog sustava i React korisničkog sučelja. 
+Uz REST API, aplikacija podržava SignalR konekciju između frontenda i backenda za slanje obavijesti u stvarnom vremenu.
 
 ## Baza podataka
 
