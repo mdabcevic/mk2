@@ -1,5 +1,4 @@
 
-
 # Solution architecture (EN)
 
 Web application designed as RESTful communication between .NET backend and React frontend. 
@@ -7,11 +6,11 @@ In addition to REST API, SignalR Hubs are utilized for dispatching real-time not
 
 ## Database
 
-For development purposes, we are using Postgres latest that is setup in docker container with initialization script that contains structure and initial seed data required for testing workflow of solution. Whenever the script is 'merged' from main, local database should be reinitialized in order to maintain same state locally.
+For development purposes, we are using Postgres version 17 that is setup in docker container with initialization script that contains structure and initial seed data required for testing workflow of solution. Whenever the script is 'merged' from main, local database should be reinitialized in order to maintain same state locally.
 We opted for using multi-tenant database while cross-entity ownership constraints will be handled on backend.
 Custom „types“ are defined as postgres enums in order to reduce number of infrastructure tables (table status, payment type, employee roles, subscription tiers, etc.)
 
-In addition to persisting data, stored in postgres, solution contains a redis container for storing temporary notifications on current table activity.
+In addition to persisting data, stored in postgres, solution contains a redis (version 7) container for storing temporary notifications on current table activity.
 Activities are stored as hashset per table.
  
 See Figure 1: Database Schema for visual design.
@@ -37,15 +36,16 @@ Services call upon repositories to fetch data (via models) which are then transf
 Authorization and Cross-entity constraints are handled with JWT from request. It includes verifying the role of user before performing a request, and extracting the placeid used for filtering entities based on facility/business where user is stationed at.
 
 ### „Backend“ 
-ASP Net Core project that contains controllers, DI and necessary configuration. On development startup, launches Scalar UI that uses OpenApi documentation. We use it to test endpoints manually.
+ASP Net Core project that contains controllers, DI and necessary configuration. 
+On development startup, launches Scalar UI that uses OpenApi documentation. We use it to test endpoints manually.
 
 ### „Tests“ 
-Test project which currently contains only service-based unit tests based on NUnit and NSubstitute.
+Test project which currently contains only service-based unit tests based on NUnit and NSubstitute and Factory utilities.
 
 ## Frontend
 
-Uses Node.js latest version and React, currently set up with Tailwind and no external libraries for prebuilt components.
-It was decided to use typescript and tsx based files.
+Uses Node.js version 22 and React version 19, currently set up with Tailwind and no external libraries for prebuilt components.
+All code is written in typescript.
 
 ----------------------------------------------------------
 
