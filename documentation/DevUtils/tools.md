@@ -1,5 +1,5 @@
-
-Collection of useful tools used for developing and debugging.
+# Tools
+Collection of useful tools used during developing and debugging.
 
 ### JWT.IO
 https://jwt.io/
@@ -19,7 +19,8 @@ For visual representation of database schema.
 Paste in entire content of .dbml file.
 
 ### EF Migrations
-TBA
+Tool for creating and applying changes to database.
+Will be added to CI/CD pipeline later.
 
 ### Sonarcloud
 https://sonarcloud.io/summary/overall?id=mdabcevic_mk2&branch=main
@@ -42,3 +43,9 @@ An interface for querying postgres databases.
 ### GitHub Actions
 Set of .yml files that define pipelines we run on each branch push and pull requests.
 Together they compose our CI/CD pipeline for analyzing, building, testing, deploying solution.
+
+### StreamLit
+Python based framework with integrated server and visual components for demo/sketch of product.
+
+### Fork
+GUI for git related operations (much like SourceTree)
