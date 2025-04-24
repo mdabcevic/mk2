@@ -5,6 +5,7 @@ using Bartender.Domain.Interfaces;
 using Bartender.Domain.Mappings;
 using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
+using Bartender.Domain.Services.Data;
 using Bartender.Domain.Utility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -85,7 +86,7 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 builder.Services.AddScoped<IBusinessService, BusinessService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
-builder.Services.AddScoped<IPlacesService, PlacesService>();
+builder.Services.AddScoped<IPlaceService, PlaceService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<ITableInteractionService, TableInteractionService>();
@@ -108,7 +109,7 @@ builder.Services.AddAutoMapper(
     typeof(BusinessProfile).Assembly,
     typeof(ProductProfile).Assembly,
     typeof(MenuItemProfile).Assembly,
-    typeof(PlacesProfile).Assembly,
+    typeof(PlaceProfile).Assembly,
     typeof(OrderProfile).Assembly
 );
 
