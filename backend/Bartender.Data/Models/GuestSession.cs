@@ -15,7 +15,7 @@ public class GuestSession
     public int TableId { get; set; }
 
     [ForeignKey(nameof(TableId))]
-    public Tables? Table { get; set; }
+    public Table? Table { get; set; }
 
     [Column("group_id")]
     public Guid? GroupId { get; set; }
@@ -40,5 +40,5 @@ public class GuestSession
     [Column("isvalid")]
     public bool IsValid { get; set; } = true;
 
-    public ICollection<Orders> Orders { get; set; } = [];
+    public ICollection<Order> Orders { get; set; } = [];
 }

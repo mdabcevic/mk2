@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Bartender.Data.Models;
 
 [Table("cities")]
-public class Cities
+public class City
 {
     [Key]
     [Column("id")]
@@ -16,6 +16,6 @@ public class Cities
     [Column("name")]
     public required string Name { get; set; }
 
-    public ICollection<Places> Places { get; set; } = [];
+    public ICollection<Place> Places { get; set; } = [];
 
 }

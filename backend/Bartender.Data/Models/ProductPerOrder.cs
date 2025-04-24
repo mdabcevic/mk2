@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Bartender.Data.Models;
 
 [Table("productsperorder")]
-public class ProductsPerOrder
+public class ProductPerOrder
 {
     [Required]
     [Column("order_id")]
@@ -12,14 +12,14 @@ public class ProductsPerOrder
     public int OrderId { get; set; }
 
     [ForeignKey("OrderId")]
-    public Orders? Order { get; set; }
+    public Order? Order { get; set; }
 
     [Required]
     [Column("menuitem_id")]
     public int MenuItemId { get; set; }
 
     [ForeignKey("MenuItemId")]
-    public MenuItems? MenuItem { get; set; }
+    public MenuItem? MenuItem { get; set; }
 
     [Required]
     [Column("item_price", TypeName = "decimal(10,2)")]

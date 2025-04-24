@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Bartender.Data.Models;
 
 [Table("products")]
-public class Products
+public class Product
 {
     [Key]
     [Column("id")]
@@ -30,8 +30,8 @@ public class Products
     public int? BusinessId { get; set; }
 
     [ForeignKey("BusinessId")]
-    public Businesses? Business { get; set; }
+    public Business? Business { get; set; }
 
-    public ICollection<MenuItems>? MenuItems { get; set; }
-    public ICollection<Reviews>? Reviews { get; set; }
+    public ICollection<MenuItem>? MenuItems { get; set; }
+    public ICollection<Review>? Reviews { get; set; }
 }

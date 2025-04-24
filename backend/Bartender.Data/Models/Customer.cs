@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Bartender.Data.Models;
 
 [Table("customers")]
-public class Customers
+public class Customer
 {
     [Key]
     [Column("id")]
@@ -20,6 +20,6 @@ public class Customers
     [Column("password")]
     public required string Password { get; set; }
 
-    public ICollection<Orders> Orders { get; set; } = [];
-    public ICollection<Reviews> Reviews { get; set; } = [];
+    public ICollection<Order> Orders { get; set; } = [];
+    public ICollection<Review> Reviews { get; set; } = [];
 }

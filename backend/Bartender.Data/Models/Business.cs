@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Bartender.Data.Models;
 
 [Table("businesses")]
-public class Businesses
+public class Business
 {
     [Key]
     [Column("id")]
@@ -28,5 +28,5 @@ public class Businesses
     [EnumDataType(typeof(SubscriptionTier))]
     public SubscriptionTier SubscriptionTier { get; set; } = SubscriptionTier.none;
 
-    public ICollection<Places> Places { get; set; } = [];
+    public ICollection<Place> Places { get; set; } = [];
 }

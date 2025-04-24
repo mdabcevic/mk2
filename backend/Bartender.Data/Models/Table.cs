@@ -5,7 +5,7 @@ using Bartender.Data.Enums;
 namespace Bartender.Data.Models;
 
 [Table("tables")]
-public class Tables
+public class Table
 {
     [Key]
     [Column("id")]
@@ -17,7 +17,7 @@ public class Tables
     public int PlaceId { get; set; }
 
     [ForeignKey("PlaceId")]
-    public Places? Place { get; set; }
+    public Place? Place { get; set; }
 
     [Required]
     [Column("label")]

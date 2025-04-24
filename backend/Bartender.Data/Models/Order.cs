@@ -5,7 +5,7 @@ using Bartender.Data.Enums;
 namespace Bartender.Data.Models;
 
 [Table("orders")]
-public class Orders
+public class Order
 {
     [Key]
     [Column("id")]
@@ -17,13 +17,13 @@ public class Orders
     public int TableId { get; set; }
 
     [ForeignKey("TableId")]
-    public Tables? Table { get; set; }
+    public Table? Table { get; set; }
 
     [Column("customer_id")]
     public int? CustomerId { get; set; }
 
     [ForeignKey("CustomerId")]
-    public Customers? Customer { get; set; }
+    public Customer? Customer { get; set; }
 
     [Column("guest_session_id")]
     public Guid? GuestSessionId { get; set; }
@@ -51,5 +51,5 @@ public class Orders
     [Column("note")]
     public string? Note { get; set; }
 
-    public ICollection<ProductsPerOrder> Products { get; set; } = [];
+    public ICollection<ProductPerOrder> Products { get; set; } = [];
 }
