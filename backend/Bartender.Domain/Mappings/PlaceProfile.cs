@@ -1,31 +1,30 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
-using Bartender.Domain.DTO.MenuItems;
-using Bartender.Domain.DTO.Products;
+using Bartender.Domain.DTO.MenuItem;
+using Bartender.Domain.DTO.Place;
 
 namespace Bartender.Domain.Mappings;
 
-public class PlacesProfile : Profile
+public class PlaceProfile : Profile
 {
-    public PlacesProfile()
+    public PlaceProfile()
     {
-        CreateMap<Places, PlaceDto>()
+        CreateMap<Place, PlaceDto>()
         .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.Business!.Name))
         .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City!.Name))
         .ForMember(dest => dest.WorkHours, opt => opt.MapFrom(src => $"{src.OpensAt:hh\\:mm} - {src.ClosesAt:hh\\:mm}"));
 
-        CreateMap<Places, PlaceWithMenuDto>()
+        CreateMap<Place, PlaceWithMenuDto>()
         .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.Business!.Name))
         .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City!.Name))
         .ForMember(dest => dest.WorkHours, opt => opt.MapFrom(src => $"{src.OpensAt:hh\\:mm} - {src.ClosesAt:hh\\:mm}"))
         .ForMember(dest => dest.Menu, opt => opt.MapFrom(src => src.MenuItems));
 
-        CreateMap<Places, GroupedPlaceMenuDto>()
+        CreateMap<Place, GroupedPlaceMenuDto>()
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.MenuItems))
             .ForMember(dest => dest.Place, opt => opt.MapFrom(src => src));
 
-        CreateMap<InsertPlaceDto, Places>()
+        CreateMap<InsertPlaceDto, Place>()
         .ForMember(dest => dest.OpensAt,
             opt =>
             {
@@ -40,7 +39,7 @@ public class PlacesProfile : Profile
             }
         );
 
-        CreateMap<UpdatePlaceDto, Places>()
+        CreateMap<UpdatePlaceDto, Place>()
         .ForMember(dest => dest.OpensAt,
             opt =>
             {

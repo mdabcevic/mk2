@@ -1,6 +1,6 @@
 ﻿using Bartender.Data.Models;
 using AutoMapper;
-using Bartender.Domain.DTO.Products;
+using Bartender.Domain.DTO.Product;
 
 namespace Bartender.Domain.Mappings;
 
@@ -8,10 +8,10 @@ public class ProductProfile : Profile
 {
     public ProductProfile()
     {
-        CreateMap<Products, ProductBaseDto>()
+        CreateMap<Product, ProductBaseDto>()
             .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
 
-        CreateMap<Products, ProductDto>()
+        CreateMap<Product, ProductDto>()
         .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
         .ForMember(dest => dest.Exclusive, opt => opt.MapFrom(src => src.BusinessId != null));
 
@@ -21,6 +21,6 @@ public class ProductProfile : Profile
             .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.Products))
             .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Name));
 
-        CreateMap<UpsertProductDto, Products>();
+        CreateMap<UpsertProductDto, Product>();
     }
 }
