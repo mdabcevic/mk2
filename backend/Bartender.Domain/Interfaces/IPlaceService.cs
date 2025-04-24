@@ -1,8 +1,9 @@
 ﻿using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.Place;
 
 namespace Bartender.Domain.Interfaces;
 
-public interface IPlacesService
+public interface IPlaceService
 {
     Task<ServiceResult<PlaceWithMenuDto>> GetByIdAsync(int id, bool includeNavigations = true);
     Task<ServiceResult<List<PlaceDto>>> GetAllAsync();

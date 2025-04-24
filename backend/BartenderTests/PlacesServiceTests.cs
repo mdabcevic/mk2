@@ -2,13 +2,13 @@
 using Bartender.Data;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain;
+using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Mappings;
-using Bartender.Domain.Services;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Bartender.Domain.Services.Data;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using Table = Bartender.Data.Models.Table;
 
 namespace BartenderTests;
 
@@ -16,31 +16,31 @@ namespace BartenderTests;
 [TestFixture]
 public class PlacesServiceTests
 {
-    private IRepository<Places> _repository;
+    private IRepository<Place> _repository;
     private ITableRepository _tableRepository;
-    private ILogger<PlacesService> _logger;
+    private ILogger<PlaceService> _logger;
     private ICurrentUserContext _userContext;
     INotificationService _notificationService;
     private IMapper _mapper;
-    private PlacesService _service;
+    private PlaceService _service;
 
     [SetUp]
     public void SetUp()
     {
-        _repository = Substitute.For<IRepository<Places>>();
+        _repository = Substitute.For<IRepository<Place>>();
         _tableRepository = Substitute.For<ITableRepository>();
-        _logger = Substitute.For<ILogger<PlacesService>>();
+        _logger = Substitute.For<ILogger<PlaceService>>();
         _userContext = Substitute.For<ICurrentUserContext>();
         _notificationService = Substitute.For<INotificationService>();
         
 
         var config = new MapperConfiguration(cfg =>
         {
-            cfg.AddProfile<PlacesProfile>();
+            cfg.AddProfile<PlaceProfile>();
         });
         _mapper = config.CreateMapper();
 
-        _service = new PlacesService(_repository, _tableRepository, _logger, _userContext, _notificationService, _mapper);
+        _service = new PlaceService(_repository, _tableRepository, _logger, _userContext, _notificationService, _mapper);
     }
 
 
@@ -56,7 +56,7 @@ public class PlacesServiceTests
 
         // Assert
         Assert.That(result.Success, Is.True);
-        await _repository.Received(1).AddAsync(Arg.Any<Places>());
+        await _repository.Received(1).AddAsync(Arg.Any<Place>());
     }
 
     [Test]
@@ -75,7 +75,7 @@ public class PlacesServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
         });
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Places>());
+        await _repository.DidNotReceive().AddAsync(Arg.Any<Place>());
     }
 
     [Test]
@@ -98,7 +98,7 @@ public class PlacesServiceTests
     public async Task DeleteAsync_Should_Return_NotFound_When_Missing()
     {
         // Arrange
-        _repository.GetByIdAsync(1).Returns((Places?)null);
+        _repository.GetByIdAsync(1).Returns((Place?)null);
 
         // Act
         var result = await _service.DeleteAsync(1);
@@ -129,7 +129,7 @@ public class PlacesServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
         });
-        await _repository.DidNotReceive().DeleteAsync(Arg.Any<Places>());
+        await _repository.DidNotReceive().DeleteAsync(Arg.Any<Place>());
     }
 
     [Test]
@@ -153,7 +153,7 @@ public class PlacesServiceTests
     public async Task UpdateAsync_Should_Return_NotFound_When_Missing()
     {
         // Arrange
-        _repository.GetByIdAsync(1).Returns((Places?)null);
+        _repository.GetByIdAsync(1).Returns((Place?)null);
 
         // Act
         var result = await _service.UpdateAsync(1, TestDataFactory.CreateValidUpdatePlaceDto());
@@ -184,7 +184,7 @@ public class PlacesServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
         });
-        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Places>());
+        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Place>());
     }
 
     [Test]
@@ -206,7 +206,7 @@ public class PlacesServiceTests
     public async Task NotifyStaffAsync_Should_ReturnNotFound_WhenTableMissing()
     {
         // Arrange
-        _tableRepository.GetBySaltAsync("salt123").Returns((Tables?)null);
+        _tableRepository.GetBySaltAsync("salt123").Returns((Table?)null);
 
         // Act
         var result = await _service.NotifyStaffAsync("salt123");
@@ -217,7 +217,7 @@ public class PlacesServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
         });
-        await _notificationService.DidNotReceive().AddNotificationAsync(Arg.Any<Tables>(), Arg.Any<TableNotification>());
+        await _notificationService.DidNotReceive().AddNotificationAsync(Arg.Any<Table>(), Arg.Any<TableNotification>());
     }
 }
 

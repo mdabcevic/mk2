@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain;
 using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.Business;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Services;
+using Bartender.Domain.Services.Data;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
@@ -13,7 +13,7 @@ namespace BartenderTests;
 [TestFixture]
 public class BusinessServiceTests
 {
-    private IRepository<Businesses> _repository;
+    private IRepository<Business> _repository;
     private ILogger<BusinessService> _logger;
     private ICurrentUserContext _currentUser;
     private IMapper _mapper;
@@ -22,7 +22,7 @@ public class BusinessServiceTests
     [SetUp]
     public void SetUp()
     {
-        _repository = Substitute.For<IRepository<Businesses>>();
+        _repository = Substitute.For<IRepository<Business>>();
         _logger = Substitute.For<ILogger<BusinessService>>();
         _currentUser = Substitute.For<ICurrentUserContext>();
         _mapper = Substitute.For<IMapper>();
@@ -92,7 +92,7 @@ public class BusinessServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Validation));
         });
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Businesses>());
+        await _repository.DidNotReceive().AddAsync(Arg.Any<Business>());
     }
 
     [Test]
@@ -101,7 +101,7 @@ public class BusinessServiceTests
         // Arrange
         var dto = new UpsertBusinessDto { OIB = "12345678901", Name = "New Business", Headquarters = "HQ" };
         var entity = TestDataFactory.CreateValidBusiness(oib: "12345678901", name: "New Business", sub: SubscriptionTier.none);
-        _mapper.Map<Businesses>(dto).Returns(entity);
+        _mapper.Map<Business>(dto).Returns(entity);
 
         // Act
         var result = await _businessService.AddAsync(dto);
@@ -126,7 +126,7 @@ public class BusinessServiceTests
 
         // Assert
         Assert.That(result.Success, Is.True);
-        await _repository.Received(1).UpdateAsync(Arg.Is<Businesses>(b => b.SubscriptionTier == SubscriptionTier.premium));
+        await _repository.Received(1).UpdateAsync(Arg.Is<Business>(b => b.SubscriptionTier == SubscriptionTier.premium));
     }
 
     [Test]
@@ -147,7 +147,7 @@ public class BusinessServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
         });
-        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Businesses>());
+        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Business>());
     }
 
 
@@ -172,7 +172,7 @@ public class BusinessServiceTests
     {
         // Arrange
         var dto = new UpsertBusinessDto { OIB = "123", Name = "Nonexistent Business", Headquarters = "HQ" };
-        _repository.GetByIdAsync(Arg.Any<int>()).Returns((Businesses?)null);
+        _repository.GetByIdAsync(Arg.Any<int>()).Returns((Business?)null);
 
         // Act
         var result = await _businessService.UpdateAsync(1, dto);
@@ -184,7 +184,7 @@ public class BusinessServiceTests
             Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
         });
 
-        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Businesses>());
+        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Business>());
     }
 
     [Test]
@@ -206,7 +206,7 @@ public class BusinessServiceTests
     public async Task DeleteAsync_ReturnsError_WhenNotFound()
     {
         // Arrange
-        _repository.GetByIdAsync(1).Returns((Businesses?)null);
+        _repository.GetByIdAsync(1).Returns((Business?)null);
 
         // Act
         var result = await _businessService.DeleteAsync(1);
@@ -217,6 +217,6 @@ public class BusinessServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
         });
-        await _repository.DidNotReceive().DeleteAsync(Arg.Any<Businesses>());
+        await _repository.DidNotReceive().DeleteAsync(Arg.Any<Business>());
     }
 }

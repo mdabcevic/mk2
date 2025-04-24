@@ -17,7 +17,7 @@ public class PlaceService(
     INotificationService notificationService,
     IMapper mapper
     )
-    : IPlacesService
+    : IPlaceService
 {
     public async Task<ServiceResult> AddAsync(InsertPlaceDto dto)
     {

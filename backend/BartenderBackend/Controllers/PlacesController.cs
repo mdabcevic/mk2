@@ -1,4 +1,4 @@
-﻿using Bartender.Domain.DTO;
+﻿using Bartender.Domain.DTO.Place;
 using Bartender.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +7,7 @@ namespace BartenderBackend.Controllers;
 
 [Route("api/places")]
 [ApiController]
-public class PlacesController(IPlacesService placesService) : ControllerBase
+public class PlacesController(IPlaceService placesService) : ControllerBase
 {
     [HttpGet("{id?}")]
     public async Task<IActionResult> Get(int? id)
