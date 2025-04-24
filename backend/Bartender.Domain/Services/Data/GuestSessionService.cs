@@ -3,7 +3,7 @@ using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Bartender.Domain.Services;
+namespace Bartender.Domain.Services.Data;
 
 public class GuestSessionService(
     IRepository<GuestSession> guestSessionRepo,

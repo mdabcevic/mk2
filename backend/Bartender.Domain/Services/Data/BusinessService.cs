@@ -2,14 +2,15 @@
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.Business;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Bartender.Domain.Services;
+namespace Bartender.Domain.Services.Data;
 
 public class BusinessService(
-    IRepository<Businesses> repository,
+    IRepository<Business> repository,
     ILogger<BusinessService> logger,
     ICurrentUserContext currentUser,
     IMapper mapper
@@ -47,7 +48,7 @@ public class BusinessService(
         if (dto.OIB.Length != 11) //TODO: include actual OIB validation
             return ServiceResult.Fail("OIB must be 11 characters", ErrorType.Validation);
 
-        var entity = mapper.Map<Businesses>(dto);
+        var entity = mapper.Map<Business>(dto);
         await repository.AddAsync(entity);
         logger.LogInformation("Business created: {Name}, OIB: {OIB}", dto.Name, dto.OIB);
         return ServiceResult.Ok();

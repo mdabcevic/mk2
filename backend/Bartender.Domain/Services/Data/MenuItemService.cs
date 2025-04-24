@@ -1,20 +1,21 @@
 ﻿using AutoMapper;
 using Bartender.Domain.Interfaces;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO.MenuItems;
-using Bartender.Domain.DTO.Products;
+using Bartender.Domain.DTO.MenuItem;
+using Bartender.Domain.DTO.Product;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Bartender.Data.Enums;
 using System.ComponentModel.DataAnnotations;
 using Bartender.Domain.DTO;
 using Bartender.Domain.utility.Exceptions;
+using Bartender.Domain.DTO.Place;
 
-namespace Bartender.Domain.Services;
+namespace Bartender.Domain.Services.Data;
 public class MenuItemService(
-    IRepository<MenuItems> repository,
-    IRepository<Places> placeRepository,
-    IRepository<Products> productRepository,
+    IRepository<MenuItem> repository,
+    IRepository<Place> placeRepository,
+    IRepository<Product> productRepository,
     ILogger<MenuItemService> logger,
     ICurrentUserContext currentUser,
     IMapper mapper) : IMenuItemService
@@ -94,7 +95,7 @@ public class MenuItemService(
         } 
     }
 
-    private async Task<IQueryable<MenuItems>> GetPlaceMenuItemsQuery(int id, bool onlyAvailable)
+    private async Task<IQueryable<MenuItem>> GetPlaceMenuItemsQuery(int id, bool onlyAvailable)
     {
         if (!await placeRepository.ExistsAsync(p => p.Id == id))
             throw new NotFoundException($"Place with id {id} not found");
@@ -197,7 +198,7 @@ public class MenuItemService(
             if (existingMenuItem)
                 return ServiceResult.Fail($"The menu item with product ID {menuItem.ProductId} already exists at the place with ID {menuItem.PlaceId}", ErrorType.Conflict);  
 
-            var newMenuItem = mapper.Map<MenuItems>(menuItem);
+            var newMenuItem = mapper.Map<MenuItem>(menuItem);
             await repository.AddAsync(newMenuItem);
             logger.LogInformation($"User {currentUser.UserId} added product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
             return ServiceResult.Ok();
@@ -219,7 +220,7 @@ public class MenuItemService(
 
     public async Task<ServiceResult<List<FailedMenuItemDto>>> AddMultipleAsync(List<UpsertMenuItemDto> menuItems)
     {
-        var validMenuItems = new List<MenuItems>();
+        var validMenuItems = new List<MenuItem>();
         var failedMenuItems = new List<FailedMenuItemDto>();
 
         foreach (var menuItem in menuItems)
@@ -238,7 +239,7 @@ public class MenuItemService(
 
                 await ValidateMenuItemAsync(menuItem);
 
-                validMenuItems.Add(mapper.Map<MenuItems>(menuItem));
+                validMenuItems.Add(mapper.Map<MenuItem>(menuItem));
             }
             catch (Exception ex) {
                 var errorMessage = ex switch
@@ -280,7 +281,7 @@ public class MenuItemService(
 
     public async Task<ServiceResult<List<FailedMenuItemDto>>> CopyMenuAsync(int fromPlaceId, int toPlaceId)
     {
-        var validMenuItems = new List<MenuItems>();
+        var validMenuItems = new List<MenuItem>();
         var failedMenuItems = new List<FailedMenuItemDto>();
 
         bool existingPlace = await placeRepository.ExistsAsync(p => p.Id == fromPlaceId);
@@ -315,7 +316,7 @@ public class MenuItemService(
                     continue;
                 }
 
-                var newMenuItem = new MenuItems
+                var newMenuItem = new MenuItem
                 {
                     PlaceId = toPlaceId,
                     ProductId = m.ProductId,

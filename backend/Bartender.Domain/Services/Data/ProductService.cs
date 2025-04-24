@@ -1,16 +1,17 @@
 ﻿using AutoMapper;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO.Products;
+using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.Product;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 
-namespace Bartender.Domain.Services;
+namespace Bartender.Domain.Services.Data;
 
 public class ProductService(
-    IRepository<Products> repository, 
+    IRepository<Product> repository, 
     IRepository<ProductCategory> categoryRepository,
     ILogger<ProductService> logger,
     ICurrentUserContext currentUser,
@@ -49,7 +50,7 @@ public class ProductService(
         {
             var user = await currentUser.GetCurrentUserAsync();
 
-            Expression<Func<Products, bool>>? filter = null;
+            Expression<Func<Product, bool>>? filter = null;
 
             if (user!.Role != EmployeeRole.admin && exclusive == null)
                 filter = p => p.BusinessId == user.Place!.BusinessId || p.BusinessId == null;
@@ -92,11 +93,11 @@ public class ProductService(
                     Category = g.Name,
                     Products = g.Products
                         .Where(p =>
-                            (exclusive == null && user!.Role == EmployeeRole.admin) ||
-                            (exclusive == null && (p.BusinessId == user.Place!.BusinessId || p.BusinessId == null)) ||
-                            (exclusive == true && user!.Role == EmployeeRole.admin && p.BusinessId != null) ||
-                            (exclusive == true && p.BusinessId == user.Place!.BusinessId) ||
-                            (exclusive == false && p.BusinessId == null)
+                            exclusive == null && user!.Role == EmployeeRole.admin ||
+                            exclusive == null && (p.BusinessId == user.Place!.BusinessId || p.BusinessId == null) ||
+                            exclusive == true && user!.Role == EmployeeRole.admin && p.BusinessId != null ||
+                            exclusive == true && p.BusinessId == user.Place!.BusinessId ||
+                            exclusive == false && p.BusinessId == null
                         )
                         .OrderBy(p => p.Name)
                         .Select(p => mapper.Map<ProductBaseDto>(p))
@@ -123,7 +124,7 @@ public class ProductService(
             var query = repository.QueryIncluding(p => p.Category);
 
 
-            Expression<Func<Products, bool>>? filter = null;
+            Expression<Func<Product, bool>>? filter = null;
 
             if (exclusive == null && user!.Role != EmployeeRole.admin)
                 filter = p => p.BusinessId == user.Place!.BusinessId || p.BusinessId == null;
@@ -172,7 +173,7 @@ public class ProductService(
             if (!validationResult.Success)
                 return validationResult;
 
-            var newProduct = mapper.Map<Products>(product);
+            var newProduct = mapper.Map<Product>(product);
 
             await repository.AddAsync(newProduct);
             logger.LogInformation($"Product created: {product.Name} {product.Volume}, BusinessId: {product.BusinessId}");

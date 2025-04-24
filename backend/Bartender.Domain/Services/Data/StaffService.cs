@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
+using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Staff;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace Bartender.Domain.Services;
+namespace Bartender.Domain.Services.Data;
 
 public class StaffService(
     IRepository<Staff> repository, 

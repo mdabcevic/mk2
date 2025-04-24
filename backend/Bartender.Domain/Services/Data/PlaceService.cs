@@ -2,16 +2,17 @@
 using Bartender.Data;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.Place;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Bartender.Domain.Services;
+namespace Bartender.Domain.Services.Data;
 
-public class PlacesService(
-    IRepository<Places> repository,
+public class PlaceService(
+    IRepository<Place> repository,
     ITableRepository tableRepository,
-    ILogger<PlacesService> logger,
+    ILogger<PlaceService> logger,
     ICurrentUserContext currentUser,
     INotificationService notificationService,
     IMapper mapper
@@ -23,7 +24,7 @@ public class PlacesService(
         if (!await IsSameBusinessAsync(dto.BusinessId))
             return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
 
-        var entity = mapper.Map<Places>(dto);
+        var entity = mapper.Map<Place>(dto);
         await repository.AddAsync(entity);
         logger.LogInformation("Place created: {Address}, BusinessId: {BusinessId}", dto.Address, dto.BusinessId);
         return ServiceResult.Ok();

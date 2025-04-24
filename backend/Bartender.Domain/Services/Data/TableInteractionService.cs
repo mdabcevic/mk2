@@ -5,11 +5,12 @@ using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO.Table;
 using Bartender.Data;
+using Bartender.Domain.DTO;
 
-namespace Bartender.Domain.Services;
+namespace Bartender.Domain.Services.Data;
 
 public class TableInteractionService(
-    IRepository<Tables> repository,
+    IRepository<Table> repository,
     IGuestSessionService guestSessionService,
     ITableSessionService tableSessionService,
     IOrderRepository orderRepository,
@@ -53,7 +54,7 @@ public class TableInteractionService(
             : await HandleStaffStatusChangeAsync(table, newStatus);
     }
 
-    private async Task<ServiceResult<TableScanDto>> HandleGuestScanAsync(Tables table, string? passphrase)
+    private async Task<ServiceResult<TableScanDto>> HandleGuestScanAsync(Table table, string? passphrase)
     {
         if (table.IsDisabled)
         {
@@ -97,7 +98,7 @@ public class TableInteractionService(
     }
 
     //TODO: add check for unpaid receipts before emptying table.
-    private async Task<ServiceResult> HandleGuestStatusChangeAsync(Tables table, TableStatus newStatus, string token)
+    private async Task<ServiceResult> HandleGuestStatusChangeAsync(Table table, TableStatus newStatus, string token)
     {
         var accessToken = currentUser.GetRawToken();
         if (string.IsNullOrWhiteSpace(accessToken))
@@ -128,7 +129,7 @@ public class TableInteractionService(
         return ServiceResult.Ok();
     }
 
-    private async Task<ServiceResult> HandleStaffStatusChangeAsync(Tables table, TableStatus newStatus)
+    private async Task<ServiceResult> HandleStaffStatusChangeAsync(Table table, TableStatus newStatus)
     {
         var user = await currentUser.GetCurrentUserAsync();
         if (!await IsSameBusinessAsync(table.PlaceId))
@@ -148,7 +149,7 @@ public class TableInteractionService(
         return ServiceResult.Ok();
     }
 
-    private async Task<ServiceResult<TableScanDto>> HandleStaffScanAsync(Tables table)
+    private async Task<ServiceResult<TableScanDto>> HandleStaffScanAsync(Table table)
     {
         table.Status = TableStatus.occupied;
         await repository.UpdateAsync(table);
@@ -169,7 +170,7 @@ public class TableInteractionService(
         return new string([.. Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)])]);
     }
 
-    private async Task<ServiceResult<TableScanDto>> StartFirstSession(Tables table)
+    private async Task<ServiceResult<TableScanDto>> StartFirstSession(Table table)
     {
         table.Status = TableStatus.occupied; //TODO: background job that empties tables with no active group sessions? Or wrap into transaction?
         await repository.UpdateAsync(table);
@@ -189,7 +190,7 @@ public class TableInteractionService(
         return ServiceResult<TableScanDto>.Ok(dto);
     }
 
-    private async Task<ServiceResult<TableScanDto>> TryJoinExistingSession(Tables table, string? submittedPassphrase)
+    private async Task<ServiceResult<TableScanDto>> TryJoinExistingSession(Table table, string? submittedPassphrase)
     {
         if (string.IsNullOrWhiteSpace(submittedPassphrase))
         {
@@ -219,7 +220,7 @@ public class TableInteractionService(
         }
     }
 
-    private async Task ApplyEmptyStatusAsync(Tables table)
+    private async Task ApplyEmptyStatusAsync(Table table)
     {
         await guestSessionService.EndGroupSessionAsync(table.Id);
         await orderRepository.SetTableOrdersAsClosedAsync(table.Id);

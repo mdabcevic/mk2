@@ -1,18 +1,19 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
 using Bartender.Data.Enums;
-using Bartender.Domain.DTO.Orders;
+using Bartender.Domain.DTO.Order;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO;
 using Bartender.Data;
+using Bartender.Domain.DTO.Place;
 
-namespace Bartender.Domain.Services;
+namespace Bartender.Domain.Services.Data;
 
 public class OrderService(
     IOrderRepository repository,
-    IRepository<Tables> tableRepository,
-    IRepository<MenuItems> menuItemRepository,
+    IRepository<Table> tableRepository,
+    IRepository<MenuItem> menuItemRepository,
     IRepository<GuestSession> guestSessionRepo,
     ILogger<OrderService> logger,
     ICurrentUserContext currentUser,
@@ -33,7 +34,7 @@ public class OrderService(
             return validationResult;
 
         // combine duplicate items (same MenuItemId) by summing their quantities and add price to each item
-        List<ProductsPerOrder> newOrderItems = await ProcessOrderItemsAsync(order);
+        List<ProductPerOrder> newOrderItems = await ProcessOrderItemsAsync(order);
 
         var calculatedTotal = CalculateTotalPrice(newOrderItems);
         if (calculatedTotal != order.TotalPrice)
@@ -52,7 +53,7 @@ public class OrderService(
         }
 
         // create order transaction - either completes both order and items creation or rolls back completely on any failure 
-        var newOrder = await repository.CreateOrderWithItemsAsync(mapper.Map<Orders>(order), newOrderItems);
+        var newOrder = await repository.CreateOrderWithItemsAsync(mapper.Map<Order>(order), newOrderItems);
 
         await notificationService.AddNotificationAsync(newOrder.Table,
             NotificationFactory.ForOrder(newOrder.Table, newOrder.Id, $"Order {newOrder.Id} created at table {newOrder.Table.Label}.", NotificationType.OrderCreated));
@@ -74,8 +75,8 @@ public class OrderService(
 
         if (currentUser.IsGuest)
         {
-            if ((newStatus.Status == OrderStatus.payment_requested && existingOrder.Status == OrderStatus.delivered)
-                || (newStatus.Status == OrderStatus.cancelled && existingOrder.Status == OrderStatus.created))
+            if (newStatus.Status == OrderStatus.payment_requested && existingOrder.Status == OrderStatus.delivered
+                || newStatus.Status == OrderStatus.cancelled && existingOrder.Status == OrderStatus.created)
             {
                 existingOrder.Status = newStatus.Status;
                 existingOrder.PaymentType = newStatus.PaymentType ?? existingOrder.PaymentType;
@@ -117,7 +118,7 @@ public class OrderService(
             return validUser;
 
         // if the order is closed or the guest is trying to modify an already approved order, return an error.
-        if (existingOrder.Status == OrderStatus.closed || (currentUser.IsGuest && existingOrder.Status != OrderStatus.cancelled))
+        if (existingOrder.Status == OrderStatus.closed || currentUser.IsGuest && existingOrder.Status != OrderStatus.cancelled)
         {
             logger.LogWarning($"Update failed: Attempt to modify a closed or finalized order with id {id}");
             return ServiceResult.Fail("Order cannot be changed anymore", ErrorType.Validation);
@@ -128,7 +129,7 @@ public class OrderService(
         if (!validationResult.Success)
             return validationResult;
 
-        List<ProductsPerOrder> newOrderItems = await ProcessOrderItemsAsync(order);
+        List<ProductPerOrder> newOrderItems = await ProcessOrderItemsAsync(order);
 
         order.TotalPrice = CalculateTotalPrice(newOrderItems);
         order.Status = existingOrder.Status;
@@ -296,7 +297,7 @@ public class OrderService(
         return ServiceResult.Ok();
     }
 
-    private async Task<List<MenuItems>> GetOrderItemsAsync(UpsertOrderDto order)
+    private async Task<List<MenuItem>> GetOrderItemsAsync(UpsertOrderDto order)
     {
         var menuItemIds = order.Items.Select(i => i.MenuItemId).Distinct();
         var menuItems = await menuItemRepository.GetFilteredAsync(
@@ -306,12 +307,12 @@ public class OrderService(
         return menuItems;
     }
 
-    private async Task<List<ProductsPerOrder>> ProcessOrderItemsAsync(UpsertOrderDto order)
+    private async Task<List<ProductPerOrder>> ProcessOrderItemsAsync(UpsertOrderDto order)
     {
         var menuItems = await GetOrderItemsAsync(order);
         var combinedItems = order.Items
             .GroupBy(i => i.MenuItemId)
-            .Select(g => new ProductsPerOrder
+            .Select(g => new ProductPerOrder
             {
                 MenuItemId = g.Key,
                 Count = g.Sum(i => i.Count),
@@ -324,7 +325,7 @@ public class OrderService(
     }
 
 
-    private decimal CalculateTotalPrice(List<ProductsPerOrder> items)
+    private decimal CalculateTotalPrice(List<ProductPerOrder> items)
     {
         return items.Sum(item => item.Price * item.Count * (1 - item.Discount / 100m));
     }

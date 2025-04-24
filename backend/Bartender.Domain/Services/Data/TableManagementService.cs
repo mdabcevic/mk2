@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
+using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace Bartender.Domain.Services;
+namespace Bartender.Domain.Services.Data;
 
 public class TableManagementService(
     ITableRepository repository,
@@ -63,8 +64,8 @@ public class TableManagementService(
         var user = await currentUser.GetCurrentUserAsync();
         var existing = await repository.GetByPlaceAsLabelDictionaryAsync(user!.PlaceId);
 
-        var toInsert = new List<Tables>();
-        var toUpdate = new List<Tables>();
+        var toInsert = new List<Table>();
+        var toUpdate = new List<Table>();
         foreach (var dto in dtoList)
         {
             if (existing.TryGetValue(dto.Label, out var existingTable))
@@ -75,7 +76,7 @@ public class TableManagementService(
             }
             else
             {
-                var newTable = mapper.Map<Tables>(dto);
+                var newTable = mapper.Map<Table>(dto);
                 newTable.PlaceId = user!.PlaceId;
                 toInsert.Add(newTable);
                 logger.LogInformation("New table added by user {UserId}. Currently active token: {Token}", user.Id, newTable.QrSalt);
