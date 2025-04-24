@@ -1,7 +1,7 @@
 ﻿
 using System.Text.Json.Serialization;
 
-namespace Bartender.Domain.DTO.Products;
+namespace Bartender.Domain.DTO.Product;
 
 public class ProductBaseDto
 {

@@ -1,7 +1,7 @@
 ﻿
 using Bartender.Data.Enums;
 
-namespace Bartender.Domain.DTO.Orders;
+namespace Bartender.Domain.DTO.Order;
 
 public class OrderDto : OrderBaseDto
 {

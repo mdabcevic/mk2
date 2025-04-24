@@ -1,5 +1,4 @@
-﻿
-namespace Bartender.Domain;
+﻿namespace Bartender.Domain.DTO;
 public enum ErrorType
 {
     NotFound,

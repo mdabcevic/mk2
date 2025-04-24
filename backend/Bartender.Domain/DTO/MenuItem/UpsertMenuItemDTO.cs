@@ -1,7 +1,7 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
 
-namespace Bartender.Domain.DTO.MenuItems;
+namespace Bartender.Domain.DTO.MenuItem;
 
 public class UpsertMenuItemDto
 {

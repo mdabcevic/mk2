@@ -1,5 +1,7 @@
 ﻿
-namespace Bartender.Domain.DTO.Orders;
+using Bartender.Domain.DTO.Place;
+
+namespace Bartender.Domain.DTO.Order;
 
 public class BusinessOrdersDto
 {

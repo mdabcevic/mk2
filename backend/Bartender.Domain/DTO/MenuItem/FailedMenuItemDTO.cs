@@ -1,5 +1,5 @@
 ﻿
-namespace Bartender.Domain.DTO.MenuItems;
+namespace Bartender.Domain.DTO.MenuItem;
 
 public class FailedMenuItemDto
 {

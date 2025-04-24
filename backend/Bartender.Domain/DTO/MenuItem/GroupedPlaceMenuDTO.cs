@@ -1,5 +1,7 @@
 ﻿
-namespace Bartender.Domain.DTO.MenuItems;
+using Bartender.Domain.DTO.Place;
+
+namespace Bartender.Domain.DTO.MenuItem;
 
 public class GroupedPlaceMenuDto
 {

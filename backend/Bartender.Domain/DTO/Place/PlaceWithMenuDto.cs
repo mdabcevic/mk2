@@ -1,7 +1,6 @@
-﻿
-using Bartender.Domain.DTO.MenuItems;
+﻿using Bartender.Domain.DTO.MenuItem;
 
-namespace Bartender.Domain.DTO;
+namespace Bartender.Domain.DTO.Place;
 
 public class PlaceWithMenuDto
 {

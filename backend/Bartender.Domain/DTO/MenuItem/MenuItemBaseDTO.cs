@@ -1,7 +1,7 @@
-﻿using Bartender.Domain.DTO.Products;
+﻿using Bartender.Domain.DTO.Product;
 using System.Text.Json.Serialization;
 
-namespace Bartender.Domain.DTO.MenuItems;
+namespace Bartender.Domain.DTO.MenuItem;
 
 public class MenuItemBaseDto
 {

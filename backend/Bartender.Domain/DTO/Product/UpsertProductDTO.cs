@@ -1,7 +1,7 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
 
-namespace Bartender.Domain.DTO.Products;
+namespace Bartender.Domain.DTO.Product;
 
 public class UpsertProductDto
 {

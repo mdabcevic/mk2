@@ -1,7 +1,8 @@
 ﻿using Bartender.Data.Enums;
+using Bartender.Domain.DTO.Place;
 using System.ComponentModel.DataAnnotations;
 
-namespace Bartender.Domain.DTO;
+namespace Bartender.Domain.DTO.Business;
 
 public class BusinessDto
 {
