@@ -3,7 +3,7 @@ import { subscribeToNotifications,Notification } from "../../../utils/notificati
 import { getNotificationColor } from "../../../utils/table-color";
 
 
-export function NotificationScreen() {
+export function NotificationScreen({ onClose }:{onClose?: (label: string) => void}) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   console.log("aaaa")
   useEffect(() => {
@@ -17,10 +17,14 @@ export function NotificationScreen() {
 
   const removeNotification = (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    const label = notifications.find(not => not.id === id)?.tableLabel;
+    if (onClose && label) {
+      onClose(label);
+    }
   };
 
   return (
-    <section id="notifications" className="flex flex-col items-start mr-4">
+    <section id="notifications" className="flex flex-col items-start mr-4 mt-50 w-full md:w-[350px] ">
       <h3 className="text-lg font-bold mb-2">Notifications</h3>
       <div className="flex flex-col gap-2 max-w-sm">
       {notifications.map((n) => (

@@ -39,6 +39,11 @@ main{
   margin:0 auto;
 }
 
+
+button{
+  cursor: pointer;
+}
+
 .bg-mocha-600{
   background-color: #463426;
 }
@@ -99,6 +104,15 @@ main{
   background-size: contain;
   background-repeat: no-repeat;
   position: relative;
+}
+
+@keyframes floatUpDown {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 @media screen and (max-width: 850px) {
