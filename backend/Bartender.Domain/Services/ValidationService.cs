@@ -40,7 +40,7 @@ public class ValidationService(
         {
             user = await currentUser.GetCurrentUserAsync();
         }
-        if (user!.Role == EmployeeRole.admin)
+        if (user!.Role == EmployeeRole.admin || user!.Role == EmployeeRole.manager)
             return true;
 
         var targetPlace = await placeRepository.GetByIdAsync(targetPlaceId);

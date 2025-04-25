@@ -51,11 +51,17 @@ public class OrderService(
             order.GuestSessionId = guest.Id;
         }
 
+        var orderDetails = await GetByIdAsync(order.TableId,true);
+        var messageMenuItems = "";
+        orderDetails.Data?.Items.ForEach(i =>
+        {
+            messageMenuItems += $"{i.Count} x {i.MenuItem},";
+        });
         // create order transaction - either completes both order and items creation or rolls back completely on any failure 
         var newOrder = await repository.CreateOrderWithItemsAsync(mapper.Map<Orders>(order), newOrderItems);
 
         await notificationService.AddNotificationAsync(newOrder.Table,
-            NotificationFactory.ForOrder(newOrder.Table, newOrder.Id, $"Order {newOrder.Id} created at table {newOrder.Table.Label}.", NotificationType.OrderCreated));
+            NotificationFactory.ForOrder(newOrder.Table, newOrder.Id, $"Table {newOrder.Table.Label}: {messageMenuItems}", NotificationType.OrderCreated));
         return ServiceResult.Ok();
     }
 
@@ -231,17 +237,19 @@ public class OrderService(
         return ServiceResult<List<BusinessOrdersDto>>.Ok(result);
     }
 
-    public async Task<ServiceResult<OrderDto?>> GetByIdAsync(int id)
+    public async Task<ServiceResult<OrderDto?>> GetByIdAsync(int id, bool skipValidation)
     {
         var order = await repository.getOrderById(id);
 
         if (order == null)
             return ServiceResult<OrderDto?>.Fail($"Order with id {id} not found", ErrorType.NotFound);
 
-        var verifyUser = await validationService.VerifyUserGuestAccess(order.TableId);
-        if (!verifyUser.Success)
-            return ServiceResult<OrderDto?>.Fail(verifyUser.Error!, verifyUser.errorType!.Value);
-
+        if (!skipValidation)
+        {
+            var verifyUser = await validationService.VerifyUserGuestAccess(order.TableId);
+            if (!verifyUser.Success)
+                return ServiceResult<OrderDto?>.Fail(verifyUser.Error!, verifyUser.errorType!.Value);
+        }
         var dto = mapper.Map<OrderDto>(order);
 
         return ServiceResult<OrderDto?>.Ok(dto);
