@@ -3,12 +3,12 @@ using Bartender.Data.Models;
 
 namespace Bartender.Domain.Interfaces;
 
-public interface ITableRepository : IRepository<Tables>
+public interface ITableRepository : IRepository<Table>
 {
-    Task<List<Tables>> GetAllByPlaceAsync(int placeId);
+    Task<List<Table>> GetAllByPlaceAsync(int placeId);
     Task<bool> ExistsByLabelAsync(int placeId, string label);
-    Task<Tables?> GetByPlaceLabelAsync(int placeId, string label);
-    Task<Dictionary<string, Tables>> GetByPlaceAsLabelDictionaryAsync(int placeId);
-    Task<List<Tables>> GetActiveByPlaceAsync(int placeId);
-    Task<Tables?> GetBySaltAsync(string salt);
+    Task<Table?> GetByPlaceLabelAsync(int placeId, string label);
+    Task<Dictionary<string, Table>> GetByPlaceAsLabelDictionaryAsync(int placeId);
+    Task<List<Table>> GetActiveByPlaceAsync(int placeId);
+    Task<Table?> GetBySaltAsync(string salt);
 }

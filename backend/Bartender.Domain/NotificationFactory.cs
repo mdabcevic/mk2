@@ -5,7 +5,7 @@ namespace Bartender.Domain;
 
 public static class NotificationFactory
 {
-    public static TableNotification ForTableStatus(Tables table, string message, NotificationType type, bool isPending = true)
+    public static TableNotification ForTableStatus(Table table, string message, NotificationType type, bool isPending = true)
     {
         return new TableNotification
         {
@@ -16,7 +16,7 @@ public static class NotificationFactory
         };
     }
 
-    public static TableNotification ForOrder(Tables table, int orderId, string message, NotificationType type, bool isPending = true)
+    public static TableNotification ForOrder(Table table, int orderId, string message, NotificationType type, bool isPending = true)
     {
         return new TableNotification
         {

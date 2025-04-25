@@ -16,7 +16,7 @@ public class GuestSessionGroup
     public int TableId { get; set; }
 
     [ForeignKey(nameof(TableId))]
-    public Tables Table { get; set; } = null!;
+    public Table Table { get; set; } = null!;
 
     [Required]
     [Column("passphrase")]

@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
-using Bartender.Domain;
+using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Staff;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Services;
+using Bartender.Domain.Services.Data;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.Linq.Expressions;

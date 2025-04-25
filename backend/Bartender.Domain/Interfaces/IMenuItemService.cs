@@ -1,4 +1,5 @@
-﻿using Bartender.Domain.DTO.MenuItems;
+﻿using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.MenuItem;
 
 namespace Bartender.Domain.Interfaces
 {
