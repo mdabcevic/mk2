@@ -17,10 +17,10 @@ public class OrderController(IOrderService orderService) : ControllerBase
     }
 
     [Authorize(Roles = "admin, owner, manager, regular")]
-    [HttpGet("table-orders/{tableId}")]
-    public async Task<IActionResult> GetCurrentOrdersByTable(int tableId)
+    [HttpGet("table-orders/{tableLabel}")]
+    public async Task<IActionResult> GetCurrentOrdersByTable(string tableLabel)
     {
-        var result = await orderService.GetCurrentOrdersByTableIdAsync(tableId);
+        var result = await orderService.GetCurrentOrdersByTableLabelAsync(tableLabel);
         return result.ToActionResult();
     }
 

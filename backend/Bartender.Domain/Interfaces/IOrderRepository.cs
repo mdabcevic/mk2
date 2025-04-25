@@ -10,7 +10,7 @@ public interface IOrderRepository : IRepository<Order>
     Task<List<Order>> GetActiveByPlaceIdAsync(int placeId);
     Task<List<Order>> GetPendingByPlaceIdAsync(int placeId);
     Task<(List<Order>, int)> GetAllByPlaceIdAsync(int placeId, int page);
-    Task<List<Order>?> GetCurrentOrdersByTableIdAsync(int tableId);
+    Task<List<Order>?> GetCurrentOrdersByTableLabelAsync(string tableLabel);
     Task<List<Order>> GetActiveOrdersByGuestIdAsync(Guid guestSessionId);
     Task<List<Order>> GetActiveOrdersByTableIdAsync(int tableId);
     Task<(Dictionary<OrderStatus, List<Order>>, int)> GetActiveByPlaceIdGroupedAsync(int placeId,int page);

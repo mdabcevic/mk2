@@ -114,7 +114,7 @@ public class OrderRepository(AppDbContext context) : Repository<Order>(context),
     }
 
     //TODO: does order have guest session if employee creates it on behalf of guest?
-    public async Task<List<Order>?> GetCurrentOrdersByTableIdAsync(int tableId)
+    public async Task<List<Order>?> GetCurrentOrdersByTableLabelAsync(string tableLabel)
     {
         return await _dbSet
         .Include(o => o.Table)
@@ -123,7 +123,7 @@ public class OrderRepository(AppDbContext context) : Repository<Order>(context),
             .ThenInclude(p => p.MenuItem)
                 .ThenInclude(m => m.Product)
         .Include(o => o.GuestSession)
-        .Where(o => o.TableId == tableId && o.GuestSession != null && o.GuestSession.IsValid)
+        .Where(o => o.Table!.Label == tableLabel && o.GuestSession != null && o.GuestSession.IsValid)
         .OrderByDescending(o => o.CreatedAt)
         .ToListAsync();
     }
