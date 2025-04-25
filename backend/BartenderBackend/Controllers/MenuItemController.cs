@@ -1,4 +1,4 @@
-﻿using Bartender.Domain.DTO.MenuItems;
+﻿using Bartender.Domain.DTO.MenuItem;
 using Bartender.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

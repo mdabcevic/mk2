@@ -1,6 +1,7 @@
 ﻿using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.Business;
+using Bartender.Domain.DTO.Place;
 using Bartender.Domain.DTO.Staff;
 using System.Diagnostics.Eventing.Reader;
 
@@ -48,7 +49,7 @@ public static class TestDataFactory
         Password = password
     };
 
-    public static Businesses CreateValidBusiness(int id = 1, string oib = "12345678901", string name = "test name", SubscriptionTier sub = SubscriptionTier.basic) => new()
+    public static Business CreateValidBusiness(int id = 1, string oib = "12345678901", string name = "test name", SubscriptionTier sub = SubscriptionTier.basic) => new()
     {
         Id = id,
         OIB = oib,
@@ -58,19 +59,19 @@ public static class TestDataFactory
         Places = []
     };
 
-    public static Cities CreateValidCity(int id = 5) => new()
+    public static City CreateValidCity(int id = 5) => new()
     {
         Id = id,
         Name = "Zagreb"
     };
 
-    public static Products CreateValidProduct(int id = 1) => new()
+    public static Product CreateValidProduct(int id = 1) => new()
     {
         Id = id,
         Name = "Espresso"
     };
 
-    private static MenuItems CreateValidMenuItem(int placeId = 1, int productId = 1) => new()
+    private static MenuItem CreateValidMenuItem(int placeId = 1, int productId = 1) => new()
     {
         PlaceId = placeId,
         ProductId = productId,
@@ -80,7 +81,7 @@ public static class TestDataFactory
         Product = CreateValidProduct(productId)
     };
 
-    public static Places CreateValidPlace(int id = 1, int businessid = 1, int cityid = 1) => new()
+    public static Place CreateValidPlace(int id = 1, int businessid = 1, int cityid = 1) => new()
     {
         Id = id,
         BusinessId = businessid,
@@ -109,10 +110,10 @@ public static class TestDataFactory
         ClosesAt = "17:00"
     };
 
-    public static Tables CreateValidTable(int id = 1, int placeid = 1, string label = "1", 
+    public static Table CreateValidTable(int id = 1, int placeid = 1, string label = "1", 
         string salt = "somesalt", TableStatus status = TableStatus.occupied, bool disabled = false)
     {
-        return new Tables
+        return new Table
         {
             Id = id,
             Label = label,
@@ -123,7 +124,7 @@ public static class TestDataFactory
         };
     }
 
-    public static GuestSession CreateValidGuestSession(Tables table, string token = "guest-token", int expiresInMinutes = 5)
+    public static GuestSession CreateValidGuestSession(Table table, string token = "guest-token", int expiresInMinutes = 5)
     {
         return new GuestSession
         {
@@ -135,7 +136,7 @@ public static class TestDataFactory
         };
     }
 
-    public static BusinessDto CreateBusinessDtoFromEntity(Businesses business) => new()
+    public static BusinessDto CreateBusinessDtoFromEntity(Business business) => new()
     {
         OIB = business.OIB,
         Name = business.Name,

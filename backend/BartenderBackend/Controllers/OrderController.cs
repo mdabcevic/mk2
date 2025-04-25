@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Bartender.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Bartender.Domain.DTO.Orders;
+using Bartender.Domain.DTO.Order;
 
 namespace BartenderBackend.Controllers;
 

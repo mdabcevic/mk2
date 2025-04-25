@@ -23,6 +23,6 @@ public class ProductCategory
     public ProductCategory? ParentCategory { get; set; }
 
     public ICollection<ProductCategory>? Subcategories { get; set; }
-    public ICollection<Products>? Products { get; set; }
+    public ICollection<Product>? Products { get; set; }
 
 }

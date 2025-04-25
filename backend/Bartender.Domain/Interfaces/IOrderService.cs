@@ -1,5 +1,5 @@
 ﻿using Bartender.Domain.DTO;
-using Bartender.Domain.DTO.Orders;
+using Bartender.Domain.DTO.Order;
 
 namespace Bartender.Domain.Interfaces;
 

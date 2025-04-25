@@ -17,7 +17,7 @@ public class Staff
     public int PlaceId { get; set; }
 
     [ForeignKey("PlaceId")]
-    public Places? Place { get; set; }
+    public Place? Place { get; set; }
 
     [Required, MaxLength(11)]
     [Column("oib")]

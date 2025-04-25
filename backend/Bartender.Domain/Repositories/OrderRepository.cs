@@ -10,21 +10,21 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Bartender.Domain.Repositories;
 
-public class OrderRepository(AppDbContext context) : Repository<Orders>(context), IOrderRepository
+public class OrderRepository(AppDbContext context) : Repository<Order>(context), IOrderRepository
 {
     private const int pageSize = 30;
-    private static Expression<Func<Orders, bool>> IsActiveOrderForPlace(int placeId)
+    private static Expression<Func<Order, bool>> IsActiveOrderForPlace(int placeId)
     => o => o.Table.PlaceId == placeId &&
         o.Status != OrderStatus.closed &&
         o.Status != OrderStatus.cancelled;
 
-    private static Expression<Func<Orders, bool>> IsPendingOrderForPlace(int placeId)
+    private static Expression<Func<Order, bool>> IsPendingOrderForPlace(int placeId)
         => o => o.Table.PlaceId == placeId &&
                         (o.Status == OrderStatus.payment_requested ||
                         o.Status == OrderStatus.created ||
                         o.Status == OrderStatus.approved);
 
-    public async Task<Orders?> CreateOrderWithItemsAsync(Orders order, List<ProductsPerOrder> items)
+    public async Task<Order?> CreateOrderWithItemsAsync(Order order, List<ProductPerOrder> items)
     {
         using var transaction = await context.Database.BeginTransactionAsync();
 
@@ -64,7 +64,7 @@ public class OrderRepository(AppDbContext context) : Repository<Orders>(context)
         await context.SaveChangesAsync();
     }
 
-    public async Task<Orders?> getOrderById(int id)
+    public async Task<Order?> getOrderById(int id)
     {
         return await _dbSet
             .Include(o => o.Table)
@@ -75,8 +75,8 @@ public class OrderRepository(AppDbContext context) : Repository<Orders>(context)
             .FirstOrDefaultAsync(o => o.Id == id);
     }
 
-    private async Task<List<Orders>> GetOrdersAsync(
-    Expression<Func<Orders, bool>> predicate,
+    private async Task<List<Order>> GetOrdersAsync(
+    Expression<Func<Order, bool>> predicate,
     bool includeCustomer = false, int? page = null)
     {
         return await _dbSet
@@ -93,7 +93,7 @@ public class OrderRepository(AppDbContext context) : Repository<Orders>(context)
     }
 
     private async Task<int> TotalCountAsync(
-    Expression<Func<Orders, bool>> predicate,
+    Expression<Func<Order, bool>> predicate,
     bool includeCustomer = false)
     {
         return await _dbSet
@@ -106,34 +106,34 @@ public class OrderRepository(AppDbContext context) : Repository<Orders>(context)
             .CountAsync();
     }
 
-    public async Task<List<Orders>> GetActiveOrdersByGuestIdAsync(Guid guestSessionId)
+    public async Task<List<Order>> GetActiveOrdersByGuestIdAsync(Guid guestSessionId)
     {
         return await GetOrdersAsync(o => o.GuestSessionId == guestSessionId);
     }
 
-    public async Task<List<Orders>> GetActiveOrdersByTableIdAsync(int tableId)
+    public async Task<List<Order>> GetActiveOrdersByTableIdAsync(int tableId)
     {
         return await GetOrdersAsync(o => o.TableId == tableId && o.Status != OrderStatus.closed && o.Status != OrderStatus.cancelled);
     }
 
-    public async Task<List<Orders>> GetActiveByPlaceIdAsync(int placeId)
+    public async Task<List<Order>> GetActiveByPlaceIdAsync(int placeId)
     {
         return await GetOrdersAsync(IsActiveOrderForPlace(placeId));
     }
 
-    public async Task<List<Orders>> GetPendingByPlaceIdAsync(int placeId)
+    public async Task<List<Order>> GetPendingByPlaceIdAsync(int placeId)
     {
         return await GetOrdersAsync(IsPendingOrderForPlace(placeId));
     }
 
-    public async Task<(List<Orders>,int)> GetAllByPlaceIdAsync(int placeId, int page)
+    public async Task<(List<Order>,int)> GetAllByPlaceIdAsync(int placeId, int page)
     {
         return (await GetOrdersAsync(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed),
                 await TotalCountAsync(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed));
     }
 
-    private async Task<(List<Orders>,int)> GetOrdersForGroupingAsync(
-    Expression<Func<Orders, bool>> predicate, int page)
+    private async Task<(List<Order>,int)> GetOrdersForGroupingAsync(
+    Expression<Func<Order, bool>> predicate, int page)
     {
         var query = _dbSet
         .Include(o => o.Table)
@@ -153,13 +153,13 @@ public class OrderRepository(AppDbContext context) : Repository<Orders>(context)
         return (items, totalCount);
     }
 
-    public async Task<(Dictionary<OrderStatus, List<Orders>>,int)> GetActiveByPlaceIdGroupedAsync(int placeId,int page)
+    public async Task<(Dictionary<OrderStatus, List<Order>>,int)> GetActiveByPlaceIdGroupedAsync(int placeId,int page)
     {
         var (orders,total) = await GetOrdersForGroupingAsync(IsActiveOrderForPlace(placeId),page);
         return (orders.GroupBy(o => o.Status).ToDictionary(g => g.Key, g => g.ToList()), total);
     }
 
-    public async Task<(Dictionary<OrderStatus, List<Orders>>, int)> GetPendingByPlaceIdGroupedAsync(int placeId, int page)
+    public async Task<(Dictionary<OrderStatus, List<Order>>, int)> GetPendingByPlaceIdGroupedAsync(int placeId, int page)
     {
         var (orders,total) = await GetOrdersForGroupingAsync(IsPendingOrderForPlace(placeId), page);
         return (orders.GroupBy(o => o.Status)
@@ -167,7 +167,7 @@ public class OrderRepository(AppDbContext context) : Repository<Orders>(context)
     }
 
 
-    public async Task<Dictionary<Places, List<Orders>>> GetAllOrdersByBusinessIdAsync(int businessId)
+    public async Task<Dictionary<Place, List<Order>>> GetAllOrdersByBusinessIdAsync(int businessId)
     {
         var orders = await _dbSet
             .Include(o => o.Table.Place.City)
@@ -184,7 +184,7 @@ public class OrderRepository(AppDbContext context) : Repository<Orders>(context)
             .ToDictionary(g => g.Key, g => g.ToList());
     }
 
-    public async Task UpdateOrderWithItemsAsync(Orders existingOrder, List<ProductsPerOrder> newItems)
+    public async Task UpdateOrderWithItemsAsync(Order existingOrder, List<ProductPerOrder> newItems)
     {
         using var transaction = await context.Database.BeginTransactionAsync();
 
@@ -197,8 +197,8 @@ public class OrderRepository(AppDbContext context) : Repository<Orders>(context)
                 .Where(i => i.OrderId == existingOrder.Id)
                 .ToListAsync();
 
-            var toAdd = new List<ProductsPerOrder>();
-            var toDelete = new List<ProductsPerOrder>(oldItems);
+            var toAdd = new List<ProductPerOrder>();
+            var toDelete = new List<ProductPerOrder>(oldItems);
 
             foreach (var newItem in newItems)
             {

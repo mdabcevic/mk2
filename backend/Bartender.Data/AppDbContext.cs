@@ -6,16 +6,16 @@ namespace Bartender.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<Businesses> Businesses { get; set; }
-    public DbSet<Places> Places { get; set; }
+    public DbSet<Business> Businesses { get; set; }
+    public DbSet<Place> Places { get; set; }
     public DbSet<Staff> Staff { get; set; }
-    public DbSet<Tables> Tables { get; set; }
-    public DbSet<MenuItems> MenuItems { get; set; }
-    public DbSet<Products> Products { get; set; }
-    public DbSet<Orders> Orders { get; set; }
-    public DbSet<ProductsPerOrder> ProductsPerOrders { get; set; }
-    public DbSet<Customers> Customers { get; set; }
-    public DbSet<Reviews> Reviews { get; set; }
+    public DbSet<Table> Tables { get; set; }
+    public DbSet<MenuItem> MenuItems { get; set; }
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<ProductPerOrder> ProductsPerOrders { get; set; }
+    public DbSet<Customer> Customers { get; set; }
+    public DbSet<Review> Reviews { get; set; }
     public DbSet<ProductCategory> ProductCategory { get; set; }
     public DbSet<GuestSession> GuestSessions { get; set; }
     public DbSet<GuestSessionGroup> GuestSessionGroups { get; set; }
@@ -23,8 +23,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ProductsPerOrder>().HasKey(po => new { po.OrderId, po.MenuItemId });
-        modelBuilder.Entity<Reviews>().HasKey(r => new { r.ProductId, r.CustomerId });
+        modelBuilder.Entity<ProductPerOrder>().HasKey(po => new { po.OrderId, po.MenuItemId });
+        modelBuilder.Entity<Review>().HasKey(r => new { r.ProductId, r.CustomerId });
 
         base.OnModelCreating(modelBuilder);
     }

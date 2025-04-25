@@ -1,4 +1,5 @@
-﻿using Bartender.Domain.DTO.Staff;
+﻿using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.Staff;
 
 namespace Bartender.Domain.Interfaces;
 
