@@ -16,6 +16,14 @@ public class OrderController(IOrderService orderService) : ControllerBase
         return result.ToActionResult();
     }
 
+    [Authorize(Roles = "admin, owner, manager, regular")]
+    [HttpGet("table-orders/{tableId}")]
+    public async Task<IActionResult> GetCurrentOrdersByTable(int tableId)
+    {
+        var result = await orderService.GetCurrentOrdersByTableIdAsync(tableId);
+        return result.ToActionResult();
+    }
+
     [HttpGet("my-orders")]
     public async Task<IActionResult> GetGuestOrders([FromQuery] bool userSpecific = true)
     {

@@ -3,10 +3,7 @@ using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Bartender.Domain.Repositories;
 
@@ -114,6 +111,21 @@ public class OrderRepository(AppDbContext context) : Repository<Order>(context),
     public async Task<List<Order>> GetActiveOrdersByTableIdAsync(int tableId)
     {
         return await GetOrdersAsync(o => o.TableId == tableId && o.Status != OrderStatus.closed && o.Status != OrderStatus.cancelled);
+    }
+
+    //TODO: does order have guest session if employee creates it on behalf of guest?
+    public async Task<List<Order>?> GetCurrentOrdersByTableIdAsync(int tableId)
+    {
+        return await _dbSet
+        .Include(o => o.Table)
+            .ThenInclude(t => t.Place)
+        .Include(o => o.Products)
+            .ThenInclude(p => p.MenuItem)
+                .ThenInclude(m => m.Product)
+        .Include(o => o.GuestSession)
+        .Where(o => o.TableId == tableId && o.GuestSession != null && o.GuestSession.IsValid)
+        .OrderByDescending(o => o.CreatedAt)
+        .ToListAsync();
     }
 
     public async Task<List<Order>> GetActiveByPlaceIdAsync(int placeId)
