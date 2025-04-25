@@ -12,7 +12,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var result = await orderService.GetByIdAsync(id);
+        var result = await orderService.GetByIdAsync(id,false);
         return result.ToActionResult();
     }
 
