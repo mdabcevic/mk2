@@ -1,5 +1,6 @@
 ﻿using Bartender.Data;
 using Bartender.Data.Models;
+using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -19,7 +20,7 @@ public class NotificationService(
 
     private static string Key(int tableId) => $"notifications:table:{tableId}";
 
-    public async Task AddNotificationAsync(Tables table, TableNotification notification)
+    public async Task AddNotificationAsync(Table table, TableNotification notification)
     {
         var json = JsonSerializer.Serialize(notification);
         await _db.HashSetAsync(Key(table.Id), notification.Id, json);

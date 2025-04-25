@@ -1,13 +1,13 @@
 ﻿using Bartender.Data.Models;
-using Bartender.Domain;
 using NSubstitute;
 using System.Linq.Expressions;
 using AutoMapper;
 using Bartender.Data.Enums;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Services;
 using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO.Table;
+using Bartender.Domain.DTO;
+using Bartender.Domain.Services.Data;
 
 namespace BartenderTests;
 
@@ -25,8 +25,8 @@ public class TableManagementServiceTests
     {
         var config = new MapperConfiguration(cfg =>
         {
-            cfg.CreateMap<Tables, TableDto>();
-            cfg.CreateMap<UpsertTableDto, Tables>();
+            cfg.CreateMap<Table, TableDto>();
+            cfg.CreateMap<UpsertTableDto, Table>();
         });
 
         _mapper = config.CreateMapper();
@@ -42,7 +42,7 @@ public class TableManagementServiceTests
     {
         // Arrange
         var user = TestDataFactory.CreateValidStaff(placeid: 1, role: EmployeeRole.manager);
-        var allTables = new List<Tables>
+        var allTables = new List<Table>
         {
             TestDataFactory.CreateValidTable(id: 1, label: "1"),
             TestDataFactory.CreateValidTable(id: 2, label: "2")
@@ -152,7 +152,7 @@ public class TableManagementServiceTests
         // Arrange
         var user = TestDataFactory.CreateValidStaff();
         _userContext.GetCurrentUserAsync().Returns(user);
-        _tableRepo.GetByPlaceLabelAsync(1, "1").Returns((Tables?)null);
+        _tableRepo.GetByPlaceLabelAsync(1, "1").Returns((Table?)null);
 
         // Act
         var result = await _service.DeleteAsync("missing");
@@ -163,7 +163,7 @@ public class TableManagementServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
         });
-        await _tableRepo.DidNotReceive().DeleteAsync(Arg.Any<Tables>());
+        await _tableRepo.DidNotReceive().DeleteAsync(Arg.Any<Table>());
     }
 
     [Test]
@@ -194,7 +194,7 @@ public class TableManagementServiceTests
         // Arrange
         var user = TestDataFactory.CreateValidStaff();
         _userContext.GetCurrentUserAsync().Returns(user);
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns((Tables?)null);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns((Table?)null);
 
         // Act
         var result = await _service.RegenerateSaltAsync("missing");
@@ -205,7 +205,7 @@ public class TableManagementServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
         });
-        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
+        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Table>());
     }
 
     [Test]
@@ -235,7 +235,7 @@ public class TableManagementServiceTests
         // Arrange
         var user = TestDataFactory.CreateValidStaff();
         _userContext.GetCurrentUserAsync().Returns(user);
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns((Tables?)null);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns((Table?)null);
 
         // Act
         var result = await _service.SwitchDisabledAsync("T404", false);
@@ -246,7 +246,7 @@ public class TableManagementServiceTests
             Assert.That(result.Success, Is.False);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
         });
-        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
+        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Table>());
     }
 
     [Test]
@@ -278,7 +278,7 @@ public class TableManagementServiceTests
         // Arrange
         var user = TestDataFactory.CreateValidStaff(placeid: 1, role: EmployeeRole.manager);
         _userContext.GetCurrentUserAsync().Returns(user);
-        _tableRepo.GetByPlaceLabelAsync(1, "Missing table").Returns((Tables?)null);
+        _tableRepo.GetByPlaceLabelAsync(1, "Missing table").Returns((Table?)null);
 
         // Act
         var result = await _service.GetByLabelAsync("Missing table");

@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain;
+using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Services;
+using Bartender.Domain.Services.Data;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.Linq.Expressions;
@@ -15,7 +15,7 @@ namespace BartenderTests;
 public class TableInteractionServiceTests
 {
     private IMapper _mapper;
-    private IRepository<Tables> _tableRepo;
+    private IRepository<Table> _tableRepo;
     private IGuestSessionService _guestSession;
     private ITableSessionService _tableSession;
     private IOrderRepository _orderRepo;
@@ -29,12 +29,12 @@ public class TableInteractionServiceTests
     {
         var config = new MapperConfiguration(cfg =>
         {
-            cfg.CreateMap<Tables, TableScanDto>();
-            cfg.CreateMap<Tables, TableDto>();
+            cfg.CreateMap<Table, TableScanDto>();
+            cfg.CreateMap<Table, TableDto>();
         });
 
         _mapper = config.CreateMapper();
-        _tableRepo = Substitute.For<IRepository<Tables>>();
+        _tableRepo = Substitute.For<IRepository<Table>>();
         _guestSession = Substitute.For<IGuestSessionService>();
         _tableSession = Substitute.For<ITableSessionService>();
         _orderRepo = Substitute.For<IOrderRepository>();
@@ -48,7 +48,7 @@ public class TableInteractionServiceTests
     public async Task GetBySaltAsync_ShouldReturnNotFound_IfTableNotExists()
     {
         // Arrange
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns((Tables?)null);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns((Table?)null);
 
         // Act
         var result = await _service.GetBySaltAsync("salt");
@@ -60,7 +60,7 @@ public class TableInteractionServiceTests
             Assert.That(result.Data, Is.Null);
             Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
         });
-        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
+        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Table>());
         await _guestSession.DidNotReceive().CreateSessionAsync(Arg.Any<int>(), "passphrase");
     }
 
@@ -69,7 +69,7 @@ public class TableInteractionServiceTests
     {
         // Arrange
         var table = TestDataFactory.CreateValidTable(id: 1, salt: "salt", disabled: true);
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
         _userContext.IsGuest.Returns(true);
 
         // Act
@@ -83,7 +83,7 @@ public class TableInteractionServiceTests
             Assert.That(result.Data, Is.Null);
         });
 
-        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
+        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Table>());
         await _guestSession.DidNotReceive().CreateSessionAsync(Arg.Any<int>(), "passphrase");
     }
 
@@ -92,7 +92,7 @@ public class TableInteractionServiceTests
     {
         // Arrange
         var table = TestDataFactory.CreateValidTable(id: 1, salt: "salt", status: TableStatus.empty, disabled: true);
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
         _userContext.IsGuest.Returns(false);
 
         // Act
@@ -208,9 +208,9 @@ public class TableInteractionServiceTests
     public async Task GetBySaltAsync_ShouldCreateSession_WhenAllValid()
     {
         // Arrange
-        var table = new Tables { Id = 1, QrSalt = "salt123", Status = TableStatus.empty };
+        var table = new Table { Id = 1, QrSalt = "salt123", Status = TableStatus.empty };
         _userContext.IsGuest.Returns(true);
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
         _guestSession.CreateSessionAsync(table.Id, "passphrase generated").Returns("generated.token");
 
         // Act
@@ -238,7 +238,7 @@ public class TableInteractionServiceTests
         var session = TestDataFactory.CreateValidGuestSession(table, token: "guest-token");
         var token = "guest-token";
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
         _userContext.IsGuest.Returns(true);
         _userContext.GetRawToken().Returns(token);
         _guestSession.GetByTokenAsync(table.Id, token).Returns(session);
@@ -297,7 +297,7 @@ public class TableInteractionServiceTests
         var table = TestDataFactory.CreateValidTable(id: 1, label: "1", salt: "qrsalt", status: TableStatus.empty);
         var token = "guest-token";
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
         _userContext.IsGuest.Returns(true);
         _userContext.GetRawToken().Returns(token);
         _tableSession.HasActiveSessionAsync(table.Id, token).Returns(true);
@@ -324,7 +324,7 @@ public class TableInteractionServiceTests
         var token = "guest-token";
         var session = TestDataFactory.CreateValidGuestSession(table, token: token);
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
         _userContext.IsGuest.Returns(true);
         _userContext.GetRawToken().Returns(token);
         _guestSession.GetByTokenAsync(table.Id, token).Returns(session);
@@ -353,7 +353,7 @@ public class TableInteractionServiceTests
 
         _userContext.IsGuest.Returns(false);
         _userContext.GetCurrentUserAsync().Returns(user);
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
 
         // Act
         var result = await _service.ChangeStatusAsync("1", TableStatus.reserved);
@@ -378,7 +378,7 @@ public class TableInteractionServiceTests
 
         _userContext.IsGuest.Returns(false);
         _userContext.GetCurrentUserAsync().Returns(user);
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>()).Returns(table);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
 
         // Act
         var result = await _service.ChangeStatusAsync("1", TableStatus.empty);
@@ -398,8 +398,8 @@ public class TableInteractionServiceTests
     public async Task ChangeStatusAsync_ShouldReturnNotFound_WhenTableDoesNotExist()
     {
         // Arrange
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Tables, bool>>>())
-            .Returns((Tables?)null);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>())
+            .Returns((Table?)null);
 
         // Act
         var result = await _service.ChangeStatusAsync("missing-token", TableStatus.empty);
@@ -411,7 +411,7 @@ public class TableInteractionServiceTests
             Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
         });
 
-        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Tables>());
+        await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Table>());
     }
 
     //[Test]

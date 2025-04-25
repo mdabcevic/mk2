@@ -1,5 +1,6 @@
 ﻿using Bartender.Data.Enums;
 using Bartender.Data.Models;
+using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -8,9 +9,9 @@ namespace Bartender.Domain.Services;
 public class ValidationService(
     ICurrentUserContext currentUser,
     ITableSessionService tableSessionService,
-    IRepository<Tables> tableRepository,
-    IRepository<Places> placeRepository,
-    IRepository<Businesses> businessRepository,
+    IRepository<Table> tableRepository,
+    IRepository<Place> placeRepository,
+    IRepository<Business> businessRepository,
     ILogger<ValidationService> logger) : IValidationService
 {
     public async Task<ServiceResult> VerifyUserGuestAccess(int orderTableId)
