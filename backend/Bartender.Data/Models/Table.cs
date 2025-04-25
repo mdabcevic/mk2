@@ -53,4 +53,6 @@ public class Table
     [Required]
     [Column("isdisabled")]
     public bool IsDisabled { get; set; } = false;
+
+    public ICollection<Order>? Orders { get; set; } = [];
 }
