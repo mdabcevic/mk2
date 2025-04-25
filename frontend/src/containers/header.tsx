@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useMatch, useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { languages } from "../utils/languages";
 import { AppPaths } from "../utils/routing/routes";
@@ -12,7 +12,7 @@ import { Constants, UserRole } from "../utils/constants";
 const HeaderComponent = () => {
   const { t, i18n } = useTranslation("public");
   const location = useLocation();
-
+  
   const [open, setOpen] = useState(false);
 
   const [showLanguages,setShowLanguages] = useState(false);
@@ -26,6 +26,10 @@ const HeaderComponent = () => {
   const userRole = authService.userRole();
   const passcode = authService.passCode();
   const [showPasscode,setShowPasscode] = useState<boolean>(false);
+
+  
+
+  
 
   return userRole !== UserRole.guest ? (
     <header>

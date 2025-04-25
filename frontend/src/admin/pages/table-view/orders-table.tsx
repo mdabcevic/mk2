@@ -39,7 +39,7 @@ enum OrderTabs{
 const page = 1;
 const tablePageSize = 30;
 
-const OrdersTable = () => {
+const OrdersTable:React.FC<{rerender:boolean}> = ({rerender}) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -47,7 +47,7 @@ const OrdersTable = () => {
   const [total,setTotal] = useState<number>(0);
   useEffect(() => {
     fetchOrders();
-  }, [activeTab]);
+  }, [activeTab,rerender]);
 
   const fetchOrders = async () => {
     const response = await placeOrderService.getOrders(activeTab == OrderTabs.activeOrders ? true : false,page,tablePageSize);

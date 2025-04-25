@@ -33,7 +33,7 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
     return (
       <div
         ref={containerRef}
-        className="overflow-y-auto h-[calc(10*60px)] relative overflow-x-hidden"
+        className="overflow-y-auto  overflow-x-hidden"
       >
         <div className="relative pt-3" >
         <div >

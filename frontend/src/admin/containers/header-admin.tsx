@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useMatch, useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { AppPaths } from "../../utils/routing/routes";
 import { languages } from "../../utils/languages";
 import { authService } from "../../utils/auth/auth.service";
 import { startConnection } from "../../utils/auth/signalR.service";
+import { UserRole } from "../../utils/constants";
 
 const HeaderAdminComponent = () => {
   const { t, i18n } = useTranslation("admin");
   const location = useLocation();
   const [showLanguages,setShowLanguages] = useState(false);
   const [selectedLang, setSelectedLang] = useState(i18n.language);
-  
+  const navigate = useNavigate();
+  const isOnNotifications = useMatch(AppPaths.admin.notifications);
   const changeLanguage = (lang:string) => {
     i18n.changeLanguage(lang);
     setSelectedLang(lang);
@@ -29,6 +31,12 @@ const HeaderAdminComponent = () => {
   useEffect(()=>{
     openConnection();
     },[]);
+
+    useEffect(() => {
+        if (authService.userRole() === UserRole.staff && !isOnNotifications) {
+          navigate(AppPaths.admin.notifications, { replace: true });
+        }
+      }, [authService.userRole(), isOnNotifications, navigate]);
   return (
     <header>
 
