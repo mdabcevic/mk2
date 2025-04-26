@@ -48,19 +48,21 @@ var jwtSettings = jwtSettingsSection.Get<JwtSettings>() ?? throw new InvalidOper
 builder.Services.Configure<JwtSettings>(jwtSettingsSection); // for IOptions<JwtSettings> injection
 builder.Services.AddSingleton(jwtSettings); // optional: direct injection without IOptions
 
+// Configure Redis connection
+var redisSettings = builder.Configuration.GetSection("Redis").Get<RedisSettings>() ?? throw new InvalidOperationException("Missing Redis configuration.");
+builder.Services.AddSingleton(redisSettings);
 var configurationOptions = new ConfigurationOptions
 {
-    EndPoints = { "definite-squid-29206.upstash.io:6379" },
-    Password = "AXIWAAIjcDFmMGE0MDU4ZTQwNGI0MWE5OTYxNzdkNWE3OWNiODJkZHAxMA",
-    Ssl = true,
-    AbortOnConnectFail = false
+    EndPoints = { $"{redisSettings.Host}:{redisSettings.Port}" },
+    Password = redisSettings.Password,
+    Ssl = redisSettings.Ssl,
+    AbortOnConnectFail = redisSettings.AbortOnConnectFail
 };
 
-var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection")
-    ?? throw new InvalidOperationException("Missing Redis configuration.");
+var multiplexer = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(
-    await ConnectionMultiplexer.ConnectAsync(configurationOptions));
+builder.Services.AddSingleton<IConnectionMultiplexer>(multiplexer);
+builder.Services.AddSingleton(redisSettings);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
