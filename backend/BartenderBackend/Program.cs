@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy.WithOrigins("http://localhost:5173/", "http://localhost:8080/", "http://localhost:5173", "http://localhost:8080",
-                "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io/")
+                "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io")
                   .AllowAnyHeader()
                   .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                   .AllowCredentials();
