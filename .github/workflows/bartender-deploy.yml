@@ -21,15 +21,6 @@ jobs:
       - name: Checkout to the branch
         uses: actions/checkout@v2
 
-      - name: Log in to GHCR
-        run: echo "${{ secrets.BARTENDER_REGISTRY_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.BARTENDER_REGISTRY_USERNAME }} --password-stdin
-
-      - name: Build backend Docker image
-        run: docker build -t ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/backend:latest -f ./backend/Dockerfile .
-
-      - name: Push backend Docker image
-        run: docker push ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/backend:latest
-
       - name: Azure Login
         uses: azure/login@v1
         with:
