@@ -28,7 +28,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy(allowedOrigins,
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173/", "http://localhost:8080/", "http://localhost:5173", "http://localhost:8080")
+            policy.WithOrigins("http://localhost:5173/", "http://localhost:8080/", "http://localhost:5173", "http://localhost:8080",
+                "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io/")
                   .AllowAnyHeader()
                   .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                   .AllowCredentials();
@@ -47,11 +48,19 @@ var jwtSettings = jwtSettingsSection.Get<JwtSettings>() ?? throw new InvalidOper
 builder.Services.Configure<JwtSettings>(jwtSettingsSection); // for IOptions<JwtSettings> injection
 builder.Services.AddSingleton(jwtSettings); // optional: direct injection without IOptions
 
+var configurationOptions = new ConfigurationOptions
+{
+    EndPoints = { "definite-squid-29206.upstash.io:6379" },
+    Password = "AXIWAAIjcDFmMGE0MDU4ZTQwNGI0MWE5OTYxNzdkNWE3OWNiODJkZHAxMA",
+    Ssl = true,
+    AbortOnConnectFail = false
+};
+
 var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection")
     ?? throw new InvalidOperationException("Missing Redis configuration.");
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(
-    await ConnectionMultiplexer.ConnectAsync(redisConnectionString));
+    await ConnectionMultiplexer.ConnectAsync(configurationOptions));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
