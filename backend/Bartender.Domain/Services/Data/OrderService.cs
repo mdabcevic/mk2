@@ -238,9 +238,10 @@ public class OrderService(
         return ServiceResult<List<BusinessOrdersDto>>.Ok(result);
     }
 
+    //TODO: troubleshoot validation...
     public async Task<ServiceResult<OrderDto?>> GetByIdAsync(int id, bool skipValidation)
     {
-        var order = await repository.getOrderById(id);
+        var order = await repository.getOrderById(id); //TODO: should fetching be done after validation?
 
         if (order == null)
             return ServiceResult<OrderDto?>.Fail($"Order with id {id} not found", ErrorType.NotFound);
@@ -255,6 +256,22 @@ public class OrderService(
 
         return ServiceResult<OrderDto?>.Ok(dto);
     }
+
+    public async Task<ServiceResult<List<OrderDto>>> GetCurrentOrdersByTableLabelAsync(string tableLabel) //staff only?
+    {
+        var orders = await repository.GetCurrentOrdersByTableLabelAsync(tableLabel); //TODO: should fetching be done after validation?
+
+        if (orders == null || orders.Count == 0)
+            return ServiceResult<List<OrderDto>>.Fail("No active orders found for this table.", ErrorType.NotFound);
+
+        var verifyUser = await validationService.VerifyUserGuestAccess(orders[0].Table.Id);
+        if (!verifyUser.Success)
+            return ServiceResult<List<OrderDto>>.Fail(verifyUser.Error!, verifyUser.errorType!.Value);
+
+        var dtos = mapper.Map<List<OrderDto>>(orders);
+        return ServiceResult<List<OrderDto>>.Ok(dtos);
+    }
+
 
     public async Task<ServiceResult<List<OrderDto>>> GetActiveTableOrdersForUserAsync(bool userSpecific = true)
     {

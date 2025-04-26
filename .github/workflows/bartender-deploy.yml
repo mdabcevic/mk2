@@ -1,0 +1,38 @@
+name: Azure Auto Deploy
+
+on:
+  push:
+    branches: 
+      [ main ]
+    paths:
+      - '**'
+      - '.github/workflows/bartender-deploy.yml'
+
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.BARTENDER_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.BARTENDER_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.BARTENDER_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy backend image to Azure Container App
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az containerapp update \
+              --name bartender-service \
+              --resource-group bartender-app \
+              --image ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/backend:latest 
