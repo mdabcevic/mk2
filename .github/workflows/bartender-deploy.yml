@@ -36,3 +36,12 @@ jobs:
               --name bartender-service \
               --resource-group bartender-app \
               --image ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/backend:latest 
+
+      - name: Deploy frontend image to Azure Container App
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az containerapp update \
+              --name bartender \
+              --resource-group bartender-app \
+              --image ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/frontend:latest
