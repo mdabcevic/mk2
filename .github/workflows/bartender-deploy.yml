@@ -33,6 +33,6 @@ jobs:
         with:
           inlineScript: |
             az containerapp update \
-              --name bartender \
+              --name bartender-service \
               --resource-group bartender-app \
               --image ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/backend:latest 
