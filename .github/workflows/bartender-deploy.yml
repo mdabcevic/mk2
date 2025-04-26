@@ -31,9 +31,8 @@ jobs:
       - name: Build and push container image to GHCR
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}
-          dockerfilePath: ./backend/Dockerfile  # <-- Adjust this if your backend Dockerfile is here
-          registryUrl: ghcr.io
+          appSourcePath: ./
+          dockerfilePath: ./backend/Dockerfile
           registryUsername: ${{ secrets.BARTENDER_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.BARTENDER_REGISTRY_PASSWORD }}
           containerAppName: bartender
