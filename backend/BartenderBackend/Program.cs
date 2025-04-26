@@ -56,7 +56,11 @@ var configurationOptions = new ConfigurationOptions
     EndPoints = { $"{redisSettings.Host}:{redisSettings.Port}" },
     Password = redisSettings.Password,
     Ssl = redisSettings.Ssl,
-    AbortOnConnectFail = redisSettings.AbortOnConnectFail
+    AbortOnConnectFail = redisSettings.AbortOnConnectFail,
+    KeepAlive = 180, // ping every 3 minutes
+    ReconnectRetryPolicy = new ExponentialRetry(5000),
+    ConnectTimeout = 10000, // 10 seconds
+    SyncTimeout = 10000,    // 10 seconds
 };
 
 var multiplexer = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
