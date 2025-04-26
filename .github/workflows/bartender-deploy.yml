@@ -35,7 +35,4 @@ jobs:
             az containerapp update \
               --name bartender \
               --resource-group bartender-app \
-              --image ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/backend:latest \
-              --registry-server ghcr.io \
-              --registry-username ${{ secrets.BARTENDER_REGISTRY_USERNAME }} \
-              --registry-password ${{ secrets.BARTENDER_REGISTRY_PASSWORD }}
+              --image ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/backend:latest 
