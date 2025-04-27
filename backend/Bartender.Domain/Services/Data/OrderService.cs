@@ -261,9 +261,6 @@ public class OrderService(
     {
         var orders = await repository.GetCurrentOrdersByTableLabelAsync(tableLabel); //TODO: should fetching be done after validation?
 
-        if (orders == null || orders.Count == 0)
-            return ServiceResult<List<OrderDto>>.Fail("No active orders found for this table.", ErrorType.NotFound);
-
         var verifyUser = await validationService.VerifyUserGuestAccess(orders[0].Table.Id);
         if (!verifyUser.Success)
             return ServiceResult<List<OrderDto>>.Fail(verifyUser.Error!, verifyUser.errorType!.Value);
