@@ -68,3 +68,21 @@ export function getStatusColor(status: OrderStatusValue): string {
   export function getNotificationColor(type: number):string{
     return notificationColors[type] || "#D4D4D4";
   }
+
+  export enum NotificationType{
+    StaffNeeded=0,
+    GuestJoinedTable=1,
+    GuestLeftTable=2,
+    OrderCreated=3,
+    OrderStatusUpdated=4,
+    OrderContentUpdated=5
+  }
+
+  const tableIcon: Record<number, string> = {
+    0: "../assets/images/icons/staff.png", // StaffNeeded
+    3: "../assets/images/icons/newOrder.webp", // OrderCreated
+    4: "../assets/images/icons/euro.svg" // payment requested
+  };
+  export function getTableIcon(type: number):string{
+    return tableIcon[type] || "";
+  }

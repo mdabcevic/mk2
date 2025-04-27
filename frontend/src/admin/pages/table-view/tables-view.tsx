@@ -4,10 +4,11 @@ import jsPDF from "jspdf";
 import { useTranslation } from "react-i18next";
 import { Constants, Table, TableStatusString } from "../../../utils/constants";
 import { tableService } from "../../../utils/services/tables.service";
-import { getTableColor } from "../../../utils/table-color";
+import { getTableColor, getTableIcon, NotificationType } from "../../../utils/table-color";
 import TableActionModal from "../../../utils/table-actions-modal";
 import OrdersTable from "./orders-table";
 import { NotificationScreen } from "./notifications";
+import { subscribeToNotifications,Notification } from "../../../utils/notification-store";
 
 const initial_div_width = Constants.create_tables_container_width;
 const initial_div_height = Constants.create_tables_container_height;
@@ -16,34 +17,38 @@ const URL_QR = Constants.url_qr;
 const TablesView = () => {
   const placeId = 1;
   const [tables, setTables] = useState<Table[]>([]);
-  const [scale, setScale] = useState(1);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const { t } = useTranslation("admin");
+  const [rerenderOrdersFlag, setRerenderOrdersFlag] = useState<boolean>(false);
 
-
-  const fetchTables = async () => {
+  const fetchTables = async (notification?:Notification) => {
     const response = await tableService.getPlaceTablesByCurrent();
-    setTables(response);
-  };
-
-
-  const calculateScale = () => {
-    const screenWidth = window.innerWidth; 
-    const screenHeight = window.innerHeight;
-    const scaleX = screenWidth / initial_div_width;
-    const scaleY = screenHeight / initial_div_height;
-    const finalScale = Math.max(Math.min(scaleX, scaleY), 0.7);
-    setScale(finalScale);
+    const tables = response.map(table => {
+      if (notification &&(notification.type === NotificationType.OrderCreated || notification.type === NotificationType.StaffNeeded || notification.type === NotificationType.OrderStatusUpdated) && table.label === notification.tableLabel) {
+        const regex = /^Staff updated Order \d+ status to payment_requested\.$/;
+        if(notification.type === NotificationType.OrderStatusUpdated && regex.test(notification.message))
+        return { ...table, requestType: notification.type };
+      }
+      return table;
+    });
+    setTables(tables);
   };
 
   useEffect(() => {
     fetchTables();
-    calculateScale();
-    window.addEventListener("resize", calculateScale);
-    return () => window.removeEventListener("resize", calculateScale);
   }, []);
 
-
+  useEffect(() => {
+      console.log("cc")
+      const unsubscribe = subscribeToNotifications((n) => {
+        console.log("dosla notf")
+        fetchTables(n);
+        setRerenderOrdersFlag(!rerenderOrdersFlag);
+      });
+  
+      return () => unsubscribe();
+    }, []);
+    
   const handleSetStatus = async (status: TableStatusString) => {
     const response = await tableService.changeStatus(status,selectedTable?.token!);
     setTables((prevTables:any) => {
@@ -74,10 +79,22 @@ const TablesView = () => {
     }
   }
 
+  const onClose = (label: string) => {
+    setTables(prev =>
+      prev.map(table => {
+        if (table.label === label) {
+          const { requestType, ...rest } = table;
+          return rest;
+        }
+        return table;
+      })
+    );
+  };
+
   return (
     <div>
-      <section className="flex justify-center items-start w-full h-full p-[16px]">
-        <NotificationScreen />
+      <section className="hidden lg:flex justify-center  w-full h-full p-[16px]">
+        <NotificationScreen onClose={onClose} />
         <div
           style={{
             width: `${initial_div_width}px`,
@@ -112,13 +129,19 @@ const TablesView = () => {
               onGenerateQR={() => generateQrCode()}
             />
             )}
+            {typeof table?.requestType === "number" && (
+              <div className="absolute top-2">
+                <img src={getTableIcon(table?.requestType)} width="40px" height="40px" className="bg-white rounded"
+                     style={{animation: 'floatUpDown 1s ease-in-out infinite'}}/>
+              </div>
+            )}
             </div>
           ))}
         </div>
       </section>
 
       <section>
-        <OrdersTable />
+        <OrdersTable rerender={rerenderOrdersFlag} />
       </section>
     </div>
     

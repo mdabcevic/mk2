@@ -20,11 +20,18 @@ const ProductsViewPage = lazy(() => import("../../admin/pages/products/products"
 const TablesPage = lazy(() => import("../../admin/pages/table-view/tables.tsx"));
 
 
-function ProtectedAdminRoute() {
-  return ((authService.userRole() == UserRole.admin || authService.userRole() == UserRole.manager) && authService.tokenValid()) ? <Outlet /> : 
-          authService.userRole() == UserRole.staff ? <Navigate to={AppPaths.admin.notifications}  /> : 
+function AdminRouteGuard() {
+  return ((authService.userRole() == UserRole.admin || authService.userRole() == UserRole.manager || authService.userRole() === UserRole.staff) 
+          && authService.tokenValid()) ? 
+          <Outlet /> : 
           <Navigate to={AppPaths.public.login} replace />;
 }
+
+// function StaffGuard() {
+//   return authService.tokenValid() && authService.userRole() === UserRole.staff
+//     ? <NotificationScreen />
+//     : <Navigate to={AppPaths.public.login} replace />;
+// }
 
 function AppRoutes(){
   return (
@@ -46,7 +53,7 @@ function AppRoutes(){
         </Route>
 
         {/* Admin Routes (Using AdminLayout) */}
-        <Route element={<ProtectedAdminRoute />}>
+        <Route element={<AdminRouteGuard />}>
           <Route
               path={AppPaths.admin.dashboard}
               element={
@@ -56,13 +63,13 @@ function AppRoutes(){
               }
             >
               <Route index element={<Dashboard />} />
-              <Route path={AppPaths.admin.notifications} element={<NotificationScreen />} />   
               <Route path={AppPaths.admin.products} element={<ProductsViewPage />} />
               <Route path={AppPaths.admin.tables} element={<TablesPage />} />
-                         
+              <Route path={AppPaths.admin.notifications} element={<NotificationScreen />} />
               <Route path="*" element={<Dashboard />} />
             </Route>
           </Route>
+          
       </Routes>
     </Router>
   );

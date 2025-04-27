@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import { t } from "i18next";
 import { notificationService } from "../../utils/services/notification.service";
 import { authService } from "../../utils/auth/auth.service";
+import { placeOrderService } from "../../admin/pages/table-view/place-orders.service";
+import { orderStatusIndex } from "../../utils/table-color";
 
 export interface OrderItem {
     menuItem: string;
@@ -36,6 +38,11 @@ function MyOrders({placeId}:{placeId:string}) {
 
     const callBartender = async () =>{
         await notificationService.callBartender(authService.salt()!); 
+    }
+
+    const requestPayment = async () =>{
+        const lastIndex = myOrders.length-1;
+        await placeOrderService.updateOrderStatus(myOrders[lastIndex].id,orderStatusIndex.payment_requested);
     }
 
     useEffect(() => {
@@ -78,7 +85,7 @@ function MyOrders({placeId}:{placeId:string}) {
                 {t("order").toUpperCase()}
                 </Link>
             </button>
-            {myOrders?.length > 0 && (<button className="bg-mocha-600 px-5 py-1 rounded-[40px] text-white"> {t("request_payment").toUpperCase()}</button>)}
+            {myOrders?.length > 0 && (<button onClick={()=>requestPayment()} className="bg-mocha-600 px-5 py-1 rounded-[40px] text-white"> {t("request_payment").toUpperCase()}</button>)}
         </div>
         </section>
     );

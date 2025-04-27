@@ -58,6 +58,11 @@ const PlaceDetails = () => {
               {t("menu").toUpperCase()}
               </Link>
             </button>
+            <button className={` px-5 py-1 rounded-[40px] border-mocha ml-1 mr-1 mt-3 bg-mocha-600 text-white`}>
+              <Link to={AppPaths.public.placeTables.replace(":id",id!.toString()!)}>
+               View 
+              </Link>
+            </button>
           </section>
           
         )}

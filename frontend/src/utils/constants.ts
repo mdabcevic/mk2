@@ -1,3 +1,4 @@
+import { OrderStatusValue } from "./table-color";
 
 export enum Constants{
     backend_port = 7281,
@@ -46,6 +47,7 @@ export interface Table {
   seats: number;
   status: string;
   token?: string;
+  requestType?:number;
 }
 
 export enum TableStatus {

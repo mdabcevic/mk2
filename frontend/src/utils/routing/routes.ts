@@ -21,7 +21,5 @@ export const AppPaths = {
         notifications:`${AdminRoot}/notifications`,
         scanner:`${AdminRoot}/scanner`,
         
-    }
-
-
+    },
 }

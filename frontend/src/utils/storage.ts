@@ -69,6 +69,7 @@ const removeItem = (item: MenuGroupedItemDto | CartItem) => {
 
 const deleteCart = () => {
   localStorage.removeItem(Constants.cartKey);
+  saveCart({});
 }
 
 const subscribe = (callback: (cart: Cart) => void) => {
@@ -108,5 +109,6 @@ export const cartStorage = {
   subscribe,
   getTotal,
   getTotalPrice,
-  deleteCart
+  deleteCart,
+  saveCart,
 };

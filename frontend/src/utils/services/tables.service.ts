@@ -4,7 +4,7 @@ import api from "./client";
 
 export const tableService = {
 
-    getPlaceTablesByCurrent: async() =>{
+    getPlaceTablesByCurrent: async():Promise<Table[]>  => {
         return await api.get(ApiMethods.getPlaceTablesByCurrentUser);
     },
 
