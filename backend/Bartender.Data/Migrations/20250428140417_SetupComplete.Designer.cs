@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Bartender.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250428094906_NamingConventions")]
-    partial class NamingConventions
+    [Migration("20250428140417_SetupComplete")]
+    partial class SetupComplete
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

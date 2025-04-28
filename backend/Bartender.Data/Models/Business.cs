@@ -5,7 +5,6 @@ namespace Bartender.Data.Models;
 
 public class Business : BaseEntity
 {
-    
     [Required]
     public required string OIB { get; set; }
 

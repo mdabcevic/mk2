@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Bartender.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class NamingConventions : Migration
+    public partial class SetupComplete : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
