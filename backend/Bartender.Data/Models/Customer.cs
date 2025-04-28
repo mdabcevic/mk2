@@ -4,13 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Bartender.Data.Models;
 
 [Table("customers")]
-public class Customer
+public class Customer : BaseEntity
 {
-    [Key]
-    [Column("id")]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
-
     [Required]
     [StringLength(20)]
     [Column("username")]

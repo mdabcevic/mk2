@@ -5,13 +5,8 @@ using Bartender.Data.Enums;
 namespace Bartender.Data.Models;
 
 [Table("staff")]
-public class Staff
+public class Staff : BaseEntity
 {
-    [Key]
-    [Column("id")]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
-
     [Required]
     [Column("place_id")]
     public int PlaceId { get; set; }

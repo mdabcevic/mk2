@@ -5,13 +5,8 @@ using Bartender.Data.Enums;
 namespace Bartender.Data.Models;
 
 [Table("orders")]
-public class Order
+public class Order : BaseEntity
 {
-    [Key]
-    [Column("id")]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
-
     [Required]
     [Column("table_id")]
     public int TableId { get; set; }
@@ -30,9 +25,6 @@ public class Order
 
     [ForeignKey("GuestSessionId")]
     public GuestSession? GuestSession { get; set; }
-
-    [Column("createdat")]
-    public DateTime CreatedAt { get; set; } = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
 
     [Required]
     [Column("status")]

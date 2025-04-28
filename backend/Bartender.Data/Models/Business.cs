@@ -5,13 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Bartender.Data.Models;
 
 [Table("businesses")]
-public class Business
+public class Business : BaseEntity
 {
-    [Key]
-    [Column("id")]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
-
+    
     [Required]
     [Column("oib")]
     public required string OIB { get; set; }

@@ -4,13 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Bartender.Data.Models;
 
 [Table("menuitems")]
-public class MenuItem
+public class MenuItem : BaseEntity
 {
-    [Key]
-    [Column("id")]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
-
     [Required]
     [Column("place_id")]
     public int PlaceId { get; set; }
