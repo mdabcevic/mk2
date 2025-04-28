@@ -1,4 +1,7 @@
 {
+    "header":{
+        "login":"Login"
+    },
     "home_link_text": "Home",
     "aboutus_link_text": "Change language",
     "bars_link_text": "Bars",
@@ -77,6 +80,13 @@
         "analytics_desc": "From order trends and best-selling items to staff performance insights — our powerful dashboard gives you the data you need to optimize your business and serve smarter.",
         "view_pricing": "View our pricing",
         "upgrade_text": "Upgrade your café experience in minutes",
-        "get_started": "Get Started"
+        "get_started": "Get In Touch",
+        "streamlined_operations_title": "Streamlined Operations",
+        "streamlined_operations_desc": "Digital ordering cuts errors and speeds up service—what customers select goes straight to the kitchen, avoiding miscommunication. Menus update in real time, so out-of-stock items are marked instantly.",
+        "improved_efficiency_title": "Improved Efficiency",
+        "improved_efficiency_desc": "Digital ordering cuts errors and speeds up service—what customers select goes straight to the kitchen, avoiding miscommunication. Menus update in real time, so out-of-stock items are marked instantly.",
+        "multilingual_support_title": "Multilingual Support for a Global Clientele",
+        "multilingual_support_desc": "Serve customers from all around the world with language support that ensures a smooth and easy ordering experience."
+
     }
 }

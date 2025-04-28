@@ -1,4 +1,8 @@
 {
+  "header":{
+        "login":"Prijava",
+        "coffee_shop":"Kafići"
+    },
     "home_link_text": "Početna",
     "aboutus_link_text": "Promijeni jezik",
     "bars_link_text": "Kafići",
@@ -77,6 +81,13 @@
         "analytics_desc": "Od trendova narudžbi i najprodavanijih artikala do uvida u rad osoblja – naša moćna nadzorna ploča daje vam podatke za optimizaciju poslovanja.",
         "view_pricing": "Pogledajte cijene",
         "upgrade_text": "Unaprijedite iskustvo svog kafića za nekoliko minuta",
-        "get_started": "Započnite"
+        "get_started": "Započnite",
+        "streamlined_operations_title": "Pojednostavljeni procesi",
+        "streamlined_operations_desc": "Digitalno naručivanje smanjuje pogreške i ubrzava uslugu – ono što gosti odaberu ide izravno u kuhinju, bez nesporazuma. Meni se ažurira u stvarnom vremenu, pa su rasprodane stavke odmah vidljive.",
+        "improved_efficiency_title": "Poboljšana učinkovitost",
+        "improved_efficiency_desc": "Digitalno naručivanje smanjuje pogreške i ubrzava uslugu – ono što gosti odaberu ide izravno u kuhinju, bez nesporazuma. Meni se ažurira u stvarnom vremenu, pa su rasprodane stavke odmah vidljive.",
+        "multilingual_support_title": "Višejezična podrška za globalne goste",
+        "multilingual_support_desc": "Poslužite goste iz cijelog svijeta uz jezičnu podršku koja omogućuje jednostavno i glatko naručivanje."
+
   }
 }
