@@ -4,6 +4,7 @@ using Bartender.Data;
 using Bartender.Data.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Bartender.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250428094906_NamingConventions")]
+    partial class NamingConventions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,15 +35,18 @@ namespace Bartender.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Headquarters")
                         .HasColumnType("text")
@@ -54,14 +60,15 @@ namespace Bartender.Data.Migrations
                     b.Property<string>("OIB")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("oib");
+                        .HasColumnName("o_i_b");
 
                     b.Property<SubscriptionTier>("SubscriptionTier")
                         .HasColumnType("subscriptiontier")
-                        .HasColumnName("subscriptiontier");
+                        .HasColumnName("subscription_tier");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
@@ -72,15 +79,18 @@ namespace Bartender.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -88,26 +98,30 @@ namespace Bartender.Data.Migrations
                         .HasColumnName("name");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
-                    b.ToTable("cities");
+                    b.ToTable("city");
                 });
 
             modelBuilder.Entity("Bartender.Data.Models.Customer", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -115,7 +129,8 @@ namespace Bartender.Data.Migrations
                         .HasColumnName("password");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -149,7 +164,7 @@ namespace Bartender.Data.Migrations
 
                     b.Property<bool>("IsValid")
                         .HasColumnType("boolean")
-                        .HasColumnName("isvalid");
+                        .HasColumnName("is_valid");
 
                     b.Property<int>("TableId")
                         .HasColumnType("integer")
@@ -166,7 +181,7 @@ namespace Bartender.Data.Migrations
 
                     b.HasIndex("TableId");
 
-                    b.ToTable("guestsessions");
+                    b.ToTable("guest_sessions");
                 });
 
             modelBuilder.Entity("Bartender.Data.Models.GuestSessionGroup", b =>
@@ -193,22 +208,25 @@ namespace Bartender.Data.Migrations
 
                     b.HasIndex("TableId");
 
-                    b.ToTable("guestsessiongroups");
+                    b.ToTable("guest_session_groups");
                 });
 
             modelBuilder.Entity("Bartender.Data.Models.MenuItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Description")
                         .HasColumnType("text")
@@ -216,7 +234,7 @@ namespace Bartender.Data.Migrations
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("boolean")
-                        .HasColumnName("isavailable");
+                        .HasColumnName("is_available");
 
                     b.Property<int>("PlaceId")
                         .HasColumnType("integer")
@@ -231,7 +249,8 @@ namespace Bartender.Data.Migrations
                         .HasColumnName("product_id");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
@@ -239,26 +258,29 @@ namespace Bartender.Data.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("menuitems");
+                    b.ToTable("menu_items");
                 });
 
             modelBuilder.Entity("Bartender.Data.Models.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<int?>("CustomerId")
                         .HasColumnType("integer")
                         .HasColumnName("customer_id");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<Guid?>("GuestSessionId")
                         .HasColumnType("uuid")
@@ -270,7 +292,7 @@ namespace Bartender.Data.Migrations
 
                     b.Property<PaymentType>("PaymentType")
                         .HasColumnType("paymenttype")
-                        .HasColumnName("paymenttype");
+                        .HasColumnName("payment_type");
 
                     b.Property<OrderStatus>("Status")
                         .HasColumnType("orderstatus")
@@ -285,7 +307,8 @@ namespace Bartender.Data.Migrations
                         .HasColumnName("total_price");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
@@ -302,7 +325,8 @@ namespace Bartender.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
@@ -321,20 +345,23 @@ namespace Bartender.Data.Migrations
 
                     b.Property<TimeOnly>("ClosesAt")
                         .HasColumnType("time without time zone")
-                        .HasColumnName("closesat");
+                        .HasColumnName("closes_at");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<TimeOnly>("OpensAt")
                         .HasColumnType("time without time zone")
-                        .HasColumnName("opensat");
+                        .HasColumnName("opens_at");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
@@ -349,7 +376,8 @@ namespace Bartender.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
@@ -362,10 +390,12 @@ namespace Bartender.Data.Migrations
                         .HasColumnName("category_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -374,7 +404,8 @@ namespace Bartender.Data.Migrations
                         .HasColumnName("name");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<string>("Volume")
                         .HasColumnType("text")
@@ -393,15 +424,18 @@ namespace Bartender.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -411,16 +445,17 @@ namespace Bartender.Data.Migrations
 
                     b.Property<int?>("ParentCategoryId")
                         .HasColumnType("integer")
-                        .HasColumnName("parentcategory_id");
+                        .HasColumnName("parent_category_id");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("productcategory");
+                    b.ToTable("product_category");
                 });
 
             modelBuilder.Entity("Bartender.Data.Models.ProductPerOrder", b =>
@@ -431,7 +466,7 @@ namespace Bartender.Data.Migrations
 
                     b.Property<int>("MenuItemId")
                         .HasColumnType("integer")
-                        .HasColumnName("menuitem_id");
+                        .HasColumnName("menu_item_id");
 
                     b.Property<int>("Count")
                         .HasColumnType("integer")
@@ -443,13 +478,13 @@ namespace Bartender.Data.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)")
-                        .HasColumnName("item_price");
+                        .HasColumnName("price");
 
                     b.HasKey("OrderId", "MenuItemId");
 
                     b.HasIndex("MenuItemId");
 
-                    b.ToTable("productsperorder");
+                    b.ToTable("products_per_orders");
                 });
 
             modelBuilder.Entity("Bartender.Data.Models.Review", b =>
@@ -481,26 +516,29 @@ namespace Bartender.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("fullname");
+                        .HasColumnName("full_name");
 
                     b.Property<string>("OIB")
                         .IsRequired()
                         .HasMaxLength(11)
                         .HasColumnType("character varying(11)")
-                        .HasColumnName("oib");
+                        .HasColumnName("o_i_b");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -516,7 +554,8 @@ namespace Bartender.Data.Migrations
                         .HasColumnName("role");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -534,15 +573,18 @@ namespace Bartender.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<int>("Height")
                         .HasColumnType("integer")
@@ -550,7 +592,7 @@ namespace Bartender.Data.Migrations
 
                     b.Property<bool>("IsDisabled")
                         .HasColumnType("boolean")
-                        .HasColumnName("isdisabled");
+                        .HasColumnName("is_disabled");
 
                     b.Property<string>("Label")
                         .IsRequired()
@@ -564,7 +606,7 @@ namespace Bartender.Data.Migrations
                     b.Property<string>("QrSalt")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("qrsalt");
+                        .HasColumnName("qr_salt");
 
                     b.Property<int>("Seats")
                         .HasColumnType("integer")
@@ -575,7 +617,8 @@ namespace Bartender.Data.Migrations
                         .HasColumnName("status");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<int>("Width")
                         .HasColumnType("integer")
@@ -583,11 +626,11 @@ namespace Bartender.Data.Migrations
 
                     b.Property<decimal>("X")
                         .HasColumnType("decimal(6,2)")
-                        .HasColumnName("xcoordinate");
+                        .HasColumnName("x");
 
                     b.Property<decimal>("Y")
                         .HasColumnType("decimal(6,2)")
-                        .HasColumnName("ycoordinate");
+                        .HasColumnName("y");
 
                     b.HasKey("Id");
 
