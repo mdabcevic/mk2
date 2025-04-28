@@ -59,9 +59,11 @@ public class PlaceService(
 
     public async Task<ServiceResult<PlaceWithMenuDto>> GetByIdAsync(int id, bool includeNavigations = true)
     {
+        //TODO: move query to dedicated repository
         var place = await repository.Query()
         .Include(p => p.Business)
         .Include(p => p.City)
+        .Include(p => p.Tables)
         .Include(p => p.MenuItems)!
             .ThenInclude(mi => mi.Product)
         .FirstOrDefaultAsync(p => p.Id == id);
@@ -105,6 +107,7 @@ public class PlaceService(
         return ServiceResult.Ok();
     }
 
+    //TODO: move to validation
     private async Task<bool> IsSameBusinessAsync(int targetPlaceId)
     {
         var user = await currentUser.GetCurrentUserAsync();

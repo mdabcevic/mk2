@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.MenuItem;
 using Bartender.Domain.DTO.Place;
@@ -18,6 +19,7 @@ public class PlaceProfile : Profile
         .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.Business!.Name))
         .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City!.Name))
         .ForMember(dest => dest.WorkHours, opt => opt.MapFrom(src => $"{src.OpensAt:hh\\:mm} - {src.ClosesAt:hh\\:mm}"))
+        .ForMember(dest => dest.FreeTablesCount, opt => opt.MapFrom(src => src.Tables!.Count(t => t.Status == TableStatus.empty && !t.IsDisabled)))
         .ForMember(dest => dest.Menu, opt => opt.MapFrom(src => src.MenuItems));
 
         CreateMap<Place, GroupedPlaceMenuDto>()

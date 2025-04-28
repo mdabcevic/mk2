@@ -8,6 +8,7 @@ public class PlaceWithMenuDto
     public required string Address { get; set; }
     public required string CityName { get; set; }
     public required string WorkHours { get; set; }
+    public int FreeTablesCount { get; set; }
 
     public List<MenuItemBaseDto> Menu { get; set; } = [];
 }
