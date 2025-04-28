@@ -39,12 +39,13 @@ enum OrderTabs{
 const page = 1;
 const tablePageSize = 30;
 
-const OrdersTable:React.FC<{rerender:boolean}> = ({rerender}) => {
+const OrdersTable:React.FC<{rerender:number}> = ({rerender}) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [activeTab, setActiveTab] = useState<OrderTabs>(OrderTabs.activeOrders);
   const [total,setTotal] = useState<number>(0);
+  console.log(rerender);
   useEffect(() => {
     fetchOrders();
   }, [activeTab,rerender]);

@@ -9,87 +9,149 @@ import { placeOrderService } from "../../admin/pages/table-view/place-orders.ser
 import { orderStatusIndex } from "../../utils/table-color";
 
 export interface OrderItem {
-    menuItem: string;
-    price: number;
-    discount: number;
-    count: number;
-  }
-  
-  export interface Order {
-    id: number;
-    items: OrderItem[];
-    table: string;
-    note: string;
-    paymentType: string;
-    totalPrice: number;
-    status: string;
-    customer: string | null;
-    createdAt: string;
-  }
+  menuItem: string;
+  price: number;
+  discount: number;
+  count: number;
+}
 
+export interface Order {
+  id: number;
+  items: OrderItem[];
+  table: string;
+  note: string;
+  paymentType: string;
+  totalPrice: number;
+  status: string;
+  customer: string | null;
+  createdAt: string;
+}
+const passCode = authService.passCode();
+function MyOrders({ placeId }: { placeId: string }) {
+  const [myOrders, setMyOrders] = useState<Order[]>([]);
+  const [showOrders, setShowOrders] = useState(false);
 
-function MyOrders({placeId}:{placeId:string}) {
-    const [myOrders, setMyOrders] = useState<Order[]>([]);
+  const fetchMyOrders = async () => {
+    const response = await orderService.getMyOrders();
+    setMyOrders(response);
+  };
 
-    const fetchMyOrders = async () => {
-        const response = await orderService.getMyOrders();
-        setMyOrders(response);
-    };
+  const callBartender = async () => {
+    await notificationService.callBartender(authService.salt()!);
+  };
 
-    const callBartender = async () =>{
-        await notificationService.callBartender(authService.salt()!); 
-    }
+  const requestPayment = async () => {
+    const lastIndex = myOrders.length - 1;
+    await placeOrderService.updateOrderStatus(
+      myOrders[lastIndex].id,
+      orderStatusIndex.payment_requested
+    );
+  };
 
-    const requestPayment = async () =>{
-        const lastIndex = myOrders.length-1;
-        await placeOrderService.updateOrderStatus(myOrders[lastIndex].id,orderStatusIndex.payment_requested);
-    }
+  useEffect(() => {
+    fetchMyOrders();
+  }, []);
 
-    useEffect(() => {
-        fetchMyOrders();
-    }, []);
+  return (
+    <section className={`relative w-full min-h-[80vh] h-content ${showOrders ? "overflowY-scroll": "overflow-hidden"}  py-4`}>
 
-    return (
-        <section className="p-0">
-        <h4 className="text-md text-white font-bold border-b pb-2 mb-4">My Orders</h4>
+      <div
+        className={`absolute top-0 left-0 w-full h-full flex flex-col justify-start items-center transition-all duration-700 transform ${
+          showOrders
+            ? "opacity-0 scale-90 pointer-events-none"
+            : "opacity-100 scale-100"
+        }`}
+      >
+        {passCode && (<p className="font-bold mt-40 mb-20">MY PASSCODE:{passCode}</p>)}
+        <p className="text-center mb-8 font-bold text-[16px]">{t("sm_message").toUpperCase()}</p>
+
+        <button
+          className="px-6 py-3 rounded-[40px] bg-white color-mocha-600 font-bold border-mocha mb-4 w-64"
+          onClick={() => callBartender()}
+        >
+          {t("call_bartender").toUpperCase()}
+        </button>
+
+        <Link
+          to={AppPaths.public.menu.replace(":placeId", placeId)}
+          className="px-6 py-3 rounded-[40px] bg-mocha-600 font-bold text-white mb-4 w-64 text-center"
+        >
+          {t("order").toUpperCase()}
+        </Link>
 
         {myOrders.length > 0 && (
-            myOrders.map((order, index) => (
-            <div key={order.id} className="mb-6 ">
-                <p className="text-[16px] font-semibold mb-0 text-black">Order {index+1} - {order.totalPrice.toFixed(2)}€</p>
-                {order.note && (
-                <p className="text-sm mb-2 whitespace-pre-line text-[14px]">
-                    <span className="font-bold">Note:</span> {order.note}
-                </p>
-                )}
-
-                {order.items.map((item, idx) => (
-                    <div key={idx} className="flex-column mt-2 mr-5 ml-5 pt-2 pb-2 pl-6 bg-neutral-latte-light border b-white rounded-[30px] text-[14px] mb-2">
-                        <p className="color-mocha-600 font-semibold">{item.menuItem} (x{item.count})</p>
-                        <span className="font-normal">{(item.price * item.count).toFixed(2)}€</span>
-                    </div>
-                    
-                ))}
-            </div>
-            ))
+          <button
+            className=" absolute bottom-2 px-6 py-3 rounded-[40px] bg-white font-bold color-mocha-600 border-mocha mt-6 w-64"
+            onClick={() => setShowOrders(true)}
+          >
+            {t("my_orders").toUpperCase()}
+          </button>
         )}
-        {myOrders?.length == 0 && <p>{t("sm_message")}</p>}
-        <div className={`flex items-center justify-center w-full pl-2 pr-2
-            ${myOrders.length > 0 ? 'fixed bottom-0 left-0 pb-4 z-10 flex-row' : 'flex-col'}`}>
-            
-            <button className={`px-5 py-1 border-mocha rounded-[40px] ${myOrders?.length >= 0 ? 'mt-3 bg-mocha-600 text-white' : 'bg-neutral-latte-light text-black'}`}
-                    onClick={()=> callBartender()}
-                    >{t("call_bartender").toUpperCase()}</button>
-            <button className={` px-5 py-1 rounded-[40px] border-mocha ml-1 mr-1 ${myOrders?.length == 0 ? 'mt-3 bg-mocha-600 text-white' : 'bg-neutral-latte-light text-black'}`}>
-                <Link to={AppPaths.public.menu.replace(":placeId",placeId)}>
-                {t("order").toUpperCase()}
-                </Link>
+      </div>
+
+      <div
+        className={`relative top-0 left-0 w-full h-full flex flex-col p-4 pb-28 transition-all duration-700 transform ${
+          showOrders
+            ? "opacity-100 scale-100"
+            : "opacity-0 scale-90 pointer-events-none"
+        }`}
+      >
+
+        <button
+          className="self-start mb-4 text-mocha-600 font-semibold underline flex items-center"
+          onClick={() => setShowOrders(false)}
+        >
+            {t("back").toUpperCase()}
+        </button>
+
+        <h4 className="text-md font-bold border-b pb-2 mb-4">
+          {t("my_orders")}
+        </h4>
+
+        {myOrders.length > 0 ? (
+          myOrders.map((order, index) => (
+            <div key={order.id} className="mb-6 border-b w-full">
+              <p className="text-[16px] font-semibold mb-0 text-black">
+                Order {index + 1} - {order.totalPrice.toFixed(2)}€
+              </p>
+              {order.note && (
+                <p className="text-sm mb-2 whitespace-pre-line text-[14px]">
+                  <span className="font-bold">Note:</span> {order.note}
+                </p>
+              )}
+
+              {order.items.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex-column pt-2 pb-2 pl-6 neutral-latte border b-white rounded-[30px] text-[14px] mb-2"
+                >
+                  <p className="color-mocha-600 font-semibold">
+                    {item.menuItem} (x{item.count})
+                  </p>
+                  <span className="font-normal">
+                    {(item.price * item.count).toFixed(2)}€
+                  </span>
+                </div>
+              ))}
+            </div>
+          ))
+        ) : (
+          <p className="text-center">{t("sm_message")}</p>
+        )}
+
+        {myOrders.length > 0 && (
+          <div className="fixed bottom-2 left-0 w-full flex flex-col items-center">
+            <button
+              className="px-6 py-3 rounded-[40px] bg-mocha-600 text-white mb-4 w-64"
+              onClick={() => requestPayment()}
+            >
+              {t("request_payment").toUpperCase()}
             </button>
-            {myOrders?.length > 0 && (<button onClick={()=>requestPayment()} className="bg-mocha-600 px-5 py-1 rounded-[40px] text-white"> {t("request_payment").toUpperCase()}</button>)}
-        </div>
-        </section>
-    );
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
-  
 
 export default MyOrders;

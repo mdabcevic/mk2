@@ -140,7 +140,7 @@ function CreateTables() {
                   }
                   className="absolute bg-mocha-300 rounded-[50px] text-white flex items-center justify-center text-[12px] cursor-pointer"
                 >
-                  <div className="relative" onClick={(e) => e.stopPropagation()}>
+                  <div className="w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                     {table.label}
                   </div>
                 </Rnd>

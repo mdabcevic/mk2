@@ -59,7 +59,8 @@
     "close": "Close",
     "send": "Send",
     "inquire_plan": "I would like to inquire about the {{sub}} plan.",
-
+    "view_tables":"View tables",
+    "free_tables": "Number of Free tables",
     "aboutUs": {
         "title": "Boost Your Café’s Service with QR Ordering",
         "subtitle": "Reduce wait times, streamline orders, and keep customers happy—all with a simple scan.",

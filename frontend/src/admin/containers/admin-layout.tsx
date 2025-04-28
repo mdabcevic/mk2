@@ -7,7 +7,7 @@ export default function AdminLayout() {
     <div className="flex">
       <div className="flex-1">
         <HeaderAdminComponent />
-        <main className="p-4">
+        <main className="">
           <Outlet />
         </main>
       </div>

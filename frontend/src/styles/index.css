@@ -22,9 +22,8 @@ body {
   padding:0;
   min-width: 320px;
   min-height: 100vh;
-  background: #402A1F;
-  background: linear-gradient(180deg, rgba(64, 42, 31, 1) 0%, rgba(227, 218, 201, 1) 50%, rgba(227, 218, 201, 1) 64%, rgba(255, 255, 255, 1) 87%);
-}
+  background-color: #F6F2EC;
+  }
 
 h1 {
   font-size: 3.0em;
@@ -35,15 +34,12 @@ h1 {
 
 main{
   box-sizing: border-box;
-  max-width: 1500px;
   margin:0 auto;
 }
-
 
 button{
   cursor: pointer;
 }
-
 .bg-mocha-600{
   background-color: #463426;
 }
@@ -60,7 +56,7 @@ button{
   background-color: #F6F2EC;
 }
 .border-mocha{
-  border: 2px solid #624935;
+  border: 1px solid #624935;
 }
 .text-brown-500{
   color:#402A1F;
@@ -106,14 +102,16 @@ button{
   position: relative;
 }
 
-@keyframes floatUpDown {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
+.customized-scrollbar::-webkit-scrollbar {
+  width: 2px;
+  height: 8px;
+  background-color: #DFD8CD;
 }
+
+.customized-scrollbar::-webkit-scrollbar-thumb {
+  background: #DFD8CD;
+}
+
 
 @media screen and (max-width: 850px) {
   .NavbarItems {
@@ -126,6 +124,7 @@ button{
     width: 100%;
     height: auto;
     backdrop-filter: blur(5px);
+    color:black;
     position: absolute;
     align-items: stretch;
     top: 0;

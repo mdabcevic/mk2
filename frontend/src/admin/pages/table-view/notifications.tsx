@@ -5,9 +5,8 @@ import { getNotificationColor } from "../../../utils/table-color";
 
 export function NotificationScreen({ onClose }:{onClose?: (label: string) => void}) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  console.log("aaaa")
+
   useEffect(() => {
-    console.log("cc")
     const unsubscribe = subscribeToNotifications((n) => {
       setNotifications((prev) => [...prev, n]);
     });
@@ -24,7 +23,7 @@ export function NotificationScreen({ onClose }:{onClose?: (label: string) => voi
   };
 
   return (
-    <section id="notifications" className="flex flex-col items-start mr-4 mt-50 w-full md:w-[350px] ">
+    <section id="notifications" className="flex flex-col flex-start items-start mr-4 w-full md:w-[350px] ">
       <h3 className="text-lg font-bold mb-2">Notifications</h3>
       <div className="flex flex-col gap-2 max-w-sm">
       {notifications.map((n) => (

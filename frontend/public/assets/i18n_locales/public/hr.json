@@ -59,7 +59,8 @@
     "close": "Zatvori",
     "send": "Pošalji",
     "inquire_plan": "Želio bih se informirati o {{sub}} planu.",
-
+    "view_tables":"Popunjenost objekta",
+    "free_tables": "Broj slobodnih stolova",
     "aboutUs": {
         "title": "Poboljšajte uslugu u svom kafiću uz QR naručivanje",
         "subtitle": "Smanjite vrijeme čekanja, ubrzajte narudžbe i usrećite goste – sve jednim skeniranjem.",

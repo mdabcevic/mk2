@@ -1,20 +1,18 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation, useMatch, useNavigate } from "react-router-dom";
+import { Link, useLocation, } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { languages } from "../utils/languages";
 import { AppPaths } from "../utils/routing/routes";
 import { authService } from "../utils/auth/auth.service";
-import { Constants, UserRole } from "../utils/constants";
+import { UserRole } from "../utils/constants";
 
-
+const isTokenValid = authService.tokenValid();
 
 const HeaderComponent = () => {
   const { t, i18n } = useTranslation("public");
   const location = useLocation();
-  
   const [open, setOpen] = useState(false);
-
   const [showLanguages,setShowLanguages] = useState(false);
   const [selectedLang, setSelectedLang] = useState(i18n.language);
 
@@ -27,15 +25,11 @@ const HeaderComponent = () => {
   const passcode = authService.passCode();
   const [showPasscode,setShowPasscode] = useState<boolean>(false);
 
-  
+  return (
+    <header className="">
 
-  
-
-  return userRole !== UserRole.guest ? (
-    <header>
-
-      <nav className="flex justify-between items-center text-[1.2rem] bg-brown-500 text-light p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2 z-100000">
-      <h1 className="">Mk2</h1>
+      <nav className="flex justify-between items-center bg-brown-500 text-light text-[1.2rem] p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2 z-100000">
+      <h1 className=""><img src="/assets/images/icons/logo.png" width={"60px"} height={"60px"} className="rounded-[30px]" /></h1>
       <div className="hamburger-cross-icons" onClick={()=> setOpen(!open)}>
         <Menu size={24} />
       </div>
@@ -98,7 +92,7 @@ const HeaderComponent = () => {
     </nav>
     
     </header>
-  ) : (<div></div>);
+  );
 };
 
 export default HeaderComponent;
