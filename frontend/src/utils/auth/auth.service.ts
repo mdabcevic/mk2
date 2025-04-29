@@ -31,7 +31,7 @@ export const authService = {
         localStorage.setItem(Constants.place_id,placeId);
         if (passcode)
             setPassCode(passcode);
-        setTimeout(()=>{window.location.href = AppPaths.public.placeDetails.replace(":id", placeId);},5000)
+        setTimeout(()=>{window.location.href = AppPaths.public.placeDetails.replace(":id", placeId);},100)
         
     },
 
@@ -57,7 +57,11 @@ export const authService = {
             if (!exp) return false;
     
             const currentTime = Math.floor(Date.now() / 1000);
-            return exp > currentTime;
+            if(exp < currentTime){
+                removePreviousState();
+                return false
+            }
+            return true;
         } catch (error) {
             console.error("Invalid token format", error);
             return false;

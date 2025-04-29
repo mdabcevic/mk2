@@ -4,12 +4,11 @@ import { IPlaceItem } from "../../utils/interfaces/place-item";
 import { placeService } from "../../utils/services/place.service";
 import { randomImages } from "../../utils/random-images";
 
-const availableOptions = ["Zagreb", "Rijeka", "Karlovac", "Osijek"];
+// const availableOptions = ["Zagreb", "Rijeka", "Karlovac", "Osijek"];
 function Places() {
   
-  const [selectedOption, setSelectedOption] = useState(availableOptions[0]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [loading,setLoading] = useState<boolean>(false);
+  // const [selectedOption, setSelectedOption] = useState(availableOptions[0]);
+  // const [isOpen, setIsOpen] = useState(false);
   const [places,setPlaces] = useState<IPlaceItem[]>([]);
 
   const fetchPlaces = async () =>{
@@ -22,7 +21,19 @@ function Places() {
   },[]);
   return (
     <div className="p-4">
-      <div className="flex items-center space-x-2">
+      <h1 className="text-center font-bold text-xs">Coffee Shops</h1>
+
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 m-auto mt-4 max-w-[1500px]">
+        {places.length > 0 && (
+          places.map((place, index) => (
+            <PlaceCard key={index} place={place} index={index} 
+            />
+        ) ))}
+      </div>
+
+      {/* TODO: Implement pagination and filtering places by city */}
+      {/* <div className="flex items-center space-x-2">
 
       <div className="">
         <button
@@ -70,15 +81,9 @@ function Places() {
         placeholder="Pretraži..."
         className="bg-white rounded p-2 text-black border border-gray-300 focus:outline-none focus:ring focus:ring-gray-400"
       />
-    </div>
+    </div> */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-3">
-        {places.length > 0 && (
-          places.map((place, index) => (
-            <PlaceCard key={index} place={place} index={index} 
-            />
-        ) ))}
-      </div>
+      
     </div>
   );
 }

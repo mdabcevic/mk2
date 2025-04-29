@@ -7,29 +7,25 @@ function PlaceCard( { place, index }: { place: IPlaceItem, index: number }) {
 
     return (
       <div 
-        className={`flex md:block items-center max-h-[60px] md:max-h-none w-full bg-white p-2 md:p-4 rounded shadow-[0px_4px_10px_rgb(0,0,0,0)] `}
-        onClick={() => navigate(AppPaths.public.placeDetails.replace(":id",place.id.toString())) }>
-        
+        className="relative flex md:block items-center w-full h-[200px] bg-white rounded-[12px] py-1 shadow-[0px_4px_10px_rgb(0,0,0,0.1)] overflow-hidden cursor-pointer"
+        onClick={() => navigate(AppPaths.public.placeDetails.replace(":id", place.id.toString()))}
+      >
         <img 
           src={place.imageUrl} 
           alt={place.businessName} 
-          className="w-10 h-10 md:w-[90%] md:h-45 md:mx-auto rounded object-cover"
+          className="absolute inset-0 w-full h-full object-cover rounded"
         />
-
-        <div className="flex flex-col justify-center ml-3 md:ml-0 flex-1 overflow-hidden">
-          <h3 className="text-sm md:text-xl text-black font-semibold truncate">{place.businessName}</h3>
-          <p className="text-xs text-black truncate">{place.address}</p>
-        </div>
-        <div className="w-full text-right">
-        <button className="bg-orange-300 py-1 px-3 cursor-pointer rounded hover:bg-orange-100 ml-auto md:ml-0 md:mt-4">
-          <img src="https://cdn2.iconfinder.com/data/icons/game-center-mixed-icons/512/arrow5.png" width="30px" height="30px" />
-        </button>
-        </div>
-        
+    
+        <div className="absolute bottom-0 w-full bg-black/60 text-white flex flex-col items-center justify-center z-10">
+          <h3 className="text-sm md:text-xl font-semibold truncate w-full text-center">
+            {place.businessName},
+            <span className="text-xs w-full text-center ml-2">{place.address}</span>
+          </h3>
+          
+        </div>        
       </div>
-
-
     );
+  
   };
   
   export default PlaceCard;

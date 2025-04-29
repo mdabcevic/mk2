@@ -1,8 +1,8 @@
 import {  TableStatusString } from "./constants";
 
 export enum TableColor {
-  empty = "#5ea077",
-  occupied = "#fb302d",
+  empty = "#ffffff",
+  occupied = "#A3A3A3",
   reserved = "#c8c8c8",
   bartenderRequired = "#eebd66",
   billRequested = "#7e96c2"
