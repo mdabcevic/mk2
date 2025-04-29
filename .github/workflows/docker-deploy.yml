@@ -55,7 +55,7 @@ jobs:
           PGUSER: admin
           PGPASSWORD: adminpass
         run: |
-          psql -h localhost -p 5442 -d bartenderdb -f ./db/initseed.sql
+          psql -v ON_ERROR_STOP=1 -h localhost -p 5442 -d bartenderdb -f ./db/initseed.sql
 
       - name: Start services
         run: docker compose up -d backend frontend
