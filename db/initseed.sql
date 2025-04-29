@@ -127,8 +127,7 @@ INSERT INTO products (name, volume, category_id, created_at) VALUES
 ('Kava Bez Kofeina S', 'ŠAL', 1, now()),
 ('Kava Bez Kofeina L', 'ŠAL', 1, now()),
 ('Cappuccino Bez Kofeina L', 'ŠAL', 1, now()),
-('Bijela Kava Bez Kofeina', 'ŠAL', 1, now())
-
+('Bijela Kava Bez Kofeina', 'ŠAL', 1, now()),
 
 ('Kakao', 'ŠAL', 3, now()),
 ('Nescafe Classic', 'ŠAL', 3, now()),
