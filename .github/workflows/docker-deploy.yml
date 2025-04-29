@@ -1,4 +1,4 @@
-name: Deploy Smoke Test
+name: Smoke Test
 
 on:
   workflow_dispatch:
@@ -17,8 +17,47 @@ jobs:
       - name: Build images
         run: docker compose build
 
+      # 🛠 Start only Postgres first
+      - name: Start Postgres only
+        run: docker compose up -d postgres
+
+        # 🛠 Wait for Postgres to be ready
+      - name: Wait for Postgres readiness
+        run: |
+          for i in {1..20}; do
+            echo "⏳ Attempt $i: checking postgres..."
+            if pg_isready -h localhost -p 5442 -U admin; then
+              echo "✅ Postgres is ready"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "❌ Postgres failed to respond"
+          docker compose logs postgres
+          exit 1
+
+      # 🛠 Setup .NET SDK + EF CLI
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install EF CLI tools
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Add EF CLI to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      # 🛠 Build EF Migration Bundle
+      - name: Build EF Migration Bundle
+        run: dotnet ef migrations bundle --project ./backend/Bartender.Data --startup-project ./backend/BartenderBackend --output migrate --self-contained --runtime linux-x64
+
+      # 🛠 Apply EF Migrations
+      - name: Apply EF Migrations
+        run: chmod +x ./migrate && ./migrate --connection "Host=localhost;Port=5442;Database=postgres;Username=admin;Password=adminpass"
+
       - name: Start services
-        run: docker compose up -d
+        run: docker compose up -d redis backend frontend
 
       - name: Wait for backend to be ready (retry loop)
         run: |
@@ -49,7 +88,6 @@ jobs:
           target: 'http://localhost:7214'
           fail_action: false
           allow_issue_writing: false
-
 
       - name: Cleanup
         if: always()
