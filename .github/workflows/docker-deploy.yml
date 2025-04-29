@@ -17,11 +17,9 @@ jobs:
       - name: Build images
         run: docker compose build
 
-      # 🛠 Start only Postgres first
-      - name: Start Postgres only
+      - name: Start Postgres and Redis only
         run: docker compose up -d postgres redis
 
-        # 🛠 Wait for Postgres to be ready
       - name: Wait for Postgres readiness
         run: |
           for i in {1..20}; do
@@ -36,7 +34,7 @@ jobs:
           docker compose logs postgres
           exit 1
 
-      # 🛠 Setup .NET SDK + EF CLI
+      # Setup .NET SDK + EF CLI
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v3
         with:
@@ -52,8 +50,15 @@ jobs:
         working-directory: ./backend/BartenderBackend
         run: dotnet ef database update --project ../Bartender.Data --startup-project .
 
+      - name: Seed database
+        env:
+          PGUSER: admin
+          PGPASSWORD: adminpass
+        run: |
+          psql -h localhost -p 5442 -d bartenderdb -f ./db/initseed.sql
+
       - name: Start services
-        run: docker compose up -d redis backend frontend
+        run: docker compose up -d backend frontend
 
       - name: Wait for backend to be ready (retry loop)
         run: |
