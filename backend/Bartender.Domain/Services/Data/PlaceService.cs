@@ -1,20 +1,26 @@
 ﻿using AutoMapper;
 using Bartender.Data;
+using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO;
+using Bartender.Domain.DTO.Order;
+using Bartender.Domain.DTO.Picture;
 using Bartender.Domain.DTO.Place;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 
 namespace Bartender.Domain.Services.Data;
 
 public class PlaceService(
     IRepository<Place> repository,
+    IRepository<PlaceImage> pictureRepository,
     ITableRepository tableRepository,
     ILogger<PlaceService> logger,
     ICurrentUserContext currentUser,
     INotificationService notificationService,
+    IValidationService validationService,
     IMapper mapper
     )
     : IPlaceService
@@ -105,6 +111,151 @@ public class PlaceService(
 
         logger.LogInformation("Staff notified for table {Label}", table.Label);
         return ServiceResult.Ok();
+    }
+
+    public async Task<ServiceResult<List<ImageGroupedDto>>> GetImagesAsync(int placeId, ImageType? pictureType, bool onlyVisible = true)
+    {
+        var place = await repository.GetByIdAsync(placeId);
+        if (place == null)
+            return ServiceResult<List<ImageGroupedDto>>.Fail($"Place with id {placeId} not found", ErrorType.NotFound);
+
+        var query = pictureRepository.QueryIncluding()
+        .Where(pic => pic.PlaceId == placeId);
+
+        if (pictureType != null)
+            query = query.Where(pic => pic.ImageType == pictureType.Value);
+
+        if (onlyVisible)
+            query = query.Where(pic => pic.IsVisible);
+
+       var pictures = await query
+            .GroupBy(pic => pic.ImageType)
+            .Select(g => new ImageGroupedDto
+            {
+                ImageType = g.Key,
+                Images = onlyVisible ? null : g.Select(pic => new ImageDto
+                {
+                    Id = pic.Id,
+                    Url = pic.Url,
+                    IsVisible = onlyVisible ? null : pic.IsVisible
+                }).ToList(),
+                Urls = onlyVisible ? g.Select(pic => pic.Url).ToList() : null
+            })
+            .ToListAsync();
+
+        return ServiceResult<List<ImageGroupedDto>>.Ok(pictures);
+    }
+
+    public async Task<ServiceResult> AddImageAsync(UpsertImageDto newPicture)
+    {
+        var existingPlace = await repository.ExistsAsync(p => p.Id == newPicture.PlaceId);
+        if (!existingPlace)
+            return ServiceResult.Fail($"Place with id {newPicture.PlaceId} not found", ErrorType.NotFound);
+
+        if (!await validationService.VerifyUserPlaceAccess(newPicture.PlaceId))
+        {
+            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+        }
+
+        var existingPicture = await CheckForExistingImageAsync(newPicture.PlaceId, newPicture.ImageType, newPicture.Url);
+        if (existingPicture != null)
+        {
+            return ServiceResult.Fail($"Image already exists in category '{existingPicture.ImageType}'", ErrorType.Validation);
+        }
+
+        if (newPicture.ImageType == ImageType.banner)
+        {
+            await HandleBannerChangeAsync(newPicture.PlaceId);
+        }
+        
+        await pictureRepository.AddAsync(mapper.Map<PlaceImage>(newPicture));
+        return ServiceResult.Ok();
+    }
+
+    public async Task<ServiceResult> UpdateImageAsync(int id, UpsertImageDto newPicture)
+    {
+        var existingPicture = await pictureRepository.GetByIdAsync(id);
+        if(existingPicture == null)
+            return ServiceResult.Fail($"Picture with id {id} not found", ErrorType.NotFound);
+
+        var existingPlace = await repository.ExistsAsync(p => p.Id == newPicture.PlaceId);
+        if (!existingPlace)
+            return ServiceResult.Fail($"Place with id {newPicture.PlaceId} not found", ErrorType.NotFound);
+
+        if (!await validationService.VerifyUserPlaceAccess(newPicture.PlaceId))
+        {
+            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+        }
+
+        var existingPictureUrl = await CheckForExistingImageAsync(newPicture.PlaceId, newPicture.ImageType, newPicture.Url, id);
+        if (existingPictureUrl != null)
+        {
+            return ServiceResult.Fail($"Image already exists in category '{existingPicture.ImageType}'", ErrorType.Validation);
+        }
+
+        if (newPicture.ImageType == ImageType.banner)
+        {
+            await HandleBannerChangeAsync(newPicture.PlaceId, id);
+        }
+
+        mapper.Map(newPicture, existingPicture);
+        await pictureRepository.UpdateAsync(existingPicture);
+        return ServiceResult.Ok();
+    }
+
+    public async Task<ServiceResult> DeleteImageAsync(int id)
+    {
+        var existingPicture = await pictureRepository.GetByIdAsync(id);
+        if (existingPicture == null)
+            return ServiceResult.Fail($"Picture with id {id} not found", ErrorType.NotFound);
+
+        await pictureRepository.DeleteAsync(existingPicture);
+        return ServiceResult.Ok();
+    }
+
+    private async Task<PlaceImage?> CheckForExistingImageAsync(int placeId, ImageType imageType, string url, int? id = null)
+    {
+        return await pictureRepository.GetByKeyAsync(pic =>
+            pic.PlaceId == placeId &&
+            pic.ImageType == imageType &&
+            pic.Url == url &&
+            (id == null || pic.Id != id));
+    }
+
+    /// <summary>
+    /// 
+    /// Ensures a place has only one banner image.
+    /// If another banner exists:
+    /// - Deletes it if a matching gallery image exists,
+    /// - Otherwise, converts it to a gallery image.
+    /// 
+    /// </summary>
+    /// <param name="placeId"></param>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    private async Task HandleBannerChangeAsync(int placeId, int? id = null)
+    {
+        var existingBannerPicture = await pictureRepository.GetByKeyAsync(
+            pic => pic.PlaceId == placeId && pic.ImageType == ImageType.banner && (id == null || pic.Id != id));
+
+        if (existingBannerPicture != null)
+        {
+            var duplicateGalleryPicture = await CheckForExistingImageAsync(
+                existingBannerPicture.PlaceId,
+                ImageType.gallery,
+                existingBannerPicture.Url,
+                existingBannerPicture.Id);
+
+            if (duplicateGalleryPicture != null)
+            {
+                await pictureRepository.DeleteAsync(existingBannerPicture);
+            }
+            else
+            {
+                existingBannerPicture.ImageType = ImageType.gallery;
+                await pictureRepository.UpdateAsync(existingBannerPicture);
+            }
+        }
     }
 
     //TODO: move to validation
