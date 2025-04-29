@@ -6,4 +6,5 @@ export interface IPlaceItem{
     cityName:string,
     workHours?:string,
     images:string[];
+    freeTablesCount:number
 }
