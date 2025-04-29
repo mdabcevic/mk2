@@ -19,7 +19,7 @@ jobs:
 
       # 🛠 Start only Postgres first
       - name: Start Postgres only
-        run: docker compose up -d postgres
+        run: docker compose up -d postgres redis
 
         # 🛠 Wait for Postgres to be ready
       - name: Wait for Postgres readiness
