@@ -49,9 +49,8 @@ jobs:
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Apply EF Migrations
-        run: dotnet ef database update \
-               --project ./backend/Bartender.Data \
-               --startup-project ./backend/BartenderBackend
+        working-directory: ./backend/BartenderBackend
+        run: dotnet ef database update --project ../Bartender.Data --startup-project .
 
       - name: Start services
         run: docker compose up -d redis backend frontend
