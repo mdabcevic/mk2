@@ -1,6 +1,6 @@
 import * as signalR from "@microsoft/signalr";
 import { authService } from "./auth.service";
-import { showToast, ToastType } from "../toast";
+import { showToast, ToastType } from "../components/toast";
 import { notifyListeners } from "../notification-store";
 import { Constants } from "../constants";
 

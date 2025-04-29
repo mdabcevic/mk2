@@ -32,6 +32,10 @@ export const orderService = {
 
     getMyOrders: async (): Promise<any> =>{
         return await api.get(ApiMethods.getMyOrders);
+    },
+
+    getOrdersByTable: async(tableLabel:string): Promise<any> => {
+        return await api.get(ApiMethods.getOrdersByTable.replace("{tableLabel}",tableLabel));
     }
 
 }

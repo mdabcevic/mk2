@@ -260,7 +260,8 @@ public class OrderService(
     public async Task<ServiceResult<List<OrderDto>>> GetCurrentOrdersByTableLabelAsync(string tableLabel) //staff only?
     {
         var orders = await repository.GetCurrentOrdersByTableLabelAsync(tableLabel); //TODO: should fetching be done after validation?
-
+        if(!orders.Any())
+            return ServiceResult<List<OrderDto>>.Ok(new List<OrderDto>());
         var verifyUser = await validationService.VerifyUserGuestAccess(orders[0].Table.Id);
         if (!verifyUser.Success)
             return ServiceResult<List<OrderDto>>.Fail(verifyUser.Error!, verifyUser.errorType!.Value);

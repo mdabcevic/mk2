@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { productMenuService } from '../../../utils/services/product-menu.service';
 import { CategoryGroup, MenuGroupedItemDto } from "../../../admin/pages/products/product";
 import { cartStorage } from "../../../utils/storage";
@@ -8,6 +8,8 @@ import { authService } from "../../../utils/auth/auth.service";
 import { UserRole } from "../../../utils/constants";
 import { MenuItemsList } from "./menu-items-list";
 import Cart from "./cart";
+import { AppPaths } from "../../../utils/routing/routes";
+import { CategoryTabs } from "../../../utils/components/menu-category-tabs";
 
 
 export function Menu() {
@@ -18,7 +20,19 @@ export function Menu() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [itemsOfSelectedCategory, setItemsOfSelectedCategory] = useState<MenuGroupedItemDto[]>([]);
   const userRole = authService.userRole();
+  const [totalPrice, setTotalPrice] = useState(0);
 
+  useEffect(() => {
+    const unsubscribe = cartStorage.subscribe(() => {
+      setTotalPrice(cartStorage.getTotalPrice());
+    });
+
+    setTotalPrice(cartStorage.getTotalPrice());
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
   const fetchMenu = async () => {
     if (placeId) {
         const response = await productMenuService.getMenuByPlaceId(placeId, true) as CategoryGroup[];
@@ -39,35 +53,26 @@ export function Menu() {
   }, [placeId]);
 
   return (
-    <div className="relative h-screen overflow-hidden">
-      <h2 className="text-xl font-bold mb-4 text-white text-center mt-2">
+    <div className="relative flex flex-col min-h-screen overflow-hidden">
+      <h2 className="text-xl font-bold mb-4 text-center mt-2">
         {t("menu_text")}
       </h2>
 
+      <Link className="ml-4" to={AppPaths.public.placeDetails.replace(":id",placeId!)} >Go Back</Link>
 
       <div className="relative w-full h-full">
 
         <section
           id="menu"
-          className={`absolute top-0 left-0 w-full h-full p-4 overflow-y-auto transition-transform duration-1000 ease-in-out ${
+          className={`flex flex-col flex-grow overflow-y-auto p-4 transition-transform duration-1000 ease-in-out ${
             showCart ? "-translate-x-full" : "translate-x-0"
           }`}
         >
-          <div className="flex space-x-2 overflow-x-auto mb-4">
-            {menu.map((group) => (
-              <button
-                key={group.category}
-                onClick={() => changeCategory(group.category)}
-                className={`px-4 py-2 rounded-full text-white  font-extralight text-sm w-fit cursor-pointer ${
-                  selectedCategory === group.category
-                    ? "font-semibold text-white"
-                    : "font-extralight"
-                }`}
-              >
-                {group.category}
-              </button>
-            ))}
-          </div>
+          <CategoryTabs 
+            menu={menu} 
+            selectedCategory={selectedCategory} 
+            changeCategory={changeCategory} 
+          />
 
           <div className="mb-6">
           <MenuItemsList
@@ -80,7 +85,7 @@ export function Menu() {
 
         <section
           id="cart"
-          className={`absolute top-0 left-0 w-full h-full p-4 overflow-y-auto transition-transform duration-1000 ease-in-out ${
+          className={`absolute top-0 left-0 w-full h-content min-h-[80vh] p-4 overflow-y-auto transition-transform duration-1000 ease-in-out ${
             showCart ? "translate-x-0" : "translate-x-full"
           }`}
         >
@@ -103,7 +108,7 @@ export function Menu() {
               onClick={() => setShowCart(true)}
               className="text-white bg-mocha-600 font-semibold max-w-[250px] py-2 px-10 rounded-[50px] cursor-pointer"
             >
-              Total {cartStorage.getTotalPrice().toFixed(2)}€ next
+              Total {totalPrice.toFixed(2)}€ next
             </button>
           </div>
         ) 

@@ -33,11 +33,8 @@ const Cart = () => {
       discount: 0,
     }));
 
-    const response = await orderService.createOrder(orderItems, paymentType, note);
-    if (response) {
-      cartStorage.deleteCart();
-      console.log("Order created successfully", response);
-    }
+    await orderService.createOrder(orderItems, paymentType, note);
+    cartStorage.deleteCart();
     window.location.href = AppPaths.public.placeDetails.replace(":id",authService.placeId().toString());
   };
 
@@ -50,7 +47,7 @@ const Cart = () => {
   };
 
   return (
-    <div className="space-y-4 px-4">
+    <div className="space-y-4 px-4 relative">
 
       {Object.values(cart).map((item) => (
         <div
@@ -89,7 +86,7 @@ const Cart = () => {
             id="payment-method"
             value={paymentType}
             onChange={paymentTypeChange}
-            className="block w-[150px] py-2 px-4 border border-gray-300 rounded-[40px] bg-neutral-latte-light focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="block w-[150px] py-2 px-4 border border-gray-300 rounded-[40px] bg-neutral-latte-light focus:outline-none"
           >
             <option value={PaymentType.cash}>{t("cash")}</option>
             <option value={PaymentType.creditcard}>{t("credit_card")}</option>
@@ -110,10 +107,10 @@ const Cart = () => {
       </div>
 
 
-      <div className="fixed bottom-10 left-0 w-full p-4 text-center z-50">
+      <div className="fixed bottom-0 left-0 w-full p-4 text-center z-50">
         <button
           onClick={() => createOrder()}
-          className="text-white bg-mocha-600 font-semibold max-w-[250px] py-2 px-10 rounded-[50px] cursor-pointer"
+          className="text-white bg-mocha-600 font-semibold w-full max-w-[250px] py-2 px-10 rounded-[50px] cursor-pointer"
         >
           Order {cartStorage.getTotalPrice().toFixed(2)}€
         </button>
