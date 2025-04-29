@@ -44,7 +44,6 @@ const TablesView = () => {
 
   useEffect(() => {
       const unsubscribe = subscribeToNotifications((n) => {
-        console.log("dosla notf")
         fetchTables(n);
         let next = rerenderOrdersFlag + 1;
         setRerenderOrdersFlag(next);
@@ -53,7 +52,7 @@ const TablesView = () => {
       return () => unsubscribe();
     }, []);
     
-  const handleSetStatus = async (status: TableStatusString) => {
+  const setNewStatus = async (status: TableStatusString) => {
     const response = await tableService.changeStatus(status,selectedTable?.token!);
     setTables((prevTables:any) => {
       return prevTables.map((table:any) =>
@@ -87,6 +86,10 @@ const TablesView = () => {
       alert("Error")
     }
   }
+
+  const disableTable = async (tableLabel: string) => {
+    await tableService.disableTable(tableLabel);
+  };
 
   const onClose = (label: string) => {
     setTables(prev =>
@@ -134,7 +137,7 @@ const TablesView = () => {
           {tables.map((table, index) => (
             <div
               key={index}
-              className="absolute cursor-pointer flex items-center justify-center text-white font-bold border border-black box-border"
+              className="absolute cursor-pointer flex items-center justify-center font-bold border border-black box-border"
               style={{
                 left: table.x,
                 top: table.y,
@@ -151,8 +154,9 @@ const TablesView = () => {
               <TableActionModal
                 tableLabel={table.label}
                 onClose={() => setSelectedTable(null)}
-                onSetStatus={handleSetStatus}
+                onSetStatus={setNewStatus}
                 onGenerateQR={() => generateQrCode()}
+                disable={() => disableTable(table.label)}
               />
               )}
 
@@ -163,8 +167,8 @@ const TablesView = () => {
               />
             )}
             {typeof table?.requestType === "number" && (
-              <div className="absolute top-2">
-                <img src={getTableIcon(table?.requestType)} width="40px" height="40px" className="bg-white rounded"
+              <div className="absolute bottom-4">
+                <img src={getTableIcon(table?.requestType)} width="30px" height="30px" className="rounded"
                      style={{animation: 'floatUpDown 1s ease-in-out infinite'}}/>
               </div>
             )}
