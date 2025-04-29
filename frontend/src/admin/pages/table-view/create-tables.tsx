@@ -60,7 +60,7 @@ function CreateTables() {
   };
 
   const fetchTables = async () => {
-    const response = await tableService.getPlaceTablesByCurrent();
+    const response = await tableService.getPlaceTablesByCurrentUser();
     setTables(response);
   };
 
@@ -73,32 +73,32 @@ function CreateTables() {
       {screenWidth >= minScreenSize && (
         <>
           <div className="flex flex-col w-full" id="table-info">
-            <h2 className="text-base font-semibold text-left text-light">{t("table_info")}</h2>
+            <h2 className="font-semibold text-left">{t("table_info")}</h2>
             <div className="flex flex-row items-center">
-              <label className="text-light">{t("table_label")}:</label>
+              <label className="">{t("table_label")}:</label>
               <div className="flex flex-col ml-2 mr-4">
                 <input
                   type="text"
                   value={newTableName}
                   onChange={(e) => setNewTableName(e.target.value)}
                   placeholder="753-23"
-                  className="p-1 border rounded text-sm text-light"
+                  className="p-1 border rounded text-sm"
                 />
                 <span className="text-red-500">{labelMessage}</span>
               </div>
 
-              <label className="text-light">{t("seats_number")}:</label>
+              <label className="">{t("seats_number")}:</label>
               <input
                 type="number"
                 value={newSeats}
                 min={1}
                 onChange={(e) => setNewSeats(parseInt(e.target.value))}
-                className="p-1 border rounded text-sm text-light ml-2"
+                className="p-1 border rounded text-sm ml-2"
               />
 
               <button
                 onClick={addTable}
-                className="p-1 bg-neutral-latte-light text-brown-500 text-sm rounded px-4 ml-4"
+                className="p-1 bg-white text-brown-500 text-sm rounded-[40px] border-mocha px-4 ml-4"
               >
                 {t("add_table")}
               </button>
@@ -140,7 +140,7 @@ function CreateTables() {
                   }
                   className="absolute bg-mocha-300 rounded-[50px] text-white flex items-center justify-center text-[12px] cursor-pointer"
                 >
-                  <div className="relative" onClick={(e) => e.stopPropagation()}>
+                  <div className="w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                     {table.label}
                   </div>
                 </Rnd>

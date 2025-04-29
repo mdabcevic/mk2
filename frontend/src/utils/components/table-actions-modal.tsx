@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { TableStatusString } from "./constants";
+import { TableStatusString } from "../constants";
+
 
 interface Props {
   tableLabel: string;
@@ -17,7 +18,7 @@ const TableActionModal: React.FC<Props> = ({
 }) => {
   return (
     <motion.div
-      className="absolute z-50 text-sm rounded-[40px] shadow p-3 bg-neutral-latte-light text-brown-500 border border-mocha w-[200px]"
+      className="absolute z-50 text-sm rounded-[40px] shadow p-3 bg-white text-brown-500 border w-[200px]"
       style={{ top: "-110px", left: "50%", transform: "translateX(-50%)" }}
       onClick={(e) => e.stopPropagation()}
       initial={{ opacity: 0, scale: 0.95 }}
@@ -62,6 +63,9 @@ const TableActionModal: React.FC<Props> = ({
       >
         Set as Reserved
       </button>
+      <button onClick={onClose} className=" absolute right-5 top-3">
+            <img src="/assets/images/icons/close_icon.svg" alt="close" />
+          </button>
     </motion.div>
   );
 };
