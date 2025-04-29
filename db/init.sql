@@ -560,3 +560,22 @@ INSERT INTO products_per_orders (order_id, menu_item_id, price, discount, count)
 (3, 106, 2.90, 0, 1),
 (4, 105, 2.80, 0, 2),
 (4, 103, 2.80, 0, 1);
+
+INSERT INTO place_pictures (place_id, url, image_type, is_visible, created_at) VALUES
+(1, 'https://vivasbar.hr/slide3_00000.jpg', 'banner', true, now()),
+(1, 'https://www.streetsofzagreb.com/wp-content/uploads/2018/10/vivas-bundek-1024x945.jpg', 'gallery', true, now()),
+(1, 'https://www.shopping-centar-precko.com/EasyEdit/UserFiles/ShopImages/vivas-bar/vivas-bar-634662193013957578-1_720_540.jpeg', 'gallery', true, now()),
+(1, 'https://vivasbar.hr/Coffee.jpg', 'gallery', true, now()),
+(1, 'https://www.cityparkzelina.hr/wp-content/uploads/2022/06/Vivasbar_totem_vizual_1.png', 'logo', true, now()),
+(2, 'https://tc-jarun.com/wp-content/uploads/2021/03/K-69.jpg', 'banner', true, now()),
+(2, 'https://www.cityparkzelina.hr/wp-content/uploads/2022/06/Vivasbar_totem_vizual_1.png', 'logo', true, now()),
+(3, 'https://leggiero.hr/wp-content/uploads/2022/03/Family-mall-2048x1365.jpg', 'banner', true, now()),
+(3, 'https://leggiero.hr/wp-content/uploads/2024/03/Leggiero-3062-scaled.jpg', 'gallery', true, now()),
+(3, 'https://leggiero.hr/wp-content/uploads/2024/04/cropped-cropped-leggiero-logo-2019-bijeli-01-1024x341.png', 'logo', true, now()),
+(3, 'https://leggiero.hr/wp-content/uploads/2024/03/Leggiero-08818.jpg', 'logo', true, now()),
+(4, 'https://leggiero.hr/wp-content/uploads/2024/04/Dizajn-bez-naslova-88-768x576.png', 'banner', true, now()),
+(5, 'https://portanova.hr/uploads/images/store/image/21/073edfeb-94ec-43d2-b560-f4ecb9f8b82e.jpg', 'banner', true, now()),
+(8, 'https://lh5.googleusercontent.com/p/AF1QipN_ljbkFuvWmX_GQLmH8ua0VOPn3KRAjM0gec1i=w650-h365-k-no', 'banner', true, now()),
+(9, 'https://greatlocations.com/wp-content/uploads/2023/07/sunset-club-1.jpg', 'banner', true, now()),
+(10, 'https://media-cdn.tripadvisor.com/media/photo-s/13/8a/25/b6/lighting-up-the-night.jpg', 'banner', true, now()),
+(11, 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/19/63/5d/31/cloud9-cafe-bar-at-our.jpg?w=1000&h=-1&s=1', 'banner', true, now())

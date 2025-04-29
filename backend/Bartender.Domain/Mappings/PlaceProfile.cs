@@ -2,6 +2,7 @@
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.MenuItem;
+using Bartender.Domain.DTO.Picture;
 using Bartender.Domain.DTO.Place;
 
 namespace Bartender.Domain.Mappings;
@@ -55,5 +56,7 @@ public class PlaceProfile : Profile
                 opt.MapFrom(src => TimeOnly.Parse(src.ClosesAt!)); //TODO: custom parser
             }
         );
+
+        CreateMap<UpsertImageDto, PlaceImage>();
     }
 }
