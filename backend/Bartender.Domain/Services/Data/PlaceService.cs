@@ -10,6 +10,7 @@ using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
+using System.Numerics;
 
 namespace Bartender.Domain.Services.Data;
 
@@ -52,14 +53,22 @@ public class PlaceService(
 
     public async Task<ServiceResult<List<PlaceDto>>> GetAllAsync()
     {
-        var placesWithMenus = repository.QueryIncluding(
+        var placesWithMenus = await repository.QueryIncluding(
             p => p.Business,
-            p => p.City
-        );
+            p => p.City,
+            p => p.Images
+        ).ToListAsync();
 
-        var list = await placesWithMenus
-            .Select(p => mapper.Map<PlaceDto>(p))
-            .ToListAsync();
+        var list = placesWithMenus.Select(p =>
+        {
+            var dto = mapper.Map<PlaceDto>(p);
+            dto.Banner = p.Images?
+                .Where(i => i.ImageType == ImageType.banner && i.IsVisible)
+                .Select(i => i.Url)
+                .FirstOrDefault();
+            return dto;
+        }).ToList();
+
         return ServiceResult<List<PlaceDto>>.Ok(list);
     }
 
@@ -70,6 +79,7 @@ public class PlaceService(
         .Include(p => p.Business)
         .Include(p => p.City)
         .Include(p => p.Tables)
+        .Include(p => p.Images)
         .Include(p => p.MenuItems)!
             .ThenInclude(mi => mi.Product)
         .FirstOrDefaultAsync(p => p.Id == id);
@@ -77,7 +87,21 @@ public class PlaceService(
         if (place == null)
             return ServiceResult<PlaceWithMenuDto>.Fail($"Place with ID {id} not found.", ErrorType.NotFound);
 
+        var groupedImages = place.Images?
+            .Where(i => i.IsVisible)
+            .GroupBy(i => i.ImageType)
+            .Select( g => new ImageGroupedDto
+            {
+                ImageType = g.Key,
+                Urls = g.Select(i => i.Url).ToList()
+            })
+            .ToList();
+
         var dto = mapper.Map<PlaceWithMenuDto>(place);
+
+        if (groupedImages != null)
+            dto.Images = groupedImages;
+
         return ServiceResult<PlaceWithMenuDto>.Ok(dto);
     }
 
@@ -156,7 +180,6 @@ public class PlaceService(
         {
             return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
         }
-
         var existingPicture = await CheckForExistingImageAsync(newPicture.PlaceId, newPicture.ImageType, newPicture.Url);
         if (existingPicture != null)
         {

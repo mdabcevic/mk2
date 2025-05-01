@@ -14,14 +14,16 @@ public class PlaceProfile : Profile
         CreateMap<Place, PlaceDto>()
         .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.Business!.Name))
         .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City!.Name))
-        .ForMember(dest => dest.WorkHours, opt => opt.MapFrom(src => $"{src.OpensAt:hh\\:mm} - {src.ClosesAt:hh\\:mm}"));
+        .ForMember(dest => dest.WorkHours, opt => opt.MapFrom(src => $"{src.OpensAt:hh\\:mm} - {src.ClosesAt:hh\\:mm}"))
+        .ForMember(dest => dest.Banner, opt => opt.Ignore());
 
         CreateMap<Place, PlaceWithMenuDto>()
         .ForMember(dest => dest.BusinessName, opt => opt.MapFrom(src => src.Business!.Name))
         .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City!.Name))
         .ForMember(dest => dest.WorkHours, opt => opt.MapFrom(src => $"{src.OpensAt:hh\\:mm} - {src.ClosesAt:hh\\:mm}"))
         .ForMember(dest => dest.FreeTablesCount, opt => opt.MapFrom(src => src.Tables!.Count(t => t.Status == TableStatus.empty && !t.IsDisabled)))
-        .ForMember(dest => dest.Menu, opt => opt.MapFrom(src => src.MenuItems));
+        .ForMember(dest => dest.Menu, opt => opt.MapFrom(src => src.MenuItems))
+        .ForMember(dest => dest.Images, opt=> opt.Ignore());
 
         CreateMap<Place, GroupedPlaceMenuDto>()
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.MenuItems))
