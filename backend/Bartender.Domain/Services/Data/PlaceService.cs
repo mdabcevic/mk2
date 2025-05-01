@@ -3,14 +3,11 @@ using Bartender.Data;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO;
-using Bartender.Domain.DTO.Order;
 using Bartender.Domain.DTO.Picture;
 using Bartender.Domain.DTO.Place;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Linq.Expressions;
-using System.Numerics;
 
 namespace Bartender.Domain.Services.Data;
 
@@ -172,24 +169,16 @@ public class PlaceService(
 
     public async Task<ServiceResult> AddImageAsync(UpsertImageDto newPicture)
     {
-        var existingPlace = await repository.ExistsAsync(p => p.Id == newPicture.PlaceId);
-        if (!existingPlace)
-            return ServiceResult.Fail($"Place with id {newPicture.PlaceId} not found", ErrorType.NotFound);
+        var validationResult = await ValidatePlaceAndAccessAsync(newPicture.PlaceId);
+        if (!validationResult.Success)
+            return validationResult;
 
-        if (!await validationService.VerifyUserPlaceAccess(newPicture.PlaceId))
-        {
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
-        }
         var existingPicture = await CheckForExistingImageAsync(newPicture.PlaceId, newPicture.ImageType, newPicture.Url);
         if (existingPicture != null)
-        {
             return ServiceResult.Fail($"Image already exists in category '{existingPicture.ImageType}'", ErrorType.Validation);
-        }
 
         if (newPicture.ImageType == ImageType.banner)
-        {
             await HandleBannerChangeAsync(newPicture.PlaceId);
-        }
         
         await pictureRepository.AddAsync(mapper.Map<PlaceImage>(newPicture));
         return ServiceResult.Ok();
@@ -201,25 +190,16 @@ public class PlaceService(
         if(existingPicture == null)
             return ServiceResult.Fail($"Picture with id {id} not found", ErrorType.NotFound);
 
-        var existingPlace = await repository.ExistsAsync(p => p.Id == newPicture.PlaceId);
-        if (!existingPlace)
-            return ServiceResult.Fail($"Place with id {newPicture.PlaceId} not found", ErrorType.NotFound);
-
-        if (!await validationService.VerifyUserPlaceAccess(newPicture.PlaceId))
-        {
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
-        }
+        var validationResult = await ValidatePlaceAndAccessAsync(newPicture.PlaceId);
+        if (!validationResult.Success)
+            return validationResult;
 
         var existingPictureUrl = await CheckForExistingImageAsync(newPicture.PlaceId, newPicture.ImageType, newPicture.Url, id);
         if (existingPictureUrl != null)
-        {
             return ServiceResult.Fail($"Image already exists in category '{existingPicture.ImageType}'", ErrorType.Validation);
-        }
 
         if (newPicture.ImageType == ImageType.banner)
-        {
             await HandleBannerChangeAsync(newPicture.PlaceId, id);
-        }
 
         mapper.Map(newPicture, existingPicture);
         await pictureRepository.UpdateAsync(existingPicture);
@@ -233,6 +213,18 @@ public class PlaceService(
             return ServiceResult.Fail($"Picture with id {id} not found", ErrorType.NotFound);
 
         await pictureRepository.DeleteAsync(existingPicture);
+        return ServiceResult.Ok();
+    }
+
+    private async Task<ServiceResult> ValidatePlaceAndAccessAsync(int placeId)
+    {
+        var existingPlace = await repository.ExistsAsync(p => p.Id == placeId);
+        if (!existingPlace)
+            return ServiceResult.Fail($"Place with id {placeId} not found", ErrorType.NotFound);
+
+        if (!await validationService.VerifyUserPlaceAccess(placeId))
+            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+
         return ServiceResult.Ok();
     }
 
