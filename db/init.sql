@@ -181,19 +181,23 @@ INSERT INTO city (name, created_at) VALUES
 ('Los Angeles', now()),
 ('Chicago', now());
 
+SELECT b.name, p.* from
+places p
+inner join businesses b on b.id = p.business_id
+
 -- Insert places (city_id assumes order of Cities insert above)
-INSERT INTO places (business_id, city_id, address, opens_at, closes_at, created_at) VALUES
-(1, 1, 'Ilica 50', '07:00', '23:00', now()),
-(1, 1, 'Trg bana Jelačića 15', '08:00', '00:00', now()),
-(2, 1, 'Radnička cesta 1', '06:30', '22:30', now()),
-(2, 1, 'Jarunska 5', '07:00', '23:00', now()),
-(2, 2, 'Riva 2', '08:00', '23:00', now()),
-(3, 2, 'Poljička cesta 35', '07:30', '22:30', now()),
-(3, 3, 'Obala Kneza Domagoja 10', '09:00', '23:30', now()),
-(4, 3, 'Stradun 25', '08:30', '00:00', now()),
-(5, 4, '5th Ave', '07:00', '21:00', now()),
-(6, 5, 'Sunset Blvd', '08:00', '22:00', now()),
-(7, 6, 'Wacker Drive', '07:30', '23:00', now());
+INSERT INTO places (business_id, city_id, address, opens_at, closes_at, created_at, description) VALUES
+(1, 1, 'Ilica 50', '07:00', '23:00', now())'Kako smo smješteni na 20 lokacija od kojih 16 u Zagrebu, uvijek nas možeš posjetiti u blizini svojeg kvarta! Naš je imperativ tvoje zadovoljstvo te da se u svakom Vivasu osjećaš ugodno i opušteno kao u toplini svojeg doma! To postižemo kontinuiranim održavanjem postavljenog standarda, kvalitetnom uslugom kao i cijelim procesom izrade Vivas proizvoda.',
+(1, 1, 'Trg bana Jelačića 15', '08:00', '00:00', now()), 'Kako smo smješteni na 20 lokacija od kojih 16 u Zagrebu, uvijek nas možeš posjetiti u blizini svojeg kvarta! Naš je imperativ tvoje zadovoljstvo te da se u svakom Vivasu osjećaš ugodno i opušteno kao u toplini svojeg doma! To postižemo kontinuiranim održavanjem postavljenog standarda, kvalitetnom uslugom kao i cijelim procesom izrade Vivas proizvoda.',
+(2, 1, 'Radnička cesta 1', '06:30', '22:30', now(), 'Leggiero bar nalazi se na ulazu Slavonija gdje možete, uz ugodnu atmosferu, popiti vaše najdraže piće te se opustiti prije ili poslije dugog radnog dana. Leggiero ima i veliku terasu gdje možete probati osvježavajuća pića, Leggiero MIX svježe cijeđene sokove, a nakon 17 h počinje BEERanje pa svakodnevno potražite posebnu ponudu CRAFT i odabranih piva po posebnim cijenama. U blizini je i dječje igralište tako da roditelji mogu na miru popiti svoju omiljenu kavu, dok se klinci zabavljaju u blizini i pod budnim okom.'),
+(2, 1, 'Jarunska 5', '07:00', '23:00', now(), 'U ugodnom ambijentu ovog lijepo uređenog kafića predahnite od kupovine uz jedan od toplih ili hladnih napitaka iz naše bogate ponude pića. Mjesto na kojem možeš pobjeći od svakodnevnog stresa. Mjesto gdje ćeš se u sasvim običnom danu osjećati kao na godišnjem!'),
+(2, 2, 'Riva 2', '08:00', '23:00', now(), 'Želite popiti najfiniju Lavazza kavu i svježe cijeđeni sok, uživati u tek pečenom kroasanu i tostu ili se zasladiti najfinijim tortama u gradu? Sve to i još puno više pronaći ćete u Leggiero baru u prizemlju City Centera one West. Moderan i ugodan ambijent te uvijek ljubazno i uslužno osoblje, pobrinut će se da baš svaki trenutak proveden u Leggiero baru bude trenutak inspiracije i dobrog raspoloženja. Leggiero bar raspolaže i odvojenim prostorom koji je namijenjen pušačima. '),
+(3, 2, 'Poljička cesta 35', '07:30', '22:30', now(), 'Bonaca – mjesto dobrog okusa i opuštene atmosfere. Bilo da dolaziš na jutarnju kavu, popodnevni predah ili večernje druženje, Bonaca ti nudi savršeno pripremljene napitke, ukusne kolače i ugodan ambijent. Naša terasa i toplo osoblje pobrinut će se da svaki tvoj dolazak bude pravo malo zadovoljstvo.'),
+(3, 3, 'Obala Kneza Domagoja 10', '09:00', '23:30', now(), 'Bonaca – sad i na još jednoj lokaciji! Uz već poznatu toplinu i opušten ugođaj, Bonaca ti sada donosi svoje vrhunske kave, osvježavajuće napitke i fine slastice i na novoj lokaciji. Bilo da si na jutarnjem sastanku, usputnoj pauzi ili večernjem izlasku, Bonaca je uvijek pravi izbor za ugodan predah.'),
+(4, 3, 'Stradun 25', '08:30', '00:00', now(), 'U Elixiru te čekaju pažljivo pripremljene kave, svježi sokovi, kokteli i fini zalogaji u modernom i ugodnom ambijentu. Bilo da dolaziš na kratku pauzu, jutarnji ritual ili večernje druženje, Elixir je mjesto gdje se energija puni, a dan postaje ljepši.'),
+(5, 4, '5th Ave', '07:00', '21:00', now(), 'Sunset Bar je savršeno mjesto za bijeg od svakodnevice, gdje možeš uživati u pažljivo pripremljenoj kavi, osvježavajućim koktelima i ukusnim zalogajima u ugodnom i moderno uređenom prostoru, dok opuštajuća glazba i predivan pogled na zalazak sunca stvaraju jedinstvenu atmosferu za jutarnja druženja, popodnevne pauze ili večernje izlazke s prijateljima.'),
+(6, 5, 'Sunset Blvd', '08:00', '22:00', now(), 'U elegantnom ambijentu, gdje se spoj modernog stila i opuštanja, možeš uživati u savršenoj kavi, vrhunskim koktelima i glazbi koja stvara posebnu atmosferu, bilo da tražiš miran kutak za opuštanje ili mjesto za večernje druženje. Sve to, uz nezaboravan doživljaj, pruža ti Moonlight Lounge, idealno mjesto za svaki trenutak.'),
+(7, 6, 'Wacker Drive', '07:30', '23:00', now(), 'U opuštenoj atmosferi, gdje svaki detalj poziva na uživanje, možeš se opustiti uz savršeno pripremljenu kavu, svježe cijeđene sokove i ukusne grickalice, dok ti ugodna glazba i mirno okruženje pomažu da se osjećaš kao kod kuće. Sve ovo i još mnogo više nudi ti Cloud9 Cafe, mjesto koje je savršeno za uživanje u svakom trenutku dana.');
 
 -- Insert staff (one per place)
 INSERT INTO staff (place_id, o_i_b, username, password, full_name, role, created_at) VALUES
