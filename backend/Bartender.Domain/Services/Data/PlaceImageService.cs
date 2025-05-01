@@ -17,7 +17,7 @@ public class PlaceImageService(
     ILogger<PlaceImageService> logger
     ) : IPlaceImageService
 {
-    public async Task<ServiceResult<List<ImageGroupedDto>>> GetImagesAsync(int placeId, ImageType? pictureType, bool onlyVisible = true)
+    public async Task<ServiceResult<List<ImageGroupedDto>>> GetImagesAsync(int placeId, ImageType? pictureType = null, bool onlyVisible = true)
     {
         var place = await placeRepository.GetByIdAsync(placeId);
         if (place == null)
