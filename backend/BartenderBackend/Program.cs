@@ -94,6 +94,7 @@ builder.Services.AddScoped<ITableInteractionService, TableInteractionService>();
 builder.Services.AddScoped<ITableManagementService, TableManagementService>();
 builder.Services.AddScoped<IGuestSessionService, GuestSessionService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IPlaceImageService, PlaceImageService>();
 
 builder.Services.AddHttpContextAccessor(); // required!
 

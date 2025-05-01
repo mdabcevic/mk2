@@ -47,31 +47,4 @@ public class PlacesController(IPlaceService placesService) : ControllerBase
     {
         return (await placesService.DeleteAsync(id)).ToActionResult();
     }
-
-    [HttpGet("pictures/{placeId}")]
-    public async Task<IActionResult> GetImagesByPlace(int placeId, [FromQuery] ImageType? pictureType, [FromQuery] bool onlyVisible = true)
-    {
-        return (await placesService.GetImagesAsync(placeId, pictureType, onlyVisible)).ToActionResult();
-    }
-
-    [Authorize(Roles = "manager, admin, owner")]
-    [HttpPost("pictures")]
-    public async Task<IActionResult> CreateImage([FromBody] UpsertImageDto dto)
-    {
-        return (await placesService.AddImageAsync(dto)).ToActionResult();
-    }
-
-    [Authorize(Roles = "manager, admin, owner")]
-    [HttpPut("pictures/{id}")]
-    public async Task<IActionResult> UpdateImage(int id, [FromBody] UpsertImageDto dto)
-    {
-        return (await placesService.UpdateImageAsync(id, dto)).ToActionResult();
-    }
-
-    [Authorize(Roles = "manager, admin, owner")]
-    [HttpDelete("pictures/{id}")]
-    public async Task<IActionResult> DeleteImage(int id)
-    {
-        return (await placesService.DeleteImageAsync(id)).ToActionResult();
-    }
 }
