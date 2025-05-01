@@ -11,6 +11,38 @@ on:
   workflow_dispatch:
 
 jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install EF CLI
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Add EF to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Build EF Migrations Bundle
+        run: |
+          dotnet ef migrations bundle \
+            --project ./backend/Bartender.Data \
+            --startup-project ./backend/BartenderBackend \
+            --output migrate \
+            --self-contained \
+            --runtime linux-x64
+
+      - name: Apply Migrations
+        env:
+          PRODUCTION_DB_CONNECTION: ${{ secrets.BARTENDER_PRODUCTION_CONNECTION_STRING }}
+        run: |
+          chmod +x ./migrate
+          ./migrate --connection "$PRODUCTION_DB_CONNECTION"
+
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions: 

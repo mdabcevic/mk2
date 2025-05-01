@@ -4,35 +4,24 @@ using Bartender.Data.Enums;
 
 namespace Bartender.Data.Models;
 
-[Table("staff")]
-public class Staff
+public class Staff : BaseEntity
 {
-    [Key]
-    [Column("id")]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
-
     [Required]
-    [Column("place_id")]
     public int PlaceId { get; set; }
 
-    [ForeignKey("PlaceId")]
+    [ForeignKey(nameof(PlaceId))]
     public Place? Place { get; set; }
 
     [Required, MaxLength(11)]
-    [Column("oib")]
     public required string OIB { get; set; }
 
     [Required]
-    [Column("username")]
     public required string Username { get; set; }
 
     [Required]
-    [Column("password")]
     public required string Password { get; set; }
 
     [Required]
-    [Column("fullname")]
     public required string FullName { get; set; }
 
     [Required]
