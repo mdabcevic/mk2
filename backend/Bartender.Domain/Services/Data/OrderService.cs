@@ -81,8 +81,9 @@ public class OrderService(
 
         if (currentUser.IsGuest)
         {
-            if (newStatus.Status == OrderStatus.payment_requested && existingOrder.Status == OrderStatus.delivered
-                || newStatus.Status == OrderStatus.cancelled && existingOrder.Status == OrderStatus.created)
+            if ((newStatus.Status == OrderStatus.payment_requested && 
+                (existingOrder.Status == OrderStatus.delivered || existingOrder.Status == OrderStatus.payment_requested))
+                || (newStatus.Status == OrderStatus.cancelled && existingOrder.Status == OrderStatus.created))
             {
                 existingOrder.Status = newStatus.Status;
                 existingOrder.PaymentType = newStatus.PaymentType ?? existingOrder.PaymentType;
@@ -105,6 +106,7 @@ public class OrderService(
                     (existingOrder.Table, existingOrder.Id, $"Staff updated Order {existingOrder.Id} status to {existingOrder.Status}.", NotificationType.OrderStatusUpdated, false);
         }
         existingOrder.CreatedAt = DateTime.SpecifyKind(existingOrder.CreatedAt, DateTimeKind.Utc);
+        existingOrder.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
         await repository.UpdateAsync(existingOrder);
 
         await notificationService.AddNotificationAsync(existingOrder.Table, notification);

@@ -474,7 +474,7 @@ public class MenuItemService(
         if (existingProduct == null)
             throw new NotFoundException($"Product with id {menuItem.PlaceId} not found");
 
-        if (menuItem.Price <= 0)
+        if (menuItem.Price < 0)
             throw new ValidationException("Price must be greater than zero.");
 
         var user = await currentUser.GetCurrentUserAsync();

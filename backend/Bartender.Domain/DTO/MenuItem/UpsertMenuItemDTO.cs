@@ -9,8 +9,7 @@ public class UpsertMenuItemDto
     public int PlaceId { get; set; }
     [Required]
     public int ProductId { get; set; }
-    [Required]
-    public decimal Price { get; set; }
+    public decimal? Price { get; set; } = 0;
     [Required]
     public bool IsAvailable { get; set; }
     public string? Description { get; set; }

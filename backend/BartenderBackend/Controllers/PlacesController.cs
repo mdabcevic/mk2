@@ -69,7 +69,7 @@ public class PlacesController(IPlaceService placesService) : ControllerBase
     }
 
     [Authorize(Roles = "manager, admin, owner")]
-    [HttpDelete("{id}")]
+    [HttpDelete("pictures/{id}")]
     public async Task<IActionResult> DeleteImage(int id)
     {
         return (await placesService.DeleteImageAsync(id)).ToActionResult();
