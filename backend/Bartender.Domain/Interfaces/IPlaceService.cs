@@ -1,5 +1,4 @@
-﻿using Bartender.Data.Enums;
-using Bartender.Domain.DTO;
+﻿using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Place;
 
 namespace Bartender.Domain.Interfaces;

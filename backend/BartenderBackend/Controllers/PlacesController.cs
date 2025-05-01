@@ -1,6 +1,4 @@
-﻿using Bartender.Data.Enums;
-using Bartender.Domain.DTO.Picture;
-using Bartender.Domain.DTO.Place;
+﻿using Bartender.Domain.DTO.Place;
 using Bartender.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
