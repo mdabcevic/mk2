@@ -181,14 +181,10 @@ INSERT INTO city (name, created_at) VALUES
 ('Los Angeles', now()),
 ('Chicago', now());
 
-SELECT b.name, p.* from
-places p
-inner join businesses b on b.id = p.business_id
-
 -- Insert places (city_id assumes order of Cities insert above)
 INSERT INTO places (business_id, city_id, address, opens_at, closes_at, created_at, description) VALUES
-(1, 1, 'Ilica 50', '07:00', '23:00', now())'Kako smo smješteni na 20 lokacija od kojih 16 u Zagrebu, uvijek nas možeš posjetiti u blizini svojeg kvarta! Naš je imperativ tvoje zadovoljstvo te da se u svakom Vivasu osjećaš ugodno i opušteno kao u toplini svojeg doma! To postižemo kontinuiranim održavanjem postavljenog standarda, kvalitetnom uslugom kao i cijelim procesom izrade Vivas proizvoda.',
-(1, 1, 'Trg bana Jelačića 15', '08:00', '00:00', now()), 'Kako smo smješteni na 20 lokacija od kojih 16 u Zagrebu, uvijek nas možeš posjetiti u blizini svojeg kvarta! Naš je imperativ tvoje zadovoljstvo te da se u svakom Vivasu osjećaš ugodno i opušteno kao u toplini svojeg doma! To postižemo kontinuiranim održavanjem postavljenog standarda, kvalitetnom uslugom kao i cijelim procesom izrade Vivas proizvoda.',
+(1, 1, 'Ilica 50', '07:00', '23:00', now(),'Kako smo smješteni na 20 lokacija od kojih 16 u Zagrebu, uvijek nas možeš posjetiti u blizini svojeg kvarta! Naš je imperativ tvoje zadovoljstvo te da se u svakom Vivasu osjećaš ugodno i opušteno kao u toplini svojeg doma! To postižemo kontinuiranim održavanjem postavljenog standarda, kvalitetnom uslugom kao i cijelim procesom izrade Vivas proizvoda.'),
+(1, 1, 'Trg bana Jelačića 15', '08:00', '00:00', now(), 'Kako smo smješteni na 20 lokacija od kojih 16 u Zagrebu, uvijek nas možeš posjetiti u blizini svojeg kvarta! Naš je imperativ tvoje zadovoljstvo te da se u svakom Vivasu osjećaš ugodno i opušteno kao u toplini svojeg doma! To postižemo kontinuiranim održavanjem postavljenog standarda, kvalitetnom uslugom kao i cijelim procesom izrade Vivas proizvoda.'),
 (2, 1, 'Radnička cesta 1', '06:30', '22:30', now(), 'Leggiero bar nalazi se na ulazu Slavonija gdje možete, uz ugodnu atmosferu, popiti vaše najdraže piće te se opustiti prije ili poslije dugog radnog dana. Leggiero ima i veliku terasu gdje možete probati osvježavajuća pića, Leggiero MIX svježe cijeđene sokove, a nakon 17 h počinje BEERanje pa svakodnevno potražite posebnu ponudu CRAFT i odabranih piva po posebnim cijenama. U blizini je i dječje igralište tako da roditelji mogu na miru popiti svoju omiljenu kavu, dok se klinci zabavljaju u blizini i pod budnim okom.'),
 (2, 1, 'Jarunska 5', '07:00', '23:00', now(), 'U ugodnom ambijentu ovog lijepo uređenog kafića predahnite od kupovine uz jedan od toplih ili hladnih napitaka iz naše bogate ponude pića. Mjesto na kojem možeš pobjeći od svakodnevnog stresa. Mjesto gdje ćeš se u sasvim običnom danu osjećati kao na godišnjem!'),
 (2, 2, 'Riva 2', '08:00', '23:00', now(), 'Želite popiti najfiniju Lavazza kavu i svježe cijeđeni sok, uživati u tek pečenom kroasanu i tostu ili se zasladiti najfinijim tortama u gradu? Sve to i još puno više pronaći ćete u Leggiero baru u prizemlju City Centera one West. Moderan i ugodan ambijent te uvijek ljubazno i uslužno osoblje, pobrinut će se da baš svaki trenutak proveden u Leggiero baru bude trenutak inspiracije i dobrog raspoloženja. Leggiero bar raspolaže i odvojenim prostorom koji je namijenjen pušačima. '),
@@ -294,7 +290,7 @@ INSERT INTO products (name, volume, category_id, created_at) VALUES
 ('Kava Bez Kofeina S', 'ŠAL', 1, now()),
 ('Kava Bez Kofeina L', 'ŠAL', 1, now()),
 ('Cappuccino Bez Kofeina L', 'ŠAL', 1, now()),
-('Bijela Kava Bez Kofeina', 'ŠAL', 1, now())
+('Bijela Kava Bez Kofeina', 'ŠAL', 1, now()),
 
 
 ('Kakao', 'ŠAL', 3, now()),
