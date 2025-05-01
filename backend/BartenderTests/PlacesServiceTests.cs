@@ -18,12 +18,10 @@ namespace BartenderTests;
 public class PlacesServiceTests
 {
     private IRepository<Place> _repository;
-    private IRepository<PlaceImage> _pictureRepository;
     private ITableRepository _tableRepository;
     private ILogger<PlaceService> _logger;
     private ICurrentUserContext _userContext;
     INotificationService _notificationService;
-    private IValidationService _validationService;
     private IMapper _mapper;
     private PlaceService _service;
 
@@ -31,12 +29,10 @@ public class PlacesServiceTests
     public void SetUp()
     {
         _repository = Substitute.For<IRepository<Place>>();
-        _pictureRepository = Substitute.For<IRepository<PlaceImage>>();
         _tableRepository = Substitute.For<ITableRepository>();
         _logger = Substitute.For<ILogger<PlaceService>>();
         _userContext = Substitute.For<ICurrentUserContext>();
         _notificationService = Substitute.For<INotificationService>();
-        _validationService = Substitute.For<IValidationService>();
 
 
         var config = new MapperConfiguration(cfg =>
@@ -45,7 +41,7 @@ public class PlacesServiceTests
         });
         _mapper = config.CreateMapper();
 
-        _service = new PlaceService(_repository, _pictureRepository, _tableRepository, _logger, _userContext, _notificationService, _validationService, _mapper);
+        _service = new PlaceService(_repository, _tableRepository, _logger, _userContext, _notificationService, _mapper);
     }
 
 
