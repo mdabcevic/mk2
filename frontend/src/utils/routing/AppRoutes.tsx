@@ -13,6 +13,7 @@ import RedirectPage from "../redirect-page.tsx";
 import PlaceTablesViewPublic from "../../pages/place-details/place-tables-view.tsx";
 import Subscription from "../../pages/subscription/subscription.tsx";
 import { NotificationScreen } from "../../admin/pages/table-view/notifications.tsx";
+import ContactUs from "../../pages/contactus.tsx";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
 const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
@@ -41,6 +42,7 @@ function AppRoutes(){
         {/* Public routes */}
         <Route path={AppPaths.public.home} element={<Layout />}>
           <Route index element={<AboutUs />} />
+          <Route path={AppPaths.public.contactUs} element={<ContactUs />} />
           <Route path={AppPaths.public.places} element={<Places />} />
           <Route path={AppPaths.public.placeDetails} element={<PlaceDetails />} />
           <Route path={AppPaths.public.placeTables} element={<PlaceTablesViewPublic />} />
