@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import { useTranslation } from "react-i18next";
 import { Constants, Table, TableStatusString } from "../../../utils/constants";
 import { tableService } from "../../../utils/services/tables.service";
-import { getTableColor, getTableIcon, NotificationType } from "../../../utils/table-color";
+import { getBgColorByNotificationStatus, getTableColor, getTableIcon, NotificationType } from "../../../utils/table-color";
 import OrdersTable from "./orders-table";
 import { NotificationScreen } from "./notifications";
 import { subscribeToNotifications,Notification } from "../../../utils/notification-store";
@@ -26,15 +26,25 @@ const TablesView = () => {
   const [manageTables, setManageTables] = useState<boolean>(false);
 
   const fetchTables = async (notification?:Notification) => {
+    setTables([]);
     const response = await tableService.getPlaceTablesByCurrentUser();
+    console.log("response")
+    console.log(response)
     const result = response.map(table => {
-      if (notification &&(notification.type === NotificationType.OrderCreated || notification.type === NotificationType.StaffNeeded || notification.type === NotificationType.OrderStatusUpdated) && table.label === notification.tableLabel) {
+      console.log("ccc")
+      if (notification && table.label === notification.tableLabel) {
         const regex = /^Staff updated Order \d+ status to payment_requested\.$/;
+        console.log("asas")
+        console.log({ ...table, requestType: notification.type })
         if(notification.type === NotificationType.OrderStatusUpdated && regex.test(notification.message))
-        return { ...table, requestType: notification.type };
+          return { ...table, requestType: notification.type };
+        else return { ...table, requestType: notification.type };
       }
       return table;
     });
+    console.log("ponovno");
+    console.log(result)
+    
     setTables(result);
   };
 
@@ -135,20 +145,21 @@ const TablesView = () => {
           }}
         >
           {tables.map((table, index) => (
+            
             <div
               key={index}
-              className="absolute cursor-pointer flex items-center justify-center font-bold border border-black box-border"
+              className={'absolute cursor-pointer flex items-center justify-center font-bold border border-black box-border'}
               style={{
                 left: table.x,
                 top: table.y,
                 width: table.width,
                 height: table.height,
-                backgroundColor: getTableColor(table.status),
-                borderRadius: `${Math.min(table.width, table.height) / 2}px`,
-                
+                backgroundColor: table.requestType ? getBgColorByNotificationStatus(table.requestType) : getTableColor(table.status),
+                borderRadius: `${Math.min(table.width, table.height) / 2}px`,             
               }}
               onClick={() => {console.log("klik"); setSelectedTable(table); fetchOrdersByTable(table.label); }}
             >
+              {table.requestType ?? "nema"}
               {table.label}
               {selectedTable?.label === table.label && manageTables &&  (
               <TableActionModal

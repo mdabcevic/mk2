@@ -63,7 +63,13 @@ export function getStatusColor(status: OrderStatusValue): string {
     4: "bg-[#3B82F6] text-white", // OrderStatusUpdated
     5: "bg-[#3B82F6] text-white", // OrderContentUpdated
   };
-  
+
+export function getBgColorByNotificationStatus(type: number){
+  const match = notificationColors[type].match(/#(?:[0-9a-fA-F]{3}){1,2}/);
+  console.log("type="+type);
+  console.log("match=");console.log(match);
+  return match ? match[0] : "#D4D4D4";
+}
 
   export function getNotificationColor(type: number):string{
     return notificationColors[type] || "#D4D4D4";
@@ -79,7 +85,7 @@ export function getStatusColor(status: OrderStatusValue): string {
   }
 
   const tableIcon: Record<number, string> = {
-    0: "../assets/images/icons/staff.png", // StaffNeeded
+    0: "../assets/images/icons/notificationBell.svg", // StaffNeeded
     3: "../assets/images/icons/newOrder.webp", // OrderCreated
     4: "../assets/images/icons/euro.svg" // payment requested
   };

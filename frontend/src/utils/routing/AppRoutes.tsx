@@ -13,6 +13,7 @@ import RedirectPage from "../redirect-page.tsx";
 import PlaceTablesViewPublic from "../../pages/place-details/place-tables-view.tsx";
 import Subscription from "../../pages/subscription/subscription.tsx";
 import { NotificationScreen } from "../../admin/pages/table-view/notifications.tsx";
+import ManagementView from "../../admin/pages/management/management.tsx";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
 const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
@@ -26,12 +27,6 @@ function AdminRouteGuard() {
           <Outlet /> : 
           <Navigate to={AppPaths.public.login} replace />;
 }
-
-// function StaffGuard() {
-//   return authService.tokenValid() && authService.userRole() === UserRole.staff
-//     ? <NotificationScreen />
-//     : <Navigate to={AppPaths.public.login} replace />;
-// }
 
 function AppRoutes(){
   return (
@@ -63,6 +58,7 @@ function AppRoutes(){
               }
             >
               <Route index element={<Dashboard />} />
+              <Route path={AppPaths.admin.management} element={<ManagementView />} />
               <Route path={AppPaths.admin.products} element={<ProductsViewPage />} />
               <Route path={AppPaths.admin.tables} element={<TablesPage />} />
               <Route path={AppPaths.admin.notifications} element={<NotificationScreen />} />

@@ -54,7 +54,7 @@ const OrdersByTableModal = ({ orders, onClose }: OrdersByTable) => {
                   e.stopPropagation();
                   prev();
                 }}
-                className="text-blue-600 underline text-xs mr-6"
+                className="text-xs mr-6"
               >
                 prev
               </button>
@@ -64,7 +64,7 @@ const OrdersByTableModal = ({ orders, onClose }: OrdersByTable) => {
                   e.stopPropagation();
                   next();
                 }}
-                className="text-blue-600 underline text-xs ml-6"
+                className="text-xs ml-6"
               >
                 next
               </button>
