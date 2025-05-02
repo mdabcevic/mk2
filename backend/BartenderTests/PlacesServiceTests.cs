@@ -32,7 +32,7 @@ public class PlacesServiceTests
         _logger = Substitute.For<ILogger<PlaceService>>();
         _userContext = Substitute.For<ICurrentUserContext>();
         _notificationService = Substitute.For<INotificationService>();
-        
+
 
         var config = new MapperConfiguration(cfg =>
         {

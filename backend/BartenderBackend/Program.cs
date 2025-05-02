@@ -78,6 +78,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             o.MapEnum<TableStatus>("tablestatus");
             o.MapEnum<OrderStatus>("orderstatus");
             o.MapEnum<PaymentType>("paymenttype");
+            o.MapEnum<ImageType>("picturetype");
         }));
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -93,6 +94,7 @@ builder.Services.AddScoped<ITableInteractionService, TableInteractionService>();
 builder.Services.AddScoped<ITableManagementService, TableManagementService>();
 builder.Services.AddScoped<IGuestSessionService, GuestSessionService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IPlaceImageService, PlaceImageService>();
 
 builder.Services.AddHttpContextAccessor(); // required!
 
