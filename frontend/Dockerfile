@@ -3,14 +3,15 @@ FROM node:slim AS build
 WORKDIR /app
 COPY . .
 
-# Inject build-time environment variables
+# Accept args from the GitHub Actions workflow
 ARG VITE_API_BASE_URL
 ARG VITE_SIGNALR_HUB_URL
 ARG VITE_FRONTEND_QR_URL
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-ENV VITE_SIGNALR_HUB_URL=$VITE_SIGNALR_HUB_URL
-ENV VITE_FRONTEND_QR_URL=$VITE_FRONTEND_QR_URL
 
+# Write args into a Vite-compatible .env.production file
+RUN echo "VITE_API_BASE_URL=$VITE_API_BASE_URL" > .env.production && \
+    echo "VITE_SIGNALR_HUB_URL=$VITE_SIGNALR_HUB_URL" >> .env.production && \
+    echo "VITE_FRONTEND_QR_URL=$VITE_FRONTEND_QR_URL" >> .env.production
 
 RUN npm install
 RUN npm run build:docker
