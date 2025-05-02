@@ -158,7 +158,7 @@ public class OrderRepository(AppDbContext context) : Repository<Order>(context),
 
         var items = await query
             .OrderByDescending(o => o.CreatedAt)
-            .Skip((page - 1) * pageSize)
+            .Skip((page > 0 ? (page - 1) : 0) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
