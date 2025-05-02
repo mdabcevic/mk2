@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Places from "../../pages/home/places.tsx";
 import AboutUs from "../../pages/aboutus.tsx";
+import ContactUs from "../../pages/contact-us/contactus.tsx";
 import PlaceDetails from "../../pages/place-details/place-details";
 import Layout from "../../containers/layout";
 import {Menu} from "../../pages/place-details/menu/menu.tsx";
@@ -14,7 +15,6 @@ import PlaceTablesViewPublic from "../../pages/place-details/place-tables-view.t
 import Subscription from "../../pages/subscription/subscription.tsx";
 import { NotificationScreen } from "../../admin/pages/table-view/notifications.tsx";
 import ManagementView from "../../admin/pages/management/management.tsx";
-import ContactUs from "../../pages/contactus.tsx";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
 const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
