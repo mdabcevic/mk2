@@ -18,6 +18,8 @@ public class Place : BaseEntity
     [ForeignKey(nameof(CityId))] 
     public City? City { get; set; }
 
+    public string? Description { get; set; }
+
     public TimeOnly OpensAt { get; set; } = TimeOnly.FromDateTime(DateTime.Now);
 
     public TimeOnly ClosesAt { get; set; } = TimeOnly.FromDateTime(DateTime.Now);
@@ -25,4 +27,5 @@ public class Place : BaseEntity
     public ICollection<Staff>? Staffs { get; set; }
     public ICollection<Table>? Tables { get; set; }
     public ICollection<MenuItem>? MenuItems { get; set; }
+    public ICollection<PlaceImage>? Images { get; set; }
 }
