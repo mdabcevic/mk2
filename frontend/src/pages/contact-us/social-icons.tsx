@@ -12,14 +12,14 @@ function SocialIcons({ className = "" }: SocialIconsProps) {
 }
 
 type SocialIconsProps = {
-  className?: string;
+  readonly className?: string;
 };
 
 export default SocialIcons;
 
 type SocialLinkProps = {
-  icon: JSX.Element;
-  href: string;
+  readonly icon: JSX.Element;
+  readonly href: string;
 };
 
 function SocialLink({ icon, href }: SocialLinkProps) {

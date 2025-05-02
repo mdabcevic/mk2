@@ -29,8 +29,8 @@ function ContactInfo() {
 export default ContactInfo;
 
 type ContactItemProps = {
-  icon: JSX.Element;
-  label: string;
+  readonly icon: JSX.Element;
+  readonly label: string;
 };
 
 function ContactItem({ icon, label }: ContactItemProps) {
