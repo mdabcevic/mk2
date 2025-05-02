@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Places from "../../pages/home/places.tsx";
 import AboutUs from "../../pages/aboutus.tsx";
+import ContactUs from "../../pages/contact-us/contactus.tsx";
 import PlaceDetails from "../../pages/place-details/place-details";
 import Layout from "../../containers/layout";
 import {Menu} from "../../pages/place-details/menu/menu.tsx";
@@ -13,6 +14,7 @@ import RedirectPage from "../redirect-page.tsx";
 import PlaceTablesViewPublic from "../../pages/place-details/place-tables-view.tsx";
 import Subscription from "../../pages/subscription/subscription.tsx";
 import { NotificationScreen } from "../../admin/pages/table-view/notifications.tsx";
+import ManagementView from "../../admin/pages/management/management.tsx";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
 const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
@@ -27,12 +29,6 @@ function AdminRouteGuard() {
           <Navigate to={AppPaths.public.login} replace />;
 }
 
-// function StaffGuard() {
-//   return authService.tokenValid() && authService.userRole() === UserRole.staff
-//     ? <NotificationScreen />
-//     : <Navigate to={AppPaths.public.login} replace />;
-// }
-
 function AppRoutes(){
   return (
     <Router>
@@ -41,6 +37,7 @@ function AppRoutes(){
         {/* Public routes */}
         <Route path={AppPaths.public.home} element={<Layout />}>
           <Route index element={<AboutUs />} />
+          <Route path={AppPaths.public.contactUs} element={<ContactUs />} />
           <Route path={AppPaths.public.places} element={<Places />} />
           <Route path={AppPaths.public.placeDetails} element={<PlaceDetails />} />
           <Route path={AppPaths.public.placeTables} element={<PlaceTablesViewPublic />} />
@@ -63,6 +60,7 @@ function AppRoutes(){
               }
             >
               <Route index element={<Dashboard />} />
+              <Route path={AppPaths.admin.management} element={<ManagementView />} />
               <Route path={AppPaths.admin.products} element={<ProductsViewPage />} />
               <Route path={AppPaths.admin.tables} element={<TablesPage />} />
               <Route path={AppPaths.admin.notifications} element={<NotificationScreen />} />

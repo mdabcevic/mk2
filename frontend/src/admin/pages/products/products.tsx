@@ -1,5 +1,5 @@
 import  { useState } from "react";
-import MenuTable from "./menu-table";
+// import MenuTable from "./menu-table";
 import ProductsSection from "./products-section";
 import { authService } from "../../../utils/auth/auth.service";
 import { useTranslation } from "react-i18next";
@@ -37,7 +37,6 @@ const Products = () => {
       </div>
 
       <div className="mt-4">
-        {activeTab === menu && <MenuTable placeId={placeId} />}
         {activeTab === products && <ProductsSection />}
       </div>
     </div>

@@ -5,6 +5,7 @@ export const AppPaths = {
     public: {
         home:"/",
         aboutUs:"/aboutus",
+        contactUs: "/contactus",
         places:"/places",
         placeDetails:"/place/:id",
         menu: "/place/:placeId/menu",
@@ -16,6 +17,7 @@ export const AppPaths = {
     
     admin:{
         dashboard:AdminRoot,
+        management:`${AdminRoot}/management`,
         products:`${AdminRoot}/products`,
         tables:`${AdminRoot}/tables`,
         notifications:`${AdminRoot}/notifications`,

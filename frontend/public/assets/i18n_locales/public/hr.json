@@ -23,7 +23,7 @@
     "note":"Napomena konobaru",
     "cash":"Gotovina",
     "credit_card":"Kartica",
-    "payment_type":"Način plaćanja(može se promijeniti kasnije)",
+    "payment_type":"Način plaćanja",
     "removed":"uklonjen",
     "added":"dodan",
     "places_link":"Lista kafića",
@@ -65,6 +65,7 @@
     "inquire_plan": "Želio bih se informirati o {{sub}} planu.",
     "view_tables":"Popunjenost objekta",
     "free_tables": "Broj slobodnih stolova",
+
     "aboutUs": {
         "title": "Poboljšajte uslugu u svom kafiću uz QR naručivanje",
         "subtitle": "Smanjite vrijeme čekanja, ubrzajte narudžbe i usrećite goste – sve jednim skeniranjem.",
@@ -88,6 +89,11 @@
         "improved_efficiency_desc": "Digitalno naručivanje smanjuje pogreške i ubrzava uslugu – ono što gosti odaberu ide izravno u kuhinju, bez nesporazuma. Meni se ažurira u stvarnom vremenu, pa su rasprodane stavke odmah vidljive.",
         "multilingual_support_title": "Višejezična podrška za globalne goste",
         "multilingual_support_desc": "Poslužite goste iz cijelog svijeta uz jezičnu podršku koja omogućuje jednostavno i glatko naručivanje."
-
+  },
+  "place_main_info":{
+      "working_hours":"Radno vrijeme"
+  },
+  "cart":{
+    "order":"Naruči"
   }
 }

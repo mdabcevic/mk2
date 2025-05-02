@@ -10,6 +10,7 @@ import { MenuItemsList } from "./menu-items-list";
 import Cart from "./cart";
 import { AppPaths } from "../../../utils/routing/routes";
 import { CategoryTabs } from "../../../utils/components/menu-category-tabs";
+import Footer from "../../../containers/footer";
 
 
 export function Menu() {
@@ -53,12 +54,18 @@ export function Menu() {
   }, [placeId]);
 
   return (
-    <div className="relative flex flex-col min-h-screen overflow-hidden">
-      <h2 className="text-xl font-bold mb-4 text-center mt-2">
+    <>
+      <div className="relative flex flex-col min-h-screen overflow-hidden px-2 pt-[100px]">
+      
+      <h2 className={`text-xl font-bold mb-4 text-center mt-2 ${!showCart ? "block":"hidden"}`} >
         {t("menu_text")}
       </h2>
+      <Link className={`ml-4 ${!showCart ? "block":"hidden"}`} to={AppPaths.public.placeDetails.replace(":id",placeId!)} >Go Back</Link>
 
-      <Link className="ml-4" to={AppPaths.public.placeDetails.replace(":id",placeId!)} >Go Back</Link>
+      
+      <h2 className={`text-xl font-bold mb-4 text-left pl-2 pb-2 border-b mt-2 ${showCart ? "block":"hidden"}`}>
+          My orders
+      </h2>
 
       <div className="relative w-full h-full">
 
@@ -74,7 +81,7 @@ export function Menu() {
             changeCategory={changeCategory} 
           />
 
-          <div className="mb-6">
+          <div className={`${showCart ? "hidden":"block mb-6"}`}>
           <MenuItemsList
             items={itemsOfSelectedCategory}
             userRole={userRole}
@@ -105,7 +112,7 @@ export function Menu() {
         !showCart && userRole === UserRole.guest && (
           <div className="fixed bottom-0 left-0 w-full p-4 text-center z-50">
             <button
-              onClick={() => setShowCart(true)}
+              onClick={() => {if(totalPrice > 0) setShowCart(true);}}
               className="text-white bg-mocha-600 font-semibold max-w-[250px] py-2 px-10 rounded-[50px] cursor-pointer"
             >
               Total {totalPrice.toFixed(2)}€ next
@@ -113,7 +120,9 @@ export function Menu() {
           </div>
         ) 
       }
-      
     </div>
+    {userRole !== UserRole.guest && userRole !== UserRole.manager && userRole !== UserRole.admin && <Footer />}
+    </>
+    
   );
 }

@@ -9,11 +9,12 @@ import { authService } from "../../utils/auth/auth.service";
 import { placeService } from "../../utils/services/place.service";
 import { IPlaceItem } from "../../utils/interfaces/place-item";
 import { PlaceMainInfo } from "../../utils/components/place-main-info";
+import Footer from "../../containers/footer";
 
 
 const initial_div_width = Constants.create_tables_container_width;
 const initial_div_height = Constants.create_tables_container_height;
-
+const userRole = authService.userRole();
 const PlaceTablesViewPublic = () => {
   const { placeId } = useParams();
   const [tables, setTables] = useState<Table[]>([]);
@@ -56,10 +57,15 @@ const PlaceTablesViewPublic = () => {
 
   return (
     <div
-      className="flex flex-col w-full h-full min-h-screen"
+      className="flex flex-col w-full h-full min-h-screen items-center"
     >
-      <Link to={AppPaths.public.placeDetails.replace(":id",placeId!)} className="ml-4 mt-4 mb-4">Go back</Link>
-      <PlaceMainInfo placeid={Number(placeId)}></PlaceMainInfo>
+      <div className="max-w-[1500px] w-full mt-30">
+        <Link to={AppPaths.public.placeDetails.replace(":id",placeId!)} className="ml-4 mt-4 mb-4 w-full">Go back</Link>
+      </div>
+      <div className="max-w-[1500px] w-full mt-8 px-8">
+        <PlaceMainInfo placeid={Number(placeId)}></PlaceMainInfo>
+      </div>
+      
       <div className="flex flex-row w-full justify-center mt-8">
         <div className="flex fle-row"><div className="w-[30px] h-[30px] bg-white mr-4"></div><span>Empty</span></div>
         <div className="flex fle-row"><div className="w-[30px] h-[30px] bg-[#A3A3A3] ml-4 mr-4"></div><span>Occupied</span></div>
@@ -93,7 +99,7 @@ const PlaceTablesViewPublic = () => {
           ))}
         </div>
       )}
-      
+      {userRole !== UserRole.guest && userRole !== UserRole.manager && userRole !== UserRole.admin && <Footer />}
     </div>
   );
 };

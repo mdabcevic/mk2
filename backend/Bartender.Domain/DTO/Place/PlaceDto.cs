@@ -7,4 +7,5 @@ public  class PlaceDto
     public required string Address { get; set; }
     public required string CityName { get; set; }
     public required string WorkHours { get; set; }
+    public string? Banner { get; set; }
 }

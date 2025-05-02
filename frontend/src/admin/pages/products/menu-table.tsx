@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { MenuItemDto, UpsertMenuItemDto } from "./product";
 import { productMenuService } from "../../../utils/services/product-menu.service";
-import { Pencil, Save, ToggleLeft, ToggleRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import EditAddMenuItemModal from "../management/menu/edit-add-menuItem-modal";
+import Dropdown, { DropdownItem } from "../../../utils/components/dropdown";
 
 const itemsPerPage = 20;
-
-function MenuTable({ placeId }: { placeId: number }) {
+const menuTypes = [{id:'available' ,value:'Available'}, {id:'unavailable',value:'Unavailable'}, {id:'all',value:'/'}];
+export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
+  const [showModal, setShowModal] = useState(false);
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [editableProduct, setEditableProduct] = useState<Partial<MenuItemDto>>({});
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,17 +17,36 @@ function MenuTable({ placeId }: { placeId: number }) {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [menu, setMenu] = useState<any>([]);
+  const [isAvailable, setIsAvailable] = useState<boolean |null>(true);
+  const [isEditMode, setIsEditMode] = useState(true);
+  const [availableProducts, setAvailableProducts] = useState<{ id: number; name: string }[]>([]);
   const { t } = useTranslation("admin");
+
+  useImperativeHandle(ref, () => ({
+    openAddModal: () => {
+      setIsEditMode(false);
+      setEditableProduct({ isAvailable: true });
+      setShowModal(true);
+    },
+  }));
 
   const fetchMenu = async () => {
     if (!placeId) return;
     const results = await productMenuService.getMenuByPlaceId(placeId.toString(),false);
     setMenu(results);
+    const allProducts = await productMenuService.getAllProducts(placeId);
+    setAvailableProducts(allProducts);
   };
+
+  useEffect(() => {
+    filterMenuItems();
+  }, [menu, searchTerm, currentPage, isAvailable]);
 
   const startEditing = (item: MenuItemDto) => {
     setEditingItemId(item.product.id);
     setEditableProduct({ ...item });
+    setIsEditMode(true);
+    setShowModal(true);
   };
 
   const cancelEdit = () => {
@@ -33,64 +54,78 @@ function MenuTable({ placeId }: { placeId: number }) {
     setEditableProduct({});
   };
 
-  const handleChange = (field: keyof MenuItemDto, value: any) => {
+  const onChangeInput = (field: keyof MenuItemDto, value: any) => {
     setEditableProduct((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const toggleAvailability = () => {
-    setEditableProduct((prev) => ({
-      ...prev,
-      isAvailable: !prev.isAvailable,
-    }));
-  };
-
   const saveChanges = async () => {
     if (!editableProduct) return;
-    console.log(editableProduct);
-    const updatedItem: UpsertMenuItemDto = {} as UpsertMenuItemDto;
-    updatedItem.productId = editableProduct!.product!.id;
-    updatedItem.placeId = placeId;
-    updatedItem.description = editableProduct.description ?? "";
-    updatedItem.isAvailable = editableProduct.isAvailable ?? false;
-    updatedItem.price = Number(editableProduct?.price) ?? 0;
-
+    console.log(editableProduct)
+    const updatedItem: UpsertMenuItemDto = {
+      productId: (editableProduct.productId ?? editableProduct.product?.id)!,
+      placeId: placeId,
+      description: editableProduct.description ?? "",
+      isAvailable: editableProduct.isAvailable ?? false,
+      price: Number(editableProduct?.price) ?? 0,
+    };
+    
+    
     try {
-      let res = await productMenuService.updateMenuItem(updatedItem);
-      console.log(res)
+      if (isEditMode) {
+        await productMenuService.updateMenuItem(updatedItem);
+      } else {
+        if(menu.find((el:any) => el.productId === editableProduct.product?.id))
+          await productMenuService.updateMenuItem(updatedItem);
+        else
+          await productMenuService.saveProductsToPlace([updatedItem]);
+      }
+  
       await fetchMenu();
+      setShowModal(false);
       cancelEdit();
     } catch (error) {
-      console.error("Error updating item:", error);
+      console.error("Error saving item:", error);
     }
   };
 
-  const hasChanges = (item: MenuItemDto) => {
-    return (
-      editableProduct.price !== item.price ||
-      editableProduct.description !== item.description ||
-      editableProduct.isAvailable !== item.isAvailable
-    );
-  };
-
   const filterMenuItems = () => {
+    console.log("isAvailable:" + isAvailable)
     const search = searchTerm.toLowerCase();
+    const filteredByAvailability = isAvailable ? menu.filter((item:MenuItemDto) => item.isAvailable) : isAvailable === false ? menu.filter((item:MenuItemDto) => item.isAvailable === false) : menu;
     const filtered = search
-      ? menu.filter((item:any) => item.product.name.toLowerCase().includes(search))
-      : menu;
+      ? filteredByAvailability.filter((item:any) => item.product.name.toLowerCase().includes(search))
+      : filteredByAvailability;
 
     const total = Math.ceil(filtered.length / itemsPerPage);
     const paginated = filtered.slice(
       (currentPage - 1) * itemsPerPage,
       currentPage * itemsPerPage
     );
+    console.log("filtriram")
+    console.log(paginated)
+    console.log(isAvailable)
+    console.log(filteredByAvailability)
     setFilteredMenu(paginated);
     setTotalItems(filtered.length);
     setTotalPages(total);
   };
 
+  const changeMenuType = (item: DropdownItem) => {
+    console.log("item: ");
+    console.log(item)
+    if (item.id === "available") {
+      console.log("postavljam true")
+      setIsAvailable(true);
+    } else if (item.id === "unavailable") {
+      setIsAvailable(false);
+    } else {
+      setIsAvailable(null); 
+    }
+    setCurrentPage(1);
+  };
   useEffect(() => {
     fetchMenu();
   }, []);
@@ -100,108 +135,71 @@ function MenuTable({ placeId }: { placeId: number }) {
   }, [menu, searchTerm, currentPage]);
 
   return (
-    <section className="mt-4 bg-white p-4 rounded-lg shadow col-span-1 md:col-span-2 overflow-x-auto">
-      <h2 className="text-lg font-semibold mb-4">{t("my_menu")}</h2>
+    <section className="mt-4 bg-white p-4 sm:px-40 rounded-lg shadow col-span-1 md:col-span-2 overflow-x-auto">
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
+      <div className="flex flex-col md:flex-row md:items-center  mt-2 mb-4 gap-2">
         <input
           type="text"
           placeholder={t("search")}
-          className="border border-gray-300 rounded text-black px-3 py-1 w-full md:w-1/3"
+          className="border border-[#737373] rounded-[30px] text-black px-3 py-2 w-full md:w-1/3 "
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
         />
+        <Dropdown
+          items={menuTypes}
+          onChange={changeMenuType}
+          type="custom"
+          className="max-w-[180px] bg-white rounded-[16px]"
+        />
       </div>
 
       <table className="min-w-[600px] w-full text-left text-sm text-black">
         <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2">{t("product")}</th>
-            <th className="p-2">{t("volume")}</th>
-            <th className="p-2">{t("price")}</th>
-            <th className="p-2">{t("description")}</th>
-            <th className="p-2">{t("availability")}</th>
-            <th className="p-2">{t("")}</th>
+          <tr className="border-b-2 text-[#737373]">
+            <th className="p-2 text-center">{t("product").toUpperCase()}</th>
+            <th className="p-2 text-center">{t("description").toUpperCase()}</th>
+            <th className="p-2 text-center">{t("price").toUpperCase()}</th>
+            <th className="p-2 text-center">{t("availability").toUpperCase()}</th>
+            <th className="p-2 text-center">{t("")}</th>
           </tr>
         </thead>
         <tbody>
-          {filteredMenu.map((item) => {
+          {filteredMenu.map((item,index) => {
             const isEditing = editingItemId === item.product.id;
 
             return (
               <tr
                 key={item.product.id}
-                className={`border-b transition-all duration-200 ${
-                  isEditing ? "bg-yellow-50" : "hover:bg-gray-50"
-                }`}
+                className={`transition-all duration-200 ${
+                  index%2 !== 0 ? "bg-[#F5F5F5]" : "bg-white"
+                } `}
               >
-                <td className="p-2">{item.product.name}</td>
-                <td className="p-2">{item.product.volume}</td>
-                <td className="p-2">
-                  {isEditing ? (
-                    <input
-                      type="number"
-                      className="border rounded p-1 w-20"
-                      value={editableProduct.price ?? ""}
-                      onChange={(e) => handleChange("price", parseFloat(e.target.value))}
-                    />
-                  ) : (
-                    item.price
-                  )}
-                </td>
-                <td className="p-2">
+                <td className="p-2 text-left">{item.product.name}</td>
+                <td className={`p-2 ${item?.description ? "text-left" : "text-center"}`}>
                   {isEditing ? (
                     <input
                       type="text"
                       className="border rounded p-1 w-full"
                       value={editableProduct.description ?? ""}
-                      onChange={(e) => handleChange("description", e.target.value)}
+                      onChange={(e) => onChangeInput("description", e.target.value)}
                     />
                   ) : (
-                    item.description || "-"
+                    item.description || "/"
                   )}
                 </td>
-                <td className="p-2">
-                  {isEditing ? (
-                    <button onClick={toggleAvailability}>
-                      {editableProduct.isAvailable ? (
-                        <ToggleRight size={20} className="text-green-500" />
-                      ) : (
-                        <ToggleLeft size={20} className="text-gray-400" />
-                      )}
-                    </button>
-                  ) : item.isAvailable ? (
-                    <ToggleRight size={20} className="text-green-500 opacity-50" />
-                  ) : (
-                    <ToggleLeft size={20} className="text-gray-400 opacity-50" />
-                  )}
+                <td className="p-2 text-center">
+                  {item.price}€
                 </td>
-                <td className="p-2 flex gap-2 items-center">
-                  {isEditing ? (
-                    <>
-                      <button
-                        onClick={saveChanges}
-                        className={`text-green-500 ${
-                          hasChanges(item)
-                            ? "opacity-100"
-                            : "opacity-50 cursor-not-allowed"
-                        }`}
-                        disabled={!hasChanges(item)}
-                      >
-                        <Save size={16} />
-                      </button>
-                      <button onClick={cancelEdit} className="text-red-500">
-                        ✕
-                      </button>
-                    </>
-                  ) : editingItemId === null ? (
-                    <button onClick={() => startEditing(item)} className="text-blue-500">
-                      <Pencil size={16} />
-                    </button>
-                  ) : null}
+                
+                <td className="p-2 text-center">
+                  <img className="m-auto" src="/assets/images/icons/checkboxCheckMark.svg" width="20px" />
+                </td>
+                <td className="p-2 flex gap-4 items-center text-center">
+                  <button onClick={()=>{startEditing(item);}}><img src="/assets/images/icons/edit.svg" width="15px" /></button>
+                  <button ><img src="/assets/images/icons/delete.png" width="15px" /></button>
                 </td>
               </tr>
             );
@@ -218,24 +216,33 @@ function MenuTable({ placeId }: { placeId: number }) {
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
           >
             {t("previous_page")}
           </button>
-          <span className="px-3 py-1 text-sm">
+          <span className="px-3 py-1 text-sm rounded-[12px] border">
             {currentPage} / {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
           >
             {t("next_page")}
           </button>
         </div>
       </div>
+
+      {showModal && (
+        <EditAddMenuItemModal
+          item={editableProduct}
+          isEditMode={isEditMode}
+          onClose={() => setShowModal(false)}
+          onSave={() => {saveChanges();}}
+          onChange={(field:any, value:any) => setEditableProduct((prev) => ({ ...prev, [field]: value }))}
+          availableProducts={availableProducts}
+        />
+      )}
     </section>
   );
-}
-
-export default MenuTable;
+});

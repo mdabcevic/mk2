@@ -8,6 +8,7 @@ interface Props {
   onClose: () => void;
   onSetStatus: (status: TableStatusString) => void;
   onGenerateQR?: () => void;
+  disable: (tableLabel: string) => void;
 }
 
 const TableActionModal: React.FC<Props> = ({
@@ -15,6 +16,7 @@ const TableActionModal: React.FC<Props> = ({
   onClose,
   onSetStatus,
   onGenerateQR,
+  disable,
 }) => {
   return (
     <motion.div
@@ -62,6 +64,15 @@ const TableActionModal: React.FC<Props> = ({
         className="block w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100"
       >
         Set as Reserved
+      </button>
+      <button
+        onClick={() => {
+          disable(tableLabel);
+          onClose();
+        }}
+        className="block w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100"
+      >
+        Disable
       </button>
       <button onClick={onClose} className=" absolute right-5 top-3">
             <img src="/assets/images/icons/close_icon.svg" alt="close" />

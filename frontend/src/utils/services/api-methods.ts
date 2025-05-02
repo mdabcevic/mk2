@@ -23,7 +23,7 @@ export const ApiMethods ={
     getClosedOrders:"/api/order/closed/{placeId}",
     updateOrderStatus:"/api/order/status/{orderId}",
     getOrdersByTable:"/api/order/table-orders/{tableLabel}",
-
+    disableTable:"/api/tables/{tableLabel}/toggle-disabled",
     saveOrUpdateTables:"/api/tables/bulk-upsert",
 
     getPlaceTablesByCurrentUser:"/api/tables",

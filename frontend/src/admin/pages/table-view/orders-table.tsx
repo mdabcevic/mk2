@@ -36,19 +36,20 @@ enum OrderTabs{
   activeOrders=0,
   inactiveOrders=1,
 }
-const page = 1;
+
 const tablePageSize = 30;
 
-const OrdersTable:React.FC<{rerender:number}> = ({rerender}) => {
+const OrdersTable:React.FC<{rerender:number,showStatus:boolean}> = ({rerender,showStatus}) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [activeTab, setActiveTab] = useState<OrderTabs>(OrderTabs.activeOrders);
   const [total,setTotal] = useState<number>(0);
-  console.log(rerender);
+  const [page, setPage] = useState(1);
+
   useEffect(() => {
     fetchOrders();
-  }, [activeTab,rerender]);
+  }, [activeTab,rerender,page]);
 
   const fetchOrders = async () => {
     const response = await placeOrderService.getOrders(
@@ -112,8 +113,8 @@ const OrdersTable:React.FC<{rerender:number}> = ({rerender}) => {
         <thead>
           <tr className="text-left border-b border-gray-200">
             <th>Date & Time</th>
-            <th>Table</th>
-            <th className="text-center">Status</th>
+            <th>Table</th>  
+            <th className="text-center">{showStatus ? (<span>Status</span>) : (<span>Payment Type</span>) }</th>
             <th>Total</th>
             <th></th>
           </tr>
@@ -122,25 +123,30 @@ const OrdersTable:React.FC<{rerender:number}> = ({rerender}) => {
           { orders?.length > 0 && (orders?.map((order,index) => (
             <tr
               key={index}
-              className="text-sm hover:bg-gray-50"
+              className="text-sm hover:bg-gray-50 py-4"
             >
               <td>{order?.createdAt}</td>
               <td>{order?.table}</td>
               <td className="text-center">
-                <select
-                  value={order?.status}
-                  onChange={(e) =>
-                    updateStatus(order?.id, e.target.value as OrderStatusValue)
-                  }
-                  style={{ backgroundColor: getStatusColor(order?.status), color: order?.status == OrderStatusValue.payment_requested ? "black" : "white" }}
-                  className="border border-gray-300 rounded-[30px] py-[10px] pl-[40px]"
-                >
-                  {statusOptions.map((status) => (
-                    <option key={status} value={status} className="bg-white text-black">
-                      {status.replace("_", " ")}
-                    </option>
-                  ))}
-                </select>
+                {showStatus ? (
+                    <select
+                    value={order?.status}
+                    onChange={(e) =>
+                      updateStatus(order?.id, e.target.value as OrderStatusValue)
+                    }
+                    style={{ backgroundColor: getStatusColor(order?.status), color: order?.status == OrderStatusValue.payment_requested ? "black" : "white" }}
+                    className="border border-gray-300 rounded-[30px] py-[10px] pl-[40px]"
+                  >
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status} className="bg-white text-black">
+                        {status.replace("_", " ")}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span>{order.paymentType}</span>
+                )}
+                
               </td>
               <td>{order?.totalPrice.toFixed(2)}€</td>
               <td>
@@ -155,7 +161,31 @@ const OrdersTable:React.FC<{rerender:number}> = ({rerender}) => {
           ))}
         </tbody>
       </table>
+      <div className="flex justify-between items-center mt-4">
+  <p className="text-sm text-gray-600">
+    {(page - 1) * tablePageSize + 1}–{Math.min(page * tablePageSize, total)} of {total}
+  </p>
 
+  <div className="flex gap-2">
+    <button
+      onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+      disabled={page === 1}
+      className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
+    >
+      Previous
+    </button>
+    <span className="px-3 py-1 text-sm rounded-[12px] border">
+      {page} / {Math.ceil(total / tablePageSize)}
+    </span>
+    <button
+      onClick={() => setPage((prev) => Math.min(prev + 1, Math.ceil(total / tablePageSize)))}
+      disabled={page === Math.ceil(total / tablePageSize)}
+      className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+</div>
       {modalOpen && selectedOrder && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-[20px] shadow-lg w-full max-w-[375px] border border-[#A3A3A3]">

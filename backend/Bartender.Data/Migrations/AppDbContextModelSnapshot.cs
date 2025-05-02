@@ -24,6 +24,7 @@ namespace Bartender.Data.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "employeerole", new[] { "admin", "manager", "owner", "regular" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "orderstatus", new[] { "approved", "cancelled", "closed", "created", "delivered", "paid", "payment_requested" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "paymenttype", new[] { "cash", "creditcard", "other" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "picturetype", new[] { "banner", "blueprints", "events", "gallery", "logo", "promotion" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "subscriptiontier", new[] { "basic", "enterprise", "none", "premium", "standard", "trial" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "tablestatus", new[] { "empty", "occupied", "reserved" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -352,6 +353,10 @@ namespace Bartender.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
                     b.Property<TimeOnly>("OpensAt")
                         .HasColumnType("time without time zone")
                         .HasColumnName("opens_at");
@@ -367,6 +372,51 @@ namespace Bartender.Data.Migrations
                     b.HasIndex("CityId");
 
                     b.ToTable("places");
+                });
+
+            modelBuilder.Entity("Bartender.Data.Models.PlaceImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<ImageType>("ImageType")
+                        .HasColumnType("picturetype")
+                        .HasColumnName("image_type");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_visible");
+
+                    b.Property<int>("PlaceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("place_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("url");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlaceId");
+
+                    b.ToTable("place_pictures");
                 });
 
             modelBuilder.Entity("Bartender.Data.Models.Product", b =>
@@ -725,6 +775,17 @@ namespace Bartender.Data.Migrations
                     b.Navigation("City");
                 });
 
+            modelBuilder.Entity("Bartender.Data.Models.PlaceImage", b =>
+                {
+                    b.HasOne("Bartender.Data.Models.Place", "Place")
+                        .WithMany("Images")
+                        .HasForeignKey("PlaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Place");
+                });
+
             modelBuilder.Entity("Bartender.Data.Models.Product", b =>
                 {
                     b.HasOne("Bartender.Data.Models.Business", "Business")
@@ -845,6 +906,8 @@ namespace Bartender.Data.Migrations
 
             modelBuilder.Entity("Bartender.Data.Models.Place", b =>
                 {
+                    b.Navigation("Images");
+
                     b.Navigation("MenuItems");
 
                     b.Navigation("Staffs");
