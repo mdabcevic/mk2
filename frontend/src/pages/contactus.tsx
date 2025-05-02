@@ -2,15 +2,15 @@ import ContactInfo from "./contact-info";
 
 function ContactUsPage() {
     return (
-      <div className="flex h-screen overflow-hidden relative">
+      <div className="flex h-screen max-h-[80vh] overflow-hidden relative p-0 m-0">
         {/* Left Panel */}
-        <div className="relative w-1/2 bg-[#432B1F] text-white z-10">
-          <div className="p-10 flex flex-col justify-between h-full">
+        <div className="relative w-1/3 bg-[#432B1F] text-white z-10">
+          <div className="p-10 flex flex-col justify-center h-full">
             <ContactInfo />
           </div>
   
           {/* SVG cuts into right panel */}
-          <div className="absolute top-0 right-0 h-full w-[132px] z-20">
+          <div className="absolute top-0 right-0 h-full w-[134px] -mr-[2px] z-20">
             <svg
               viewBox="0 0 132 714"
               fill="none"
@@ -39,12 +39,11 @@ function ContactUsPage() {
         </div>
   
         {/* Right Panel */}
-        <div className="w-1/2 bg-[#F5F0EA] p-10 relative z-10">
+        <div className="w-2/3 bg-[#F5F0EA] p-10 relative z-10">
           <div className="text-gray-800">Right Panel</div>
         </div>
       </div>
     );
   }
   
-
 export default ContactUsPage;
