@@ -65,10 +65,8 @@ export function getStatusColor(status: OrderStatusValue): string {
   };
 
 export function getBgColorByNotificationStatus(type: number){
-  const match = notificationColors[type].match(/#(?:[0-9a-fA-F]{3}){1,2}/);
-  console.log("type="+type);
-  console.log("match=");console.log(match);
-  return match ? match[0] : "#D4D4D4";
+  return notificationColors[type].split(" ")[0].split("[")[1].split("]")[0];
+
 }
 
   export function getNotificationColor(type: number):string{

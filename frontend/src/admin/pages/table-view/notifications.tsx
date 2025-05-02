@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { subscribeToNotifications,Notification } from "../../../utils/notification-store";
-import { getNotificationColor } from "../../../utils/table-color";
+import { getNotificationColor, NotificationType, orderStatusIndex } from "../../../utils/table-color";
+import { orderService } from "../../../pages/place-details/menu/order.service";
+import { placeOrderService } from "./place-orders.service";
 
 
 export function NotificationScreen({ onClose }:{onClose?: (label: string) => void}) {
@@ -14,11 +16,14 @@ export function NotificationScreen({ onClose }:{onClose?: (label: string) => voi
     return () => unsubscribe();
   }, []);
 
-  const removeNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-    const label = notifications.find(not => not.id === id)?.tableLabel;
+  const removeNotification = async(notification:Notification) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+    const label = notifications.find(not => not.id === notification.id)?.tableLabel;
     if (onClose && label) {
       onClose(label);
+      if(notification.type == NotificationType.OrderCreated){
+        await placeOrderService.updateOrderStatus(notification.orderId!, orderStatusIndex.delivered);
+      }
     }
   };
 
@@ -34,7 +39,7 @@ export function NotificationScreen({ onClose }:{onClose?: (label: string) => voi
           <span className="text-black">{n.message}</span>
           <button
             className="ml-4 text-sm"
-            onClick={() => removeNotification(n.id)}
+            onClick={() => removeNotification(n)}
           >
             <img src="/assets/images/icons/checkMark.svg"/>
           </button>
