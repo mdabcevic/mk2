@@ -5,6 +5,7 @@ export const AppPaths = {
     public: {
         home:"/",
         aboutUs:"/aboutus",
+        contactUs: "/contactus",
         places:"/places",
         placeDetails:"/place/:id",
         menu: "/place/:placeId/menu",

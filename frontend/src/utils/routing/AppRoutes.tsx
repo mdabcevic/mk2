@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Places from "../../pages/home/places.tsx";
 import AboutUs from "../../pages/aboutus.tsx";
+import ContactUs from "../../pages/contact-us/contactus.tsx";
 import PlaceDetails from "../../pages/place-details/place-details";
 import Layout from "../../containers/layout";
 import {Menu} from "../../pages/place-details/menu/menu.tsx";
@@ -36,6 +37,7 @@ function AppRoutes(){
         {/* Public routes */}
         <Route path={AppPaths.public.home} element={<Layout />}>
           <Route index element={<AboutUs />} />
+          <Route path={AppPaths.public.contactUs} element={<ContactUs />} />
           <Route path={AppPaths.public.places} element={<Places />} />
           <Route path={AppPaths.public.placeDetails} element={<PlaceDetails />} />
           <Route path={AppPaths.public.placeTables} element={<PlaceTablesViewPublic />} />
