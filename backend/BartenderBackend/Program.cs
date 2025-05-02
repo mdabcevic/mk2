@@ -28,7 +28,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy(allowedOrigins,
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173/", "http://localhost:8080/", "http://localhost:5173", "http://localhost:8080")
+            policy.WithOrigins("http://localhost:5173/", "http://localhost:8080/", "http://localhost:5173", "http://localhost:8080",
+                "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io")
                   .AllowAnyHeader()
                   .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                   .AllowCredentials();
@@ -47,11 +48,25 @@ var jwtSettings = jwtSettingsSection.Get<JwtSettings>() ?? throw new InvalidOper
 builder.Services.Configure<JwtSettings>(jwtSettingsSection); // for IOptions<JwtSettings> injection
 builder.Services.AddSingleton(jwtSettings); // optional: direct injection without IOptions
 
-var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection")
-    ?? throw new InvalidOperationException("Missing Redis configuration.");
+// Configure Redis connection
+var redisSettings = builder.Configuration.GetSection("Redis").Get<RedisSettings>() ?? throw new InvalidOperationException("Missing Redis configuration.");
+builder.Services.AddSingleton(redisSettings);
+var configurationOptions = new ConfigurationOptions
+{
+    EndPoints = { $"{redisSettings.Host}:{redisSettings.Port}" },
+    Password = redisSettings.Password,
+    Ssl = redisSettings.Ssl,
+    AbortOnConnectFail = redisSettings.AbortOnConnectFail,
+    KeepAlive = 180, // ping every 3 minutes
+    ReconnectRetryPolicy = new ExponentialRetry(5000),
+    ConnectTimeout = 10000, // 10 seconds
+    SyncTimeout = 10000,    // 10 seconds
+};
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(
-    await ConnectionMultiplexer.ConnectAsync(redisConnectionString));
+var multiplexer = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(multiplexer);
+builder.Services.AddSingleton(redisSettings);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
