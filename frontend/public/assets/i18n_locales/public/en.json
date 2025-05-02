@@ -87,6 +87,11 @@
         "improved_efficiency_desc": "Digital ordering cuts errors and speeds up service—what customers select goes straight to the kitchen, avoiding miscommunication. Menus update in real time, so out-of-stock items are marked instantly.",
         "multilingual_support_title": "Multilingual Support for a Global Clientele",
         "multilingual_support_desc": "Serve customers from all around the world with language support that ensures a smooth and easy ordering experience."
-
-    }
+    },
+    "place_main_info":{
+        "working_hours":"Working hours"
+    },
+    "cart":{
+        "order":"Order"
+  }
 }
