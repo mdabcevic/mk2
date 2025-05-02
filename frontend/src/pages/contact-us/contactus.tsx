@@ -5,20 +5,22 @@ import ContactMap from "./contact-map";
 
 function ContactUsPage() {
   return (
-    <div className="flex h-screen overflow-hidden relative p-0 m-0">
+    <div className="flex flex-col lg:flex-row min-h-screen overflow-hidden">
       {/* Left Panel */}
-      <div className="relative w-1/3 bg-[#432B1F] text-white z-10">
-        <div className="pl-35 flex flex-col justify-center h-full">
-          <ContactInfo />
-        </div>
-        <CurveSvg />
-      </div>
+<div className="relative w-full lg:w-2/5 bg-[#432B1F] text-white z-10">
+  <div className="pl-10 lg:pl-[8.75rem] py-10 flex flex-col justify-center h-full">
+    <ContactInfo />
+  </div>
+  <div className="hidden lg:block">
+  <CurveSvg />
+</div>
+</div>
 
       {/* Right Panel */}
-      <div className="w-2/3 bg-[#F5F0EA] relative z-10 flex items-center h-full">
-        <div className="flex flex-row items-center justify-between w-full max-w-[1300px] mx-auto">
-        <ContactForm />
-        <ContactMap />
+      <div className="w-full lg:w-3/5 bg-[#F5F0EA] flex items-center justify-center py-10">
+        <div className="flex flex-col lg:flex-row items-center justify-center w-full">
+          <ContactForm />
+          <ContactMap />
         </div>
       </div>
     </div>
