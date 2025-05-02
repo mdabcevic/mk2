@@ -39,10 +39,10 @@ function ContactUsPage() {
       </div>
 
       {/* Right Panel */}
-      <div className="w-2/3 bg-[#F5F0EA] pl-20 relative z-10 flex justify-between items-center h-full">
-        <div className="flex flex-col lg:flex-row gap-5 items-center justify-between w-full">
+      <div className="w-2/3 bg-[#F5F0EA] relative z-10 flex items-center h-full">
+        <div className="flex flex-row items-center justify-between w-full max-w-[1300px] mx-auto">
           {/* Form */}
-          <form className="flex flex-col gap-4 w-full max-w-md">
+          <form className="flex flex-col gap-4 max-w-[460px] w-full pl-10">
             <label>
               <span className="block mb-1">Email</span>
               <input
@@ -78,7 +78,7 @@ function ContactUsPage() {
           </form>
 
           {/* Map */}
-          <div className="w-[850px] h-[450px] rounded-[225px] overflow-hidden border border-gray-300 shrink-0 translate-x-1/6">
+          <div className="h-[450px] rounded-[215px] overflow-hidden border border-gray-300 w-full max-w-[1000px] translate-x-1/5">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2781.997272749197!2d15.984169176508398!3d45.801651971082915!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4765d6f1d8c155fb%3A0x88e4871cd46a6d49!2sUl.%20Vjekoslava%20Heinzela%2C%20Zagreb!5e0!3m2!1sen!2shr!4v1717168550123!5m2!1sen!2shr"
               width="100%"
