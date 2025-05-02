@@ -78,7 +78,7 @@ const ProductsSection = forwardRef((_, ref) => {
   });
 
   const totalItems = filtered.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
   const paginatedProducts = filtered.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -90,7 +90,7 @@ const ProductsSection = forwardRef((_, ref) => {
         <div className="flex flex-col md:flex-row md:items-center gap-2 mb-4">
           <input
             type="text"
-            placeholder={t("search")}
+            placeholder={t("product_modal.search")}
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -109,10 +109,10 @@ const ProductsSection = forwardRef((_, ref) => {
         <table className="min-w-[600px] w-full text-left text-sm text-black">
           <thead>
             <tr className="border-b-2 text-[#737373]">
-              <th className="p-2 text-center">{t("product").toUpperCase()}</th>
-              <th className="p-2 text-center">{t("volume").toUpperCase()}</th>
-              <th className="p-2 text-center">{t("category").toUpperCase()}</th>
-              <th className="p-2 text-center">{t("custom").toUpperCase()}</th>
+              <th className="p-2 text-center">{t("product_modal.product").toUpperCase()}</th>
+              <th className="p-2 text-center">{t("product_modal.volume").toUpperCase()}</th>
+              <th className="p-2 text-center">{t("product_modal.category").toUpperCase()}</th>
+              <th className="p-2 text-center">{t("product_modal.custom").toUpperCase()}</th>
               <th className="p-2 text-center"></th>
             </tr>
           </thead>
@@ -142,7 +142,7 @@ const ProductsSection = forwardRef((_, ref) => {
 
         <PaginationControls
           currentPage={currentPage}
-          totalItems={products.length}
+          totalItems={totalItems}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
         />

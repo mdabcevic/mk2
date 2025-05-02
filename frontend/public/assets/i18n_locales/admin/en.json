@@ -27,6 +27,13 @@
     "seats_number":"Number of seats",
     "add_table":"Add",
     "table_already_exist":"Table name already exists",
-    "qr_code_message":"QR Code for Table"
+    "qr_code_message":"QR Code for Table",
+    "product_modal": {
+        "add_new_product": "Add New Product",
+        "product_name": "Product Name",
+        "volume": "Volume",
+        "category": "Category",
+        "select_category": "Select category"
+    }
     
 }

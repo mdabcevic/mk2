@@ -27,6 +27,14 @@
     "seats_number":"Broj stolica",
     "add_table":"Dodaj stol",
     "table_already_exist":"Već postoji stol s tim nazivom",
-    "qr_code_message":"QR kod za stol"
+    "qr_code_message":"QR kod za stol",
+    "product_modal": {
+        "add_new_product": "Dodaj novi proizvod",
+        "product_name": "Naziv proizvoda",
+        "volume": "Volumen",
+        "category": "Kategorija",
+        "select_category": "Odaberite kategoriju"
+    }
+      
     
 }
