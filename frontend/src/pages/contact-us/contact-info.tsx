@@ -13,7 +13,7 @@ function ContactInfo() {
       </div>
 
       {/* Info Items */}
-      <div className="flex flex-col lg:flex-col gap-4 lg:gap-6 items-center lg:items-start sm:flex-row sm:flex-wrap sm:justify-center lg:flex-col">
+      <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:flex-col lg:items-start">
 
         <ContactItem icon={<FiMail />} label="info@mk.com" />
         <ContactItem icon={<FiPhone />} label="+385 123456789" />
@@ -35,7 +35,7 @@ type ContactItemProps = {
 
 function ContactItem({ icon, label }: ContactItemProps) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2 sm:gap-4">
       <div className="bg-[#F5F0EA] text-[#432B1F] p-2 rounded-full">{icon}</div>
       <span className="text-md">{label}</span>
     </div>

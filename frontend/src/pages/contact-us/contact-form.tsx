@@ -1,6 +1,6 @@
 function ContactForm() {
   return (
-    <form className="flex flex-col gap-4 w-full max-w-[500px] px-6 sm:px-10 lg:px-0 lg:ml-10">
+    <form className="flex flex-col gap-4 w-full max-w-[500px] lg:ml-10">
       <label>
         <span className="block mb-1">Email</span>
         <input
@@ -36,6 +36,5 @@ function ContactForm() {
     </form>
   );
 }
-
 
 export default ContactForm;
