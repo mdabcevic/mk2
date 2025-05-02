@@ -33,7 +33,7 @@ const HeaderAdminComponent = () => {
     <header>
 
       <nav className="flex justify-between items-center bg-brown-500 text-light text-[1.2rem] p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2 z-100000">
-      <h1 className="">Mk2</h1>
+      <h1 className=""><img src="/assets/images/icons/logo.svg" width={"100px"} height={"100px"} className="rounded-[30px]" /></h1>
       <div className="hamburger-cross-icons" onClick={openNavbar}>
         <Menu size={24} />
       </div>
@@ -53,6 +53,13 @@ const HeaderAdminComponent = () => {
                                  ${location.pathname !== AppPaths.admin.dashboard ?  "opacity-100 order-2 cursor-pointer" : "opacity-0 order-1 cursor-default"}`}
         >
           {t("products")}
+        </Link>
+        <Link
+          to={AppPaths.admin.management}
+          className={`nav-links transition-all duration-500 ease-in-out ${location.pathname === AppPaths.admin.management ? "text-orange-500" : ""}
+                                 ${location.pathname !== AppPaths.admin.dashboard ? "opacity-100 order-3 cursor-pointer" : "opacity-0 order-2 cursor-default"}`}
+        >
+          {t("management")}
         </Link>
         <Link
           to={AppPaths.admin.tables}

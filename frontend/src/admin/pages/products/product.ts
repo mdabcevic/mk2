@@ -12,6 +12,7 @@ export interface Product {
   }
 
   export interface MenuItemDto{
+    productId?: number;
     price: string,
     isAvailable: boolean,
     description?: string | null,

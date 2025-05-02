@@ -55,6 +55,9 @@ button{
 .bg-neutral-latte-light{
   background-color: #F6F2EC;
 }
+.bg-latte{
+  background-color: #E3DAC9;
+}
 .border-mocha{
   border: 1px solid #624935;
 }
@@ -112,6 +115,14 @@ button{
   background: #DFD8CD;
 }
 
+@keyframes floatUpDown {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
 
 @media screen and (max-width: 850px) {
   .NavbarItems {

@@ -22,7 +22,11 @@ export const tableService = {
 
     regenrateQrCode:async (label:string) =>{
         return await api.post(ApiMethods.regenerateQrCode.replace("{label}",label),label)
-    }
+    },
+
+    disableTable: async(tableLabel:string) => {
+        return await api.patch(ApiMethods.disableTable.replace("{tableLabel}",tableLabel),true);
+    },
 
 
 }

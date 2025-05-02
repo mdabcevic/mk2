@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import { useTranslation } from "react-i18next";
 import { Constants, Table, TableStatusString } from "../../../utils/constants";
 import { tableService } from "../../../utils/services/tables.service";
-import { getTableColor, getTableIcon, NotificationType } from "../../../utils/table-color";
+import { getBgColorByNotificationStatus, getTableColor, getTableIcon, NotificationType } from "../../../utils/table-color";
 import OrdersTable from "./orders-table";
 import { NotificationScreen } from "./notifications";
 import { subscribeToNotifications,Notification } from "../../../utils/notification-store";
@@ -26,16 +26,19 @@ const TablesView = () => {
   const [manageTables, setManageTables] = useState<boolean>(false);
 
   const fetchTables = async (notification?:Notification) => {
+    setTables([]);
     const response = await tableService.getPlaceTablesByCurrentUser();
     const result = response.map(table => {
-      if (notification &&(notification.type === NotificationType.OrderCreated || notification.type === NotificationType.StaffNeeded || notification.type === NotificationType.OrderStatusUpdated) && table.label === notification.tableLabel) {
+      if (notification && table.label === notification.tableLabel) {
         const regex = /^Staff updated Order \d+ status to payment_requested\.$/;
         if(notification.type === NotificationType.OrderStatusUpdated && regex.test(notification.message))
-        return { ...table, requestType: notification.type };
+          return { ...table, requestType: notification.type };
+        else return { ...table, requestType: notification.type };
       }
       return table;
     });
     setTables(result);
+    
   };
 
   useEffect(() => {
@@ -44,7 +47,6 @@ const TablesView = () => {
 
   useEffect(() => {
       const unsubscribe = subscribeToNotifications((n) => {
-        console.log("dosla notf")
         fetchTables(n);
         let next = rerenderOrdersFlag + 1;
         setRerenderOrdersFlag(next);
@@ -53,7 +55,7 @@ const TablesView = () => {
       return () => unsubscribe();
     }, []);
     
-  const handleSetStatus = async (status: TableStatusString) => {
+  const setNewStatus = async (status: TableStatusString) => {
     const response = await tableService.changeStatus(status,selectedTable?.token!);
     setTables((prevTables:any) => {
       return prevTables.map((table:any) =>
@@ -88,6 +90,10 @@ const TablesView = () => {
     }
   }
 
+  const disableTable = async (tableLabel: string) => {
+    await tableService.disableTable(tableLabel);
+  };
+
   const onClose = (label: string) => {
     setTables(prev =>
       prev.map(table => {
@@ -103,18 +109,18 @@ const TablesView = () => {
   return (
     <div className="relative">
       <section className="hidden lg:flex justify-center items-start  w-full h-full p-[16px] pt-[80px]">
-      <div className="flex items-center space-x-4 absolute right-0 top-0">
+      <div className="flex flex-col items-center space-x-4 absolute right-0 top-0">
         <span>Manage tables:</span>
         <div
           onClick={() => setManageTables(!manageTables)}
-          className="relative w-14 h-8 bg-[#DFD8CD] rounded-full cursor-pointer transition-colors duration-300"
+          className="relative mt-2 w-14 h-6 bg-[#DFD8CD] rounded-full cursor-pointer transition-colors duration-300"
           style={{
             backgroundColor: manageTables ? "#7E5E44" : "#DFD8CD",
           }}
         >
           <div
-            className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 ${
-              manageTables ? "translate-x-6" : ""
+            className={`absolute w-6 h-6 bg-white rounded-full border shadow-md transition-all duration-300 ${
+              manageTables ? "translate-x-8" : ""
             }`}
           ></div>
         </div>
@@ -131,18 +137,18 @@ const TablesView = () => {
             zIndex:"1"
           }}
         >
-          {tables.map((table, index) => (
+          {tables?.length > 0  && tables.map((table, index) => (
+            
             <div
               key={index}
-              className="absolute cursor-pointer flex items-center justify-center text-white font-bold border border-black box-border"
+              className={'absolute cursor-pointer flex items-center justify-center font-bold border border-black box-border'}
               style={{
                 left: table.x,
                 top: table.y,
                 width: table.width,
                 height: table.height,
-                backgroundColor: getTableColor(table.status),
-                borderRadius: `${Math.min(table.width, table.height) / 2}px`,
-                
+                backgroundColor: ((table?.requestType ?? -1) >=0) ? getBgColorByNotificationStatus(table.requestType!): getTableColor(table.status)  ,
+                borderRadius: `${Math.min(table.width, table.height) / 2}px`,             
               }}
               onClick={() => {console.log("klik"); setSelectedTable(table); fetchOrdersByTable(table.label); }}
             >
@@ -151,8 +157,9 @@ const TablesView = () => {
               <TableActionModal
                 tableLabel={table.label}
                 onClose={() => setSelectedTable(null)}
-                onSetStatus={handleSetStatus}
+                onSetStatus={setNewStatus}
                 onGenerateQR={() => generateQrCode()}
+                disable={() => disableTable(table.label)}
               />
               )}
 
@@ -163,8 +170,8 @@ const TablesView = () => {
               />
             )}
             {typeof table?.requestType === "number" && (
-              <div className="absolute top-2">
-                <img src={getTableIcon(table?.requestType)} width="40px" height="40px" className="bg-white rounded"
+              <div className="absolute bottom-4">
+                <img src={getTableIcon(table?.requestType)} width="30px" height="30px" className="rounded"
                      style={{animation: 'floatUpDown 1s ease-in-out infinite'}}/>
               </div>
             )}
@@ -174,7 +181,7 @@ const TablesView = () => {
       </section>
 
       <section>
-        <OrdersTable key={rerenderOrdersFlag} rerender={rerenderOrdersFlag} />
+        <OrdersTable key={rerenderOrdersFlag} rerender={rerenderOrdersFlag} showStatus={true} />
       </section>
     </div>
     

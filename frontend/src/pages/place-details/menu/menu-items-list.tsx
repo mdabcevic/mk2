@@ -19,7 +19,7 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
   
     return (
       <div
-        className="  overflow-x-hidden max-w-[1500px] m-auto"
+        className=" overflow-x-hidden max-w-[1500px] m-auto"
       >
         <div className="relative pt-3" >
         <div >
@@ -37,10 +37,9 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
                   </div>
                 
                   <div className="text-right flex flex-row items-center">
-                    <p className=" font-normal">€{item.price}</p>
-                
-                    {!item.isAvailable && UserRole.guest == userRole ? (
-                      <span className="px-2 mt-1 bg-gray-200 rounded text-gray-500 inline-block text-sm">
+                    <p className={`font-normal ${!item.isAvailable && UserRole.guest === userRole ? "hidden": "inline-block"}`}>€{item.price}</p>
+                    {!item.isAvailable && UserRole.guest === userRole ? (
+                      <span className="px-2 mt-1 text-gray-500 inline-block text-sm">
                         {t("unavailable") ?? "Trenutno nedostupno"}
                       </span>
                     ) : (

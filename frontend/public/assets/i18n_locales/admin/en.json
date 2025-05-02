@@ -14,7 +14,7 @@
     "product":"Product",
     "volume":"Volume",
     "description":"Description",
-    "availability":"Availability",
+    "availability":"Available",
     "selected_products":"Selected products",
     "available_products":"Available products",
     "my_menu":"My menu",
@@ -25,7 +25,7 @@
     "table_info":"Table info",
     "table_label":"Table code",
     "seats_number":"Number of seats",
-    "add_table":"Add table",
+    "add_table":"Add",
     "table_already_exist":"Table name already exists",
     "qr_code_message":"QR Code for Table"
     
