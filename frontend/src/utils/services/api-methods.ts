@@ -9,6 +9,7 @@ export const ApiMethods ={
     getMenuByPlaceId: "/api/menu/{id}",
     saveProductsToPlace: "/api/menu",
     updateMenuItem:"/api/menu",
+    createCustomProduct:"/api/product",
 
     getAllProducts: "/api/product",
     getProductCategories: "/api/product/categories",

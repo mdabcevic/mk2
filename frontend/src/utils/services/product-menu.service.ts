@@ -1,4 +1,4 @@
-import { Product, MenuItem, UpsertMenuItemDto, MenuItemDto, CategoryGroup, MenuGroupedItemDto } from "../../admin/pages/products/product";
+import { Product, MenuItem, UpsertMenuItemDto, MenuItemDto, CategoryGroup, MenuGroupedItemDto, CreateCustomProductReq } from "../../admin/pages/products/product";
 import { ApiMethods } from "./api-methods"
 import api from "./client";
 
@@ -28,5 +28,10 @@ export const productMenuService = {
 
     updateMenuItem: async(item: UpsertMenuItemDto): Promise<any> =>{
         return await api.put(ApiMethods.updateMenuItem,item);
+    },
+
+    createCustomProduct: async(product:CreateCustomProductReq): Promise<any> => {
+        return await api.post(ApiMethods.createCustomProduct,product);
     }
+
 }

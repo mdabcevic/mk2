@@ -62,7 +62,12 @@ export interface Product {
     category: string;
   }
 
-  
+  export interface CreateCustomProductReq{
+    name: string,
+    volume: string,
+    categoryId: number,
+    businessId?: number | null
+  }
 
   export interface UpsertMenuItemDto{
     placeId:number;

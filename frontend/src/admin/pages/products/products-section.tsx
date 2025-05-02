@@ -1,150 +1,180 @@
-import { useEffect, useState } from "react";
-import { Trash2, CheckCircle, XCircle } from "lucide-react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { productMenuService } from "../../../utils/services/product-menu.service";
-import { Category, Product, MenuItem } from "./product";
+import { Category, CreateCustomProductReq, MenuItem, Product } from "./product";
 import { authService } from "../../../utils/auth/auth.service";
 import { useTranslation } from "react-i18next";
-
+import Dropdown, { DropdownItem } from "../../../utils/components/dropdown";
+import AddProductModal from "./edit-add-product-modal";
 
 const placeId = authService.placeId();
+const filterOptions: DropdownItem[] = [
+  { id: "custom", value: "Custom" },
+  { id: "shared", value: "Shared" },
+  { id: "all", value: "All" },
+];
 
-function ProductsSection() {
+const ProductsSection = forwardRef((_, ref) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState<"custom" | "shared" | "all">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedProducts, setSelectedProducts] = useState<Record<number, Product[]>>({});
-  const [expandedCategory, setExpandedCategory] = useState<number | null>(null);
-  const { t } = useTranslation("admin");  
+  const itemsPerPage = 30;
+  const { t } = useTranslation("admin");
+
+  const fetchCategories = async () => {
+    const cats = await productMenuService.getProductCategories(placeId);
+    setCategories(cats);
+  };
 
   useEffect(() => {
-    fetchProductCategories();
     fetchProducts();
+    fetchCategories();
   }, []);
+
+  useImperativeHandle(ref, () => ({
+    openAddModal() {
+      setIsModalOpen(true);
+    },
+  }));
+
+  const saveProduct = async (newProduct: CreateCustomProductReq) => {
+    await productMenuService.createCustomProduct(newProduct);
+    setIsModalOpen(false);
+    const results = await productMenuService.getAllProducts(placeId);
+    let maxId = 0;
+    results.forEach(el => {if(el.id > maxId) maxId = el.id});
+    const newMenuItem: MenuItem = {
+      placeId:placeId,
+      productId:maxId,
+      price:0,
+      isAvailable:true
+    }
+    await productMenuService.saveProductsToPlace([newMenuItem]);
+    console.log(results)
+  };
 
   const fetchProducts = async () => {
     const results = await productMenuService.getAllProducts(placeId);
     setProducts(results);
-    setSelectedProducts({});
   };
 
-  const fetchProductCategories = async () => {
-    const results = await productMenuService.getProductCategories(placeId);
-    setCategories(results);
+  const dropdownChange = (item: DropdownItem) => {
+    setFilterType(item.id as "custom" | "shared" | "all");
+    setCurrentPage(1);
   };
 
-  const toggleProductSelection = (categoryId: number, product: Product) => {
-    setSelectedProducts((prev) => {
-      const newSelection = { ...prev };
-      if (!newSelection[categoryId]) newSelection[categoryId] = [];
+  const filtered = products.filter((product) => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter =
+      filterType === "all"
+        ? true
+        : filterType === "custom"
+        ? product.exclusive
+        : !product.exclusive;
+    return matchesSearch && matchesFilter;
+  });
 
-      if (newSelection[categoryId].some((p) => p.id === product.id)) {
-        newSelection[categoryId] = newSelection[categoryId].filter((p) => p.id !== product.id);
-      } else {
-        newSelection[categoryId] = [...newSelection[categoryId], product];
-      }
-
-      return newSelection;
-    });
-  };
-
-  const removeProduct = (categoryId: number, product: Product) => {
-    toggleProductSelection(categoryId, product);
-  };
-
-  const saveChanges = async () => {
-    const productIds = Object.values(selectedProducts)
-      .flat()
-      .map((product) => product.id);
-
-    const createMenuRequest: MenuItem[] = productIds.map((productId) => ({
-      productId,
-      placeId,
-      isAvailable: true,
-      price: 0,
-      description: null,
-    }));
-
-    const response = await productMenuService.saveProductsToPlace(createMenuRequest);
-  };
+  const totalItems = filtered.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedProducts = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
-    
-    <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 text-gray-800 rounded-lg shadow-md">
+    <div className="p-4 w-full max-w-[1500px] bg-gray-50 text-gray-800 m-auto">
+      <section className="bg-white p-4 w-full">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 mb-4">
+          <input
+            type="text"
+            placeholder={t("search")}
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border border-gray-300 rounded-[30px] px-3 py-2 w-full md:w-1/3"
+          />
+          <Dropdown
+            items={filterOptions}
+            onChange={dropdownChange}
+            type="custom"
+            className="max-w-[180px] bg-white rounded-[16px]"
+          />
+        </div>
 
-      <section className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-lg font-semibold">{t("available_products")}</h2>
-        {categories.map((category) => (
-          <div key={category.id} className="mb-4">
-            <h3
-              className="text-md font-semibold cursor-pointer bg-gray-200 p-2 rounded-lg"
-              onClick={() =>
-                setExpandedCategory(expandedCategory === category.id ? null : category.id)
-              }
+        <table className="min-w-[600px] w-full text-left text-sm text-black">
+          <thead>
+            <tr className="border-b-2 text-[#737373]">
+              <th className="p-2 text-center">{t("product").toUpperCase()}</th>
+              <th className="p-2 text-center">{t("volume").toUpperCase()}</th>
+              <th className="p-2 text-center">{t("category").toUpperCase()}</th>
+              <th className="p-2 text-center">{t("custom").toUpperCase()}</th>
+              <th className="p-2 text-center"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedProducts.map((item, index) => (
+              <tr
+                key={item.id}
+                className={`transition-all duration-200 ${index % 2 !== 0 ? "bg-[#F5F5F5]" : "bg-white"}`}
+              >
+                <td className="py-6 px-2 text-left">{item.name}</td>
+                <td className="py-6 px-2 text-center">{item.volume}</td>
+                <td className="py-6 px-2 text-center">{item.category.name}</td>
+                <td className="py-6 px-2 text-center">
+                  {item.exclusive ? (
+                    <img src="/assets/images/icons/checkboxCheckMark.svg" width="20px" className="m-auto" />
+                  ) : (
+                    <span className="block m-auto">No</span>
+                  )}
+                </td>
+                <td className="py-6 px-2 flex gap-4 items-center justify-center">
+                  <button><img src="/assets/images/icons/delete.png" width="15px" /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Pagination Controls */}
+        <div className="flex justify-between items-center mt-4">
+          <p className="text-sm text-gray-600">
+            {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, totalItems)} {t("of")} {totalItems}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
             >
-              {category.name}
-            </h3>
-            {expandedCategory === category.id && (
-              <div className="mt-2 p-2 bg-gray-100 rounded-lg">
-                {products
-                  .filter((product) => product.category.id === category.id)
-                  .map((product) => (
-                    <div key={product.id} className="flex items-center gap-2 p-1">
-                      <input
-                        type="checkbox"
-                        checked={
-                          selectedProducts[category.id]?.some((p) => p.id === product.id) || false
-                        }
-                        onChange={() => toggleProductSelection(category.id, product)}
-                      />
-                      {product.name} ({product.volume})
-                    </div>
-                  ))}
-              </div>
-            )}
+              {t("previous_page")}
+            </button>
+            <span className="px-3 py-1 text-sm rounded-[12px] border">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
+            >
+              {t("next_page")}
+            </button>
           </div>
-        ))}
+        </div>
       </section>
 
-      <section className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-lg font-semibold">{t("selected_products")}</h2>
-        {Object.entries(selectedProducts).map(([categoryId, products]) =>
-          products.length > 0 ? (
-            <div key={categoryId} className="mb-4">
-              <h3 className="text-md font-semibold bg-gray-200 p-2 rounded-lg">
-                {categories.find((cat) => cat.id === Number(categoryId))?.name}
-              </h3>
-              <ul>
-                {products.map((product) => (
-                  <li key={product.id} className="flex items-center gap-2 p-1">
-                    {product.name} ({product.volume})
-                    <button
-                      onClick={() => removeProduct(Number(categoryId), product)}
-                      className="text-red-500"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                    <button className="text-green-500">
-                      <CheckCircle size={16} />
-                    </button>
-                    <button className="text-gray-500">
-                      <XCircle size={16} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null
-        )}
-      </section>
 
-      <button
-        onClick={saveChanges}
-        className="mt-4 col-span-1 md:col-span-2 max-w-[120px] text-white py-2 rounded-lg bg-[#f49241] cursor-pointer"
-      >
-        {t("save")}
-      </button>
-
+      <AddProductModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={saveProduct}
+        categories={categories}
+      />
     </div>
   );
-}
+});
 
 export default ProductsSection;

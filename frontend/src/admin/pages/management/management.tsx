@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import Products from '../products/products';
 
@@ -17,7 +17,7 @@ export default function ManagementView() {
       case 'Menu':
         return <MenuTable ref={menuRef} placeId={authService.placeId()} />;
       case 'Products':
-        return <Products />;
+        return <Products ref={productsRef} />;
       case 'Orders':
         return <OrdersTable rerender={0} showStatus={false}/>;
       default:
@@ -36,14 +36,14 @@ export default function ManagementView() {
       <div className="flex justify-end mb-2">
         <button
           onClick={handleAddClick}
-          className="px-4 py-2 rounded text-white"
+          className={`px-4 py-2 rounded text-white ${activeTab === "Orders" ? "invisible" : "visible"}`}
           style={{ backgroundColor: "#624935" }}
         >
           {activeTab === "Menu"
             ? "+ Add Item"
             : activeTab === "Products"
             ? "+ Add Product"
-            : ""}
+            : "Orders"}
         </button>
       </div>
       <div className=" border-b">
@@ -64,7 +64,6 @@ export default function ManagementView() {
         </div>  
       </div>
 
-      {/* Render Component Based on Active Tab */}
       <div className="mt-6 w-full max-w-[1500px]">
         {renderTabContent()}
       </div>
