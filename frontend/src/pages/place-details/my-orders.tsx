@@ -53,7 +53,7 @@ function MyOrders({ placeId }: { placeId: string }) {
   }, []);
 
   return (
-    <section className={`relative w-full min-h-[80vh] h-content ${showOrders ? "overflowY-scroll": "overflow-hidden"}  py-4`}>
+    <section className={`relative w-full min-h-[80vh]  h-content ${showOrders ? "overflowY-scroll": "overflow-hidden"}  py-4`}>
 
       <div
         className={`absolute top-0 left-0 w-full h-full flex flex-col justify-start items-center transition-all duration-700 transform ${
@@ -62,8 +62,8 @@ function MyOrders({ placeId }: { placeId: string }) {
             : "opacity-100 scale-100"
         }`}
       >
-        {passCode && (<p className="font-bold mt-40 mb-20">MY PASSCODE:{passCode}</p>)}
-        <p className="text-center mb-8 font-bold text-[16px]">{t("sm_message").toUpperCase()}</p>
+        
+        <p className="text-center mb-8 mt-20  font-bold text-[16px]">{t("sm_message").toUpperCase()}</p>
 
         <button
           className="px-6 py-3 rounded-[40px] bg-white color-mocha-600 font-bold border-mocha mb-4 w-64"
@@ -78,10 +78,10 @@ function MyOrders({ placeId }: { placeId: string }) {
         >
           {t("order").toUpperCase()}
         </Link>
-
+        {passCode && (<p className=" mt-16 flex flex-col items-center">MY PASSCODE:<span className="font-bold">{passCode}</span></p>)}
         {myOrders.length > 0 && (
           <button
-            className=" absolute bottom-2 px-6 py-3 rounded-[40px] bg-white font-bold color-mocha-600 border-mocha mt-6 w-64"
+            className=" absolute bottom-25 px-6 py-3 rounded-[40px] bg-white font-bold color-mocha-600 border-mocha w-64"
             onClick={() => setShowOrders(true)}
           >
             {t("my_orders").toUpperCase()}
@@ -108,11 +108,11 @@ function MyOrders({ placeId }: { placeId: string }) {
           {t("my_orders")}
         </h4>
 
-        {myOrders.length > 0 ? (
+        {showOrders && myOrders.length > 0 ? (
           myOrders.map((order, index) => (
             <div key={order.id} className="mb-6 border-b w-full">
-              <p className="text-[16px] font-semibold mb-0 text-black">
-                Order {index + 1} - {order.totalPrice.toFixed(2)}€
+              <p className="text-[16px] font-semibold mb-4 text-black">
+                Order {index + 1} ({order.status.toUpperCase()}) - {order.totalPrice.toFixed(2)}€
               </p>
               {order.note && (
                 <p className="text-sm mb-2 whitespace-pre-line text-[14px]">
@@ -123,7 +123,7 @@ function MyOrders({ placeId }: { placeId: string }) {
               {order.items.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex-column pt-2 pb-2 pl-6 neutral-latte border b-white rounded-[30px] text-[14px] mb-2"
+                  className="flex-column pt-2 pb-2 pl-6 neutral-latte border b-white rounded-[30px] text-[14px] mb-6"
                 >
                   <p className="color-mocha-600 font-semibold">
                     {item.menuItem} (x{item.count})

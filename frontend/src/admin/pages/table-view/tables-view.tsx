@@ -28,24 +28,17 @@ const TablesView = () => {
   const fetchTables = async (notification?:Notification) => {
     setTables([]);
     const response = await tableService.getPlaceTablesByCurrentUser();
-    console.log("response")
-    console.log(response)
     const result = response.map(table => {
-      console.log("ccc")
       if (notification && table.label === notification.tableLabel) {
         const regex = /^Staff updated Order \d+ status to payment_requested\.$/;
-        console.log("asas")
-        console.log({ ...table, requestType: notification.type })
         if(notification.type === NotificationType.OrderStatusUpdated && regex.test(notification.message))
           return { ...table, requestType: notification.type };
         else return { ...table, requestType: notification.type };
       }
       return table;
     });
-    console.log("ponovno");
-    console.log(result)
-    
     setTables(result);
+    
   };
 
   useEffect(() => {
@@ -116,18 +109,18 @@ const TablesView = () => {
   return (
     <div className="relative">
       <section className="hidden lg:flex justify-center items-start  w-full h-full p-[16px] pt-[80px]">
-      <div className="flex items-center space-x-4 absolute right-0 top-0">
+      <div className="flex flex-col items-center space-x-4 absolute right-0 top-0">
         <span>Manage tables:</span>
         <div
           onClick={() => setManageTables(!manageTables)}
-          className="relative w-14 h-8 bg-[#DFD8CD] rounded-full cursor-pointer transition-colors duration-300"
+          className="relative mt-2 w-14 h-6 bg-[#DFD8CD] rounded-full cursor-pointer transition-colors duration-300"
           style={{
             backgroundColor: manageTables ? "#7E5E44" : "#DFD8CD",
           }}
         >
           <div
-            className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 ${
-              manageTables ? "translate-x-6" : ""
+            className={`absolute w-6 h-6 bg-white rounded-full border shadow-md transition-all duration-300 ${
+              manageTables ? "translate-x-8" : ""
             }`}
           ></div>
         </div>
@@ -144,7 +137,7 @@ const TablesView = () => {
             zIndex:"1"
           }}
         >
-          {tables.map((table, index) => (
+          {tables?.length > 0  && tables.map((table, index) => (
             
             <div
               key={index}
@@ -154,12 +147,11 @@ const TablesView = () => {
                 top: table.y,
                 width: table.width,
                 height: table.height,
-                backgroundColor: table.requestType ? getBgColorByNotificationStatus(table.requestType) : getTableColor(table.status),
+                backgroundColor: ((table?.requestType ?? -1) >=0) ? getBgColorByNotificationStatus(table.requestType!): getTableColor(table.status)  ,
                 borderRadius: `${Math.min(table.width, table.height) / 2}px`,             
               }}
               onClick={() => {console.log("klik"); setSelectedTable(table); fetchOrdersByTable(table.label); }}
             >
-              {table.requestType ?? "nema"}
               {table.label}
               {selectedTable?.label === table.label && manageTables &&  (
               <TableActionModal
@@ -189,7 +181,7 @@ const TablesView = () => {
       </section>
 
       <section>
-        <OrdersTable key={rerenderOrdersFlag} rerender={rerenderOrdersFlag} />
+        <OrdersTable key={rerenderOrdersFlag} rerender={rerenderOrdersFlag} showStatus={true} />
       </section>
     </div>
     

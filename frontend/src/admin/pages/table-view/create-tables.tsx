@@ -12,7 +12,7 @@ function CreateTables() {
   const { t } = useTranslation("admin");
   const [tables, setTables] = useState<Table[]>([]);
   const [newTableName, setNewTableName] = useState<string>("");
-  const [newSeats, setNewSeats] = useState<number>(4);
+  const [newSeats, setNewSeats] = useState<number>();
   const [labelMessage, setLabelMessage] = useState<string>("");
   
   const addTable = () => {
@@ -72,46 +72,49 @@ function CreateTables() {
     <div className="flex flex-col items-center p-4 space-y-6 ">
       {screenWidth >= minScreenSize && (
         <>
-          <div className="flex flex-col w-full" id="table-info">
-            <h2 className="font-semibold text-left">{t("table_info")}</h2>
-            <div className="flex flex-row items-center">
-              <label className="">{t("table_label")}:</label>
-              <div className="flex flex-col ml-2 mr-4">
+          <div className="flex flex-col w-full items-center" id="table-info">
+
+            <div className="flex flex-col items-center justify-center max-w-[350px]">
+              <div className="flex flex-row justify-between gap-4">
+                <div className="flex flex-row w-[70%]">
+                  <input
+                    type="text"
+                    value={newTableName}
+                    onChange={(e) => setNewTableName(e.target.value)}
+                    placeholder="Table"
+                    className="pl-5 py-2 border rounded-[40px] text-sm w-full"
+                  />
+                  <span className="text-red-500">{labelMessage}</span>
+                </div>
+
                 <input
-                  type="text"
-                  value={newTableName}
-                  onChange={(e) => setNewTableName(e.target.value)}
-                  placeholder="753-23"
-                  className="p-1 border rounded text-sm"
+                  type="number"
+                  value={newSeats}
+                  placeholder="Seats"
+                  min={1}
+                  onChange={(e) => setNewSeats(parseInt(e.target.value))}
+                  className=" pl-5 py-2 border rounded-[40px] text-sm w-[30%]"
                 />
-                <span className="text-red-500">{labelMessage}</span>
               </div>
+              
+              <div className="flex flex-row w-full gap-4 mt-2">
+                <button
+                  onClick={addTable}
+                  className={`py-2 bg-mocha-600 text-white flex-1 text-sm rounded-[16px]`}
+                >
+                  {t("add_table").toUpperCase()}
+                </button>
+                <button
+                  onClick={savePlaceGround}
+                  className=" py-2 bg-white flex-1 text-brown-500 text-sm rounded-[16px] border-mocha"
+                >
+                  {t("save").toUpperCase()}
+                </button>
 
-              <label className="">{t("seats_number")}:</label>
-              <input
-                type="number"
-                value={newSeats}
-                min={1}
-                onChange={(e) => setNewSeats(parseInt(e.target.value))}
-                className="p-1 border rounded text-sm ml-2"
-              />
-
-              <button
-                onClick={addTable}
-                className="p-1 bg-white text-brown-500 text-sm rounded-[40px] border-mocha px-4 ml-4"
-              >
-                {t("add_table")}
-              </button>
+              </div>          
             </div>
 
-            <div>
-              <button
-                onClick={savePlaceGround}
-                className={`p-1 bg-mocha-600 text-white text-sm rounded mt-5 px-4`}
-              >
-                {t("save")}
-              </button>
-            </div>
+            
           </div>
 
           <div className={`relative`} style={{width:Constants.create_tables_container_width, height:Constants.create_tables_container_height}} id="place-ground">
