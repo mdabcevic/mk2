@@ -1,15 +1,19 @@
 import { JSX } from "react";
 import { FaInstagram, FaLinkedinIn, FaFacebookF } from "react-icons/fa";
 
-function SocialIcons() {
+function SocialIcons({ className = "" }: SocialIconsProps) {
   return (
-    <div className="flex items-center gap-6 mt-10">
+    <div className={`flex items-center gap-6 mt-10 ${className}`}>
       <SocialLink icon={<FaInstagram />} href="#" />
       <SocialLink icon={<FaLinkedinIn />} href="#" />
       <SocialLink icon={<FaFacebookF />} href="#" />
     </div>
   );
 }
+
+type SocialIconsProps = {
+  className?: string;
+};
 
 export default SocialIcons;
 

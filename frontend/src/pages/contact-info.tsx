@@ -6,7 +6,7 @@ function ContactInfo() {
   return (
     <>
       {/* Logo + Title */}
-      <div>
+      <div className="flex flex-col gap-8 mt-[-20px]">
         <div className="mb-10">
           {/* Replace this with your actual logo */}
           <h1 className="text-4xl font-bold">Contact Us</h1>
@@ -22,7 +22,7 @@ function ContactInfo() {
       </div>
 
       {/* Social Icons */}
-      <SocialIcons />
+      <SocialIcons className="mt-20" />
     </>
   );
 }
