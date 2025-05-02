@@ -39,6 +39,12 @@ jobs:
       - name: Apply Migrations
         env:
           PRODUCTION_DB_CONNECTION: ${{ secrets.BARTENDER_PRODUCTION_CONNECTION_STRING }}
+          JWT__KEY: ${{ secrets.JWT_KEY }}
+          JWT__ISSUER: ${{ secrets.JWT_ISSUER }}
+          JWT__AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
+          REDIS__HOST: ${{ secrets.REDIS__HOST }}
+          REDIS__PORT: ${{ secrets.REDIS__PORT }}
+          REDIS__PASSWORD: ${{ secrets.REDIS__PASSWORD }}
         run: |
           chmod +x ./migrate
           ./migrate --connection "$PRODUCTION_DB_CONNECTION"
@@ -63,10 +69,7 @@ jobs:
         run: docker push ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/backend:latest
 
       - name: Build frontend Docker image
-        run: docker build -t ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/frontend:latest ./frontend \
-          --build-arg VITE_API_BASE_URL=https://bartender-service.internal.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io \
-          --build-arg VITE_SIGNALR_HUB_URL=https://bartender-service.internal.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io \
-          --build-arg VITE_FRONTEND_QR_URL=https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io/table-lookup/{placeId}/{salt}
+        run: docker build -t ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/frontend:latest ./frontend --build-arg VITE_API_BASE_URL=https://bartender-service.internal.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io --build-arg VITE_SIGNALR_HUB_URL=https://bartender-service.internal.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io --build-arg VITE_FRONTEND_QR_URL=https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io/table-lookup/{placeId}/{salt}
 
       - name: Push frontend Docker image
         run: docker push ghcr.io/${{ secrets.BARTENDER_REGISTRY_USERNAME }}/frontend:latest 
