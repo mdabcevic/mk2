@@ -4,6 +4,7 @@ import { productMenuService } from "../../../utils/services/product-menu.service
 import { useTranslation } from "react-i18next";
 import EditAddMenuItemModal from "../management/menu/edit-add-menuItem-modal";
 import Dropdown, { DropdownItem } from "../../../utils/components/dropdown";
+import PaginationControls from "../../../utils/components/pagination-controlls";
 
 const itemsPerPage = 20;
 const menuTypes = [{id:'available' ,value:'Available'}, {id:'unavailable',value:'Unavailable'}, {id:'all',value:'/'}];
@@ -92,7 +93,6 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
   };
 
   const filterMenuItems = () => {
-    console.log("isAvailable:" + isAvailable)
     const search = searchTerm.toLowerCase();
     const filteredByAvailability = isAvailable ? menu.filter((item:MenuItemDto) => item.isAvailable) : isAvailable === false ? menu.filter((item:MenuItemDto) => item.isAvailable === false) : menu;
     const filtered = search
@@ -104,18 +104,12 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
       (currentPage - 1) * itemsPerPage,
       currentPage * itemsPerPage
     );
-    console.log("filtriram")
-    console.log(paginated)
-    console.log(isAvailable)
-    console.log(filteredByAvailability)
     setFilteredMenu(paginated);
     setTotalItems(filtered.length);
     setTotalPages(total);
   };
 
   const changeMenuType = (item: DropdownItem) => {
-    console.log("item: ");
-    console.log(item)
     if (item.id === "available") {
       console.log("postavljam true")
       setIsAvailable(true);
@@ -177,7 +171,7 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
                   index%2 !== 0 ? "bg-[#F5F5F5]" : "bg-white"
                 } `}
               >
-                <td className="p-2 text-left">{item.product.name}</td>
+                <td className="p-2 py-6 text-left">{item.product.name}</td>
                 <td className={`p-2 ${item?.description ? "text-left" : "text-center"}`}>
                   {isEditing ? (
                     <input
@@ -207,31 +201,12 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
         </tbody>
       </table>
 
-      <div className="flex justify-between items-center mt-4">
-        <p className="text-sm text-gray-600">
-          {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, totalItems)} {t("of")} {totalItems}
-        </p>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
-          >
-            {t("previous_page")}
-          </button>
-          <span className="px-3 py-1 text-sm rounded-[12px] border">
-            {currentPage} / {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
-          >
-            {t("next_page")}
-          </button>
-        </div>
-      </div>
+      <PaginationControls
+          currentPage={currentPage}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
 
       {showModal && (
         <EditAddMenuItemModal

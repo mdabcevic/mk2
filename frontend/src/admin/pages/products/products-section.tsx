@@ -5,6 +5,7 @@ import { authService } from "../../../utils/auth/auth.service";
 import { useTranslation } from "react-i18next";
 import Dropdown, { DropdownItem } from "../../../utils/components/dropdown";
 import AddProductModal from "./edit-add-product-modal";
+import PaginationControls from "../../../utils/components/pagination-controlls";
 
 const placeId = authService.placeId();
 const filterOptions: DropdownItem[] = [
@@ -139,31 +140,12 @@ const ProductsSection = forwardRef((_, ref) => {
           </tbody>
         </table>
 
-        {/* Pagination Controls */}
-        <div className="flex justify-between items-center mt-4">
-          <p className="text-sm text-gray-600">
-            {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, totalItems)} {t("of")} {totalItems}
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
-            >
-              {t("previous_page")}
-            </button>
-            <span className="px-3 py-1 text-sm rounded-[12px] border">
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
-            >
-              {t("next_page")}
-            </button>
-          </div>
-        </div>
+        <PaginationControls
+          currentPage={currentPage}
+          totalItems={products.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
       </section>
 
 
