@@ -1,0 +1,158 @@
+Enum SubscriptionTier {
+  none
+  trial
+  basic
+  standard
+  premium
+  enterprise
+}
+
+Enum EmployeeRole {
+  owner
+  admin
+  manager
+  regular
+}
+
+Enum TableStatus {
+  empty
+  occupied
+  reserved
+}
+
+Enum OrderStatus {
+  created
+  approved
+  delivered
+  payment_requested
+  paid
+  closed
+  cancelled
+}
+
+Enum PaymentType {
+  cash
+  creditcard
+  other
+}
+
+Table Businesses {
+  id int pk
+  OIB varchar unique
+  name varchar
+  headquarters varchar
+  subscriptionTier SubscriptionTier
+}
+
+Table Cities {
+  id int pk
+  name varchar
+}
+
+Table Places {
+  id int pk
+  business_id int [ref: > Businesses.id]
+  city_id int [ref: > Cities.id]
+  address varchar
+  opensAt time
+  closesAt time
+}
+
+Table Staff {
+  id int pk
+  place_id int [ref: > Places.id]
+  OIB varchar unique
+  username varchar
+  password varchar
+  FullName varchar
+  role EmployeeRole
+}
+
+Table Tables {
+  id int pk
+  place_id int [ref: > Places.id]
+  label varchar
+  seats int
+  width int
+  height int
+  xcoordinate decimal(6,2)
+  ycoordinate decimal(6,2)
+  status TableStatus
+  qrsalt text
+  isdisabled boolean
+}
+
+Table GuestSessionGroups {
+  id uuid pk
+  table_id int [ref: > Tables.id]
+  created_at timestamp
+  passphrase varchar
+}
+
+Table guestSessions {
+  id uuid pk
+  table_id int [ref: > Tables.id]
+  group_id uuid [ref: - GuestSessionGroups.id]
+  token text
+  created_at timestamp
+  expires_at timestamp
+  isvalid boolean
+}
+
+Table ProductCategory {
+  id int pk
+  name varchar
+  parentcategory_id int [ref: - ProductCategory.id]
+}
+
+Table Products {
+  id int pk
+  name varchar
+  volume varchar [null]
+  category_id int [ref: > ProductCategory.id]
+  business_id int [ref: - Businesses.id]
+}
+
+Table MenuItems {
+  id int pk
+  place_id int [ref: > Places.id]
+  product_id int [ref: > Products.id]
+  price decimal(10,2)
+  isAvailable boolean
+  description varchar [null]
+}
+
+Table Customers {
+  id int pk
+  username varchar
+  password varchar
+}
+
+Table Orders {
+  id int pk
+  table_id int [ref: > Tables.id]
+  customer_id int [ref: - Customers.id]
+  guest_session_id uuid [ref: - guestSessions.id]
+  createdAt timestamp
+  status OrderStatus
+  total_price decimal(10,2)
+  paymentType PaymentType
+  note varchar [null]
+}
+
+Table ProductsPerOrder {
+  order_id int [ref: > Orders.id]
+  menuitem_id int [ref: > MenuItems.id]
+  item_price decimal(10,2)
+  discount decimal(5,2)
+  count int
+  primary key (order_id, menuitem_id)
+}
+
+Table Reviews {
+  product_id int [ref: > Products.id]
+  customer_id int [ref: > Customers.id]
+  rating int
+  comment varchar [null]
+  primary key (product_id, customer_id)
+}
