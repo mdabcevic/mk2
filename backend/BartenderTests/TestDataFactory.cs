@@ -4,7 +4,6 @@ using Bartender.Domain.DTO.Business;
 using Bartender.Domain.DTO.Place;
 using Bartender.Domain.DTO.Product;
 using Bartender.Domain.DTO.Staff;
-using System.Diagnostics.Eventing.Reader;
 
 namespace BartenderTests;
 
@@ -147,28 +146,31 @@ public static class TestDataFactory
         Name = name
     };
 
-    public static Product CreateValidProduct(int id = 1, int businessId = 1, int categoryId = 2)
+    public static Product CreateValidProduct(int id = 1, int? businessId = 1, int categoryId = 2, string name = "Espresso", string volume = "ŠAL")
     {
         var category = CreateValidProductCategory(categoryId);
         return new Product
         {
             Id = id,
-            Name = "Espresso",
-            Volume = "ŠAL",
+            Name = name,
+            Volume = volume,
             BusinessId = businessId,
             CategoryId = categoryId,
             Category = category
         };
     }
 
-    public static ProductDto CreateValidProductDto(int id = 1, string name = "Espresso", string volume = "ŠAL")
+    public static Product CreateSharedProduct(int id = 99, int categoryId = 2, string name = "Shared", string volume = "0.3L")
+    => CreateValidProduct(id, null, categoryId, name, volume);
+
+    public static ProductDto CreateValidProductDto(int id = 1, string name = "Espresso", string volume = "ŠAL", int categoryId = 2, string categoryName = "Coffee")
     {
         return new ProductDto
         {
             Id = id,
             Name = name,
             Volume = volume,
-            Category = new ProductCategoryDto { Id = 2, Name = "Coffee" }
+            Category = new ProductCategoryDto { Id = categoryId, Name = categoryName }
         };
     }
 }

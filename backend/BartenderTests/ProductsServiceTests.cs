@@ -14,343 +14,12 @@ namespace BartenderTests;
 [TestFixture]
 public class ProductsServiceTests
 {
-    //private IRepository<Products> _repository;
-    //private IRepository<ProductCategory> _categoryRepository;
-    //private IMapper _mapper;
-    //private ProductsService _productsService;
-
-    //[SetUp]
-    //public void SetUp()
-    //{
-    //    _repository = Substitute.For<IRepository<Products>>();
-    //    _categoryRepository = Substitute.For<IRepository<ProductCategory>>();
-    //    _mapper = Substitute.For<IMapper>();
-    //    _productsService = new ProductsService(_repository, _categoryRepository, _mapper);
-    //}
-
-    //[Test]
-    //public async Task GetByIdAsync_ReturnsProduct_WhenExists()
-    //{
-    //    // Arrange
-    //    var product = new Products
-    //    {
-    //        Id = 1,
-    //        Name = "Espresso",
-    //        Volume = "ŠAL",
-    //        CategoryId = 2,
-    //        Category = new ProductCategory { Id = 2, Name = "Coffee" }
-    //    };
-
-    //    var productDto = new ProductsDTO
-    //    {
-    //        Id = 1,
-    //        Name = "Espresso",
-    //        Volume = "ŠAL",
-    //        Category = new ProductCategoryDTO { Id = 2, Name = "Coffee" }
-    //    };
-
-    //    _repository.GetByIdAsync(1).Returns(Task.FromResult((Products?)product));
-    //    _mapper.Map<ProductsDTO>(product).Returns(productDto);
-
-    //    // Act
-    //    var result = await _productsService.GetByIdAsync(1);
-
-    //    // Assert
-    //    Assert.That(result, Is.Not.Null);
-    //    Assert.Multiple(() =>
-    //    {
-    //        Assert.That(result.Id, Is.EqualTo(1));
-    //        Assert.That(result.Name, Is.EqualTo("Espresso"));
-    //        Assert.That(result.Volume, Is.EqualTo("ŠAL"));
-    //        Assert.That(result.Category.Id, Is.EqualTo(2));
-    //        Assert.That(result.Category.Name, Is.EqualTo("Coffee"));
-    //    });
-    //}
-
-    //[Test]
-    //public async Task GetByIdAsync_ThrowsNotFoundException_WhenNotExists()
-    //{
-    //    // Arrange
-    //    _repository.GetByIdAsync(1).Returns(Task.FromResult((Products?)null));
-
-    //    // Act
-    //    var ex = Assert.ThrowsAsync<NotFoundException>(() => _productsService.GetByIdAsync(1));
-
-    //    // Assert
-    //    Assert.That(ex.Message, Is.EqualTo("Product with id 1 not found"));
-    //}
-
-    //[Test]
-    //public async Task GetAllAsync_NotGrouped_ReturnsProductDTOList()
-    //{
-    //    // Arrange
-    //    var products = new List<Products>()
-    //    {
-    //        new() {Id = 1, Name = "Product 1", Volume = "ŠAL", CategoryId = 2 },
-    //        new() {Id = 2, Name = "Product 2", Volume = "ŠAL", CategoryId = 2 }
-    //    };
-
-    //    var productDtos = products.Select(p => new ProductsDTO
-    //    {
-    //        Id = p.Id,
-    //        Name = p.Name,
-    //        Volume = p.Volume,
-    //        Category = new ProductCategoryDTO { Id = p.CategoryId, Name = "Category" }
-    //    }).ToList();
-
-    //    _repository.GetAllAsync(true).Returns(Task.FromResult(products));
-    //    _mapper.Map<IEnumerable<ProductsDTO>>(products).Returns(productDtos);
-
-    //    //Act
-    //    var result = await _productsService.GetAllAsync();
-
-    //    // Assert
-    //    Assert.That(result, Is.InstanceOf<IEnumerable<ProductsDTO>>());
-    //    var resultList = result as IEnumerable<ProductsDTO>;
-    //    Assert.That(resultList.Count, Is.EqualTo(2));
-    //}
-
-    //[Test]
-    //public void GetAllAsync_NotGrouped_ThrowsNotFoundException_WhenNoProducts()
-    //{
-    //    // Arrange
-    //    _repository.GetAllAsync(true).Returns(new List<Products>());
-
-    //    // Act & Assert
-    //    Assert.ThrowsAsync<NotFoundException>(() => _productsService.GetAllAsync(false));
-    //}
-
-    //[Test]
-    //public async Task GetAllAsync_Grouped_ReturnsGroupedProductsDTOList()
-    //{
-    //    // Arrange
-    //    var categories = new List<ProductCategory>
-    //        {
-    //            new ProductCategory
-    //            {
-    //                Id = 1,
-    //                Name = "Category 1",
-    //                Products = new List<Products>
-    //                {
-    //                    new Products { Id = 1, Name = "Product 1", Volume = "1L" },
-    //                    new Products { Id = 2, Name = "Product 2", Volume = "2L" }
-    //                }
-    //            }
-    //        };
-
-    //    var groupedDtos = categories.Select(c => new GroupedProductsDTO
-    //    {
-    //        Category = c.Name,
-    //        Products = c.Products.Select(p => new ProductsBaseDTO
-    //        {
-    //            Id = p.Id,
-    //            Name = p.Name,
-    //            Volume = p.Volume
-    //        })
-    //    }).ToList();
-
-    //    _categoryRepository.GetAllAsync(true).Returns(categories);
-    //    _mapper.Map<IEnumerable<GroupedProductsDTO>>(categories).Returns(groupedDtos);
-
-    //    // Act
-    //    var result = await _productsService.GetAllAsync();
-
-    //    // Assert
-    //    Assert.That(result, Is.InstanceOf<IEnumerable<GroupedProductsDTO>>());
-    //    var resultList = result as IEnumerable<GroupedProductsDTO>;
-    //    Assert.That(resultList.Count, Is.EqualTo(1));
-    //    Assert.That(resultList.First().Products.Count(), Is.EqualTo(2));
-    //}
-
-    
-    ////Tests for filter missing
-   
-
-    //[Test]
-    //public async Task AddAsync_ValidProduct_AddsProduct()
-    //{
-    //    // Arrange
-    //    var productDto = new UpsertProductDTO
-    //    {
-    //        Name = "New Product",
-    //        Volume = "1L",
-    //        CategoryId = 1
-    //    };
-    //    var product = new Products { Name = "New Product", Volume = "1L", CategoryId = 1 };
-
-    //    _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>())
-    //        .Returns(true);
-    //    _repository.ExistsAsync(Arg.Any<Expression<Func<Products, bool>>>())
-    //        .Returns(false);
-    //    _mapper.Map<Products>(productDto).Returns(product);
-
-    //    // Act
-    //    await _productsService.AddAsync(productDto);
-
-    //    // Assert
-    //    await _repository.Received(1).AddAsync(product);
-    //}
-
-    //[Test]
-    //public void AddAsync_ThrowsDuplicateEntry_WhenProductExists()
-    //{
-    //    // Arrange
-    //    var productDto = new UpsertProductDTO
-    //    {
-    //        Name = "Existing Product",
-    //        Volume = "1L",
-    //        CategoryId = 1
-    //    };
-
-    //    _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>())
-    //        .Returns(true);
-    //    _repository.ExistsAsync(Arg.Any<Expression<Func<Products, bool>>>())
-    //        .Returns(true);
-
-    //    // Act & Assert
-    //    Assert.ThrowsAsync<DuplicateEntryException>(() => _productsService.AddAsync(productDto));
-    //}
-
-    //[Test]
-    //public void AddAsync_ThrowsValidationException_WhenNameEmpty()
-    //{
-    //    // Arrange
-    //    var productDto = new UpsertProductDTO
-    //    {
-    //        Name = "",
-    //        Volume = "1L",
-    //        CategoryId = 1
-    //    };
-
-    //    // Act & Assert
-    //    Assert.ThrowsAsync<ValidationException>(() => _productsService.AddAsync(productDto));
-    //}
-
-    //[Test]
-    //public void AddAsync_ThrowsValidationException_WhenCategoryNotExists()
-    //{
-    //    // Arrange
-    //    var productDto = new UpsertProductDTO
-    //    {
-    //        Name = "New Product",
-    //        Volume = "1L",
-    //        CategoryId = 999
-    //    };
-
-    //    _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>())
-    //        .Returns(false);
-
-    //    // Act & Assert
-    //    Assert.ThrowsAsync<ValidationException>(() => _productsService.AddAsync(productDto));
-    //}
-
-    //[Test]
-    //public async Task UpdateAsync_ValidUpdate_UpdatesProduct()
-    //{
-    //    // Arrange
-    //    var productId = 1;
-    //    var productDto = new UpsertProductDTO
-    //    {
-    //        Name = "Updated Product",
-    //        Volume = "2L",
-    //        CategoryId = 1
-    //    };
-    //    var existingProduct = new Products { Id = productId, Name = "Original Product" };
-
-    //    _repository.GetByIdAsync(productId).Returns(existingProduct);
-    //    _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>())
-    //        .Returns(true);
-    //    _repository.ExistsAsync(Arg.Any<Expression<Func<Products, bool>>>())
-    //        .Returns(false);
-
-    //    // Act
-    //    await _productsService.UpdateAsync(productId, productDto);
-
-    //    // Assert
-    //    _mapper.Received(1).Map(productDto, existingProduct);
-    //    await _repository.Received(1).UpdateAsync(existingProduct);
-    //}
-
-    //[Test]
-    //public void UpdateAsync_ThrowsNotFound_WhenProductNotExists()
-    //{
-    //    // Arrange
-    //    var productId = 999;
-    //    var productDto = new UpsertProductDTO
-    //    {
-    //        Name = "Updated Product",
-    //        Volume = "2L",
-    //        CategoryId = 1
-    //    };
-
-    //    _repository.GetByIdAsync(productId).Returns((Products)null);
-
-    //    // Act
-    //    var ex = Assert.ThrowsAsync<NotFoundException>(() => _productsService.DeleteAsync(productId));
-
-    //    // Assert
-    //    Assert.That(ex.Message, Is.EqualTo("Product with id 999 not found"));
-    //}
-
-    //[Test]
-    //public void UpdateAsync_ThrowsDuplicate_WhenNameExistsForOtherProduct()
-    //{
-    //    // Arrange
-    //    var productId = 1;
-    //    var productDto = new UpsertProductDTO
-    //    {
-    //        Name = "Duplicate Product",
-    //        Volume = "1L",
-    //        CategoryId = 1
-    //    };
-    //    var existingProduct = new Products { Id = productId, Name = "Original Product" };
-
-    //    _repository.GetByIdAsync(productId).Returns(existingProduct);
-    //    _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>())
-    //        .Returns(true);
-    //    _repository.ExistsAsync(Arg.Any<Expression<Func<Products, bool>>>())
-    //        .Returns(true);
-
-    //    // Act & Assert
-    //    Assert.ThrowsAsync<DuplicateEntryException>(() =>
-    //        _productsService.UpdateAsync(productId, productDto));
-    //}
-
-    //[Test]
-    //public async Task DeleteAsync_ValidId_DeletesProduct()
-    //{
-    //    // Arrange
-    //    var productId = 1;
-    //    var product = new Products { Id = productId, Name = "Product to delete" };
-
-    //    _repository.GetByIdAsync(productId).Returns(product);
-
-    //    // Act
-    //    await _productsService.DeleteAsync(productId);
-
-    //    // Assert
-    //    await _repository.Received(1).DeleteAsync(product);
-    //}
-
-    //[Test]
-    //public void DeleteAsync_ThrowsNotFound_WhenProductNotExists()
-    //{
-    //    // Arrange
-    //    var productId = 999;
-    //    _repository.GetByIdAsync(productId).Returns((Products)null);
-
-    //    // Act
-    //    var ex = Assert.ThrowsAsync<NotFoundException>(() => _productsService.DeleteAsync(productId));
-
-    //    // Assert
-    //    Assert.That(ex.Message, Is.EqualTo("Product with id 999 not found"));
-    //}
     private IRepository<Product> _repository;
     private IRepository<ProductCategory> _categoryRepository;
     private IMapper _mapper;
     private ILogger<ProductService> _logger;
     private ICurrentUserContext _currentUser;
-    private ProductService _productsService;
+    private ProductService _productService;
 
     [SetUp]
     public void SetUp()
@@ -360,7 +29,211 @@ public class ProductsServiceTests
         _mapper = Substitute.For<IMapper>();
         _logger = Substitute.For<ILogger<ProductService>>();
         _currentUser = Substitute.For<ICurrentUserContext>();
-        _productsService = new ProductService(_repository, _categoryRepository, _logger, _currentUser, _mapper);
+        _productService = new ProductService(_repository, _categoryRepository, _logger, _currentUser, _mapper);
+    }
+
+    [Test]
+    public async Task GetByIdAsync_ReturnsProduct_WhenExists()
+    {
+        // Arrange
+        var product = TestDataFactory.CreateValidProduct();
+        var productDto = TestDataFactory.CreateValidProductDto();
+
+        var staff = TestDataFactory.CreateValidStaff(businessid: 1);
+        _currentUser.GetCurrentUserAsync().Returns(staff);
+
+        _repository.GetByIdAsync(1, true).Returns(product);
+        _mapper.Map<ProductDto>(product).Returns(productDto);
+
+        // Act
+        var result = await _productService.GetByIdAsync(1);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result, Is.Not.Null);
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Data!.Id, Is.EqualTo(1));
+            Assert.That(result.Data!.Name, Is.EqualTo("Espresso"));
+            Assert.That(result.Data!.Volume, Is.EqualTo("ŠAL"));
+            Assert.That(result.Data!.Category!.Id, Is.EqualTo(2));
+            Assert.That(result.Data!.Category.Name, Is.EqualTo("Coffee"));
+        });
+    }
+
+    [Test]
+    public async Task GetByIdAsync_ReturnsNotFound_WhenProductDoesNotExist()
+    {
+        // Arrange
+        var staff = TestDataFactory.CreateValidStaff(businessid: 1);
+        _currentUser.GetCurrentUserAsync().Returns(staff);
+        _repository.GetByIdAsync(1, true).Returns((Product?)null);
+
+        // Act
+        var result = await _productService.GetByIdAsync(1);
+
+        // Assert
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+        Assert.That(result.Error, Does.Contain("Product with id 1 not found"));
+    }
+
+    [Test]
+    public async Task GetByIdAsync_ReturnsNotFound_WhenAccessingOtherBusinessProduct()
+    {
+        // Arrange
+        var product = TestDataFactory.CreateValidProduct(businessId: 99); // Different business
+        var staff = TestDataFactory.CreateValidStaff(businessid: 1);
+        _currentUser.GetCurrentUserAsync().Returns(staff);
+        _repository.GetByIdAsync(1, true).Returns(product);
+
+        // Act
+        var result = await _productService.GetByIdAsync(1);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+            Assert.That(result.Error, Is.EqualTo("Cross-business access denied."));
+        });
+    }
+
+    [Test]
+    public async Task GetAllAsync_Default_ReturnsExpectedProducts()
+    {
+        // Arrange
+        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
+        _currentUser.GetCurrentUserAsync().Returns(staff);
+
+        var products = new List<Product>
+        {
+            TestDataFactory.CreateValidProduct(1, businessId: 1, name: "Product 1", volume: "0.2L"),
+            TestDataFactory.CreateSharedProduct(2, name: "Product 2", volume: "0.3L")
+        };
+
+        var productDtos = new List<ProductDto>
+        {
+            TestDataFactory.CreateValidProductDto(1, name: "Product 1", volume: "0.2L"),
+            TestDataFactory.CreateValidProductDto(2, name: "Product 2", volume: "0.3L")
+        };
+
+        _repository.GetFilteredAsync(
+            includeNavigations: true,
+            filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
+            orderByDescending: false,
+            Arg.Any<Expression<Func<Product, object>>[]>()
+            )
+            .Returns(products);
+
+        _mapper.Map<List<ProductDto>>(products).Returns(productDtos);
+
+        // Act
+        var result = await _productService.GetAllAsync();
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Data, Has.Count.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public async Task GetAllAsync_AdminExclusiveTrue_ReturnsExclusiveProducts()
+    {
+        // Arrange
+        var admin = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
+        _currentUser.GetCurrentUserAsync().Returns(admin);
+
+        var exclusiveProduct = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "Exclusive");
+
+        _repository.GetFilteredAsync(
+            true,
+            Arg.Any<Expression<Func<Product, bool>>>(),
+            false,
+            Arg.Any<Expression<Func<Product, object>>[]>()
+        ).Returns([exclusiveProduct]);
+
+        _mapper.Map<List<ProductDto>>(Arg.Any<List<Product>>())
+            .Returns([TestDataFactory.CreateValidProductDto(1, name: "Exclusive")]);
+
+        // Act
+        var result = await _productService.GetAllAsync(exclusive: true);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Data, Has.Count.EqualTo(1));
+        });
+        Assert.That(result.Data![0].Name, Is.EqualTo("Exclusive"));
+    }
+
+    [Test]
+    public async Task GetAllAsync_RegularExclusiveTrue_ReturnsBusinessOnly()
+    {
+        // Arrange
+        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
+        _currentUser.GetCurrentUserAsync().Returns(staff);
+
+        var businessProduct = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "BizProd");
+
+        _repository.GetFilteredAsync(
+            true,
+            Arg.Any<Expression<Func<Product, bool>>>(),
+            false,
+            Arg.Any<Expression<Func<Product, object>>[]>()
+        ).Returns([businessProduct]);
+
+        _mapper.Map<List<ProductDto>>(Arg.Any<List<Product>>())
+            .Returns([TestDataFactory.CreateValidProductDto(1, name: "BizProd")]);
+
+        // Act
+        var result = await _productService.GetAllAsync(exclusive: true);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Data, Has.Count.EqualTo(1));
+        });
+        Assert.That(result.Data![0].Name, Is.EqualTo("BizProd"));
+    }
+
+    [Test]
+    public async Task GetAllAsync_ExclusiveFalse_ReturnsSharedProductsOnly()
+    {
+        // Arrange
+        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
+        _currentUser.GetCurrentUserAsync().Returns(staff);
+
+        var sharedProduct = TestDataFactory.CreateSharedProduct(2, name: "SharedOnly");
+
+        _repository.GetFilteredAsync(
+            true,
+            Arg.Any<Expression<Func<Product, bool>>>(),
+            false,
+            Arg.Any<Expression<Func<Product, object>>[]>()
+        ).Returns([sharedProduct]);
+
+        _mapper.Map<List<ProductDto>>(Arg.Any<List<Product>>())
+            .Returns([TestDataFactory.CreateValidProductDto(2, name: "SharedOnly")]);
+
+        // Act
+        var result = await _productService.GetAllAsync(exclusive: false);
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Data, Has.Count.EqualTo(1));
+        });
+        Assert.That(result.Data![0].Name, Is.EqualTo("SharedOnly"));
+    }
     }
 }
 
