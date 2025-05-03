@@ -16,5 +16,4 @@ public class ProductCategory : BaseEntity
 
     public ICollection<ProductCategory>? Subcategories { get; set; }
     public ICollection<Product>? Products { get; set; }
-
 }

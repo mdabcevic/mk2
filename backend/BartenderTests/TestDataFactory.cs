@@ -1,9 +1,10 @@
 ﻿using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Business;
+using Bartender.Domain.DTO.MenuItem;
 using Bartender.Domain.DTO.Place;
+using Bartender.Domain.DTO.Product;
 using Bartender.Domain.DTO.Staff;
-using System.Diagnostics.Eventing.Reader;
 
 namespace BartenderTests;
 
@@ -65,20 +66,16 @@ public static class TestDataFactory
         Name = "Zagreb"
     };
 
-    public static Product CreateValidProduct(int id = 1) => new()
+
+    public static MenuItem CreateValidMenuItem(int id = 1, int placeId = 1, int productId = 1, string name = "Espresso", bool isAvailable = true) => new()
     {
         Id = id,
-        Name = "Espresso"
-    };
-
-    private static MenuItem CreateValidMenuItem(int placeId = 1, int productId = 1) => new()
-    {
         PlaceId = placeId,
         ProductId = productId,
         Price = 1.50m,
-        IsAvailable = true,
+        IsAvailable = isAvailable,
         Description = "Strong and black",
-        Product = CreateValidProduct(productId)
+        Product = CreateValidProduct(productId, name: name)
     };
 
     public static Place CreateValidPlace(int id = 1, int businessid = 1, int cityid = 1) => new()
@@ -144,5 +141,181 @@ public static class TestDataFactory
         SubscriptionTier = business.SubscriptionTier,
         Places = []
     };
+
+    public static ProductCategory CreateValidProductCategory(
+        int id = 2,
+        string name = "Coffee",
+        List<Product>? products = null
+        ) => new()
+        {
+            Id = id,
+            Name = name,
+            Products = products
+        };
+
+    public static Product CreateValidProduct(int id = 1, int? businessId = 1, int categoryId = 2, string name = "Espresso", string volume = "ŠAL")
+    {
+        var category = CreateValidProductCategory(categoryId);
+        return new Product
+        {
+            Id = id,
+            Name = name,
+            Volume = volume,
+            BusinessId = businessId,
+            CategoryId = categoryId,
+            Category = category
+        };
+    }
+
+    public static ProductDto CreateValidProductDto(int id = 1, string name = "Espresso", string volume = "ŠAL", int categoryId = 2, string categoryName = "Coffee")
+    {
+        return new ProductDto
+        {
+            Id = id,
+            Name = name,
+            Volume = volume,
+            Category = new ProductCategoryDto { Id = categoryId, Name = categoryName }
+        };
+    }
+
+    public static ProductBaseDto CreateProductBaseDto(int id, string name = "Unnamed", string volume = "S")
+    {
+        return new ProductBaseDto
+        {
+            Id = id,
+            Name = name,
+            Volume = volume
+        };
+    }
+
+    public static UpsertProductDto CreateValidUpsertProductDto(
+    string name = "New Product",
+    string volume = "1L",
+    int categoryId = 1,
+    int? businessId = null
+) => new()
+{
+    Name = name,
+    Volume = volume,
+    CategoryId = categoryId,
+    BusinessId = businessId
+};
+
+    public static Product CreateMappedProductFromDto(UpsertProductDto dto)
+    {
+        return new Product
+        {
+            Name = dto.Name,
+            Volume = dto.Volume,
+            CategoryId = dto.CategoryId,
+            BusinessId = dto.BusinessId
+        };
+    }
+
+    public static MenuItemBaseDto CreateMenuItemBaseDto(
+    int id = 1,
+    int productId = 1,
+    string name = "Unnamed",
+    string volume = "S",
+    string? category = "Coffee",
+    decimal price = 1.50m,
+    string description = "Sample desc",
+    bool isAvailable = true)
+    {
+        return new MenuItemBaseDto
+        {
+            Id = id,
+            Product = new ProductBaseDto
+            {
+                Id = productId,
+                Name = name,
+                Volume = volume,
+                Category = category
+            },
+            Price = price,
+            Description = description,
+            IsAvailable = isAvailable
+        };
+    }
+    public static List<MenuItem> CreateSampleMenuItems(int placeId = 1) =>
+       [
+            CreateValidMenuItem(1, placeId, 1, "Latte"),
+            CreateValidMenuItem(2, placeId, 2, "Americano")
+       ];
+
+    public static List<MenuItemBaseDto> CreateSampleMenuItemBaseDtos() =>
+        [
+            CreateMenuItemBaseDto(2, 2, "Americano"),
+            CreateMenuItemBaseDto(1, 1, "Latte")
+        ];
+
+    public static MenuItemDto CreateMenuItemDto(
+     int id,
+     ProductBaseDto product,
+     PlaceDto place,
+     decimal price = 1.50m,
+     string? description = "Sample",
+     bool isAvailable = true)
+    {
+        return new MenuItemDto
+        {
+            Id = id,
+            Product = product,
+            Place = place,
+            Price = price,
+            Description = description,
+            IsAvailable = isAvailable
+        };
+    }
+    public static ProductBaseDto CreateProductBaseDtoFromProduct(Product product) => new()
+    {
+        Id = product.Id,
+        Name = product.Name,
+        Volume = product.Volume ?? "",
+        Category = product.Category?.Name ?? "Uncategorized"
+    };
+
+    public static PlaceDto CreatePlaceDtoFromPlace(Place place) => new()
+    {
+        BusinessName = place.Business?.Name ?? "Unknown",
+        Address = place.Address,
+        CityName = place.City?.Name ?? "Unknown",
+        WorkHours = $"{place.OpensAt:hh\\:mm} - {place.ClosesAt:hh\\:mm}"
+    };
+
+    public static UpsertMenuItemDto CreateValidUpsertMenuItemDto(
+    int placeId = 1,
+    int productId = 1,
+    decimal price = 2.00m,
+    string description = "Strong",
+    bool isAvailable = true)
+    {
+        return new UpsertMenuItemDto
+        {
+            PlaceId = placeId,
+            ProductId = productId,
+            Price = price,
+            Description = description,
+            IsAvailable = isAvailable
+        };
+    }
+
+    public static UpsertMenuItemDto CreateUpsertMenuItemDto(
+    int placeId = 1,
+    int productId = 10,
+    decimal price = 2.50m,
+    string description = "Updated desc",
+    bool isAvailable = true)
+    {
+        return new UpsertMenuItemDto
+        {
+            PlaceId = placeId,
+            ProductId = productId,
+            Price = price,
+            Description = description,
+            IsAvailable = isAvailable
+        };
+    }
+
 }
 
