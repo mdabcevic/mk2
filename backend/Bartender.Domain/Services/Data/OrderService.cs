@@ -306,7 +306,7 @@ public class OrderService(
             .Select(oi => oi.MenuItemId)
             .ToList();
 
-        if (missingItems.Any())
+        if (missingItems.Count != 0)
             return ServiceResult.Fail($"One or more menu items do not exist or are not available: {string.Join(", ", missingItems)}",ErrorType.NotFound);
 
         var unavailableItems = menuItems

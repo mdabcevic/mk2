@@ -2,9 +2,11 @@
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Business;
 using Bartender.Domain.DTO.MenuItem;
+using Bartender.Domain.DTO.Order;
 using Bartender.Domain.DTO.Place;
 using Bartender.Domain.DTO.Product;
 using Bartender.Domain.DTO.Staff;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BartenderTests;
 
@@ -316,6 +318,48 @@ public static class TestDataFactory
             IsAvailable = isAvailable
         };
     }
+
+    public static Order CreateValidOrder(
+    int id = 1,
+    int tableId = 1,
+    OrderStatus status = OrderStatus.created,
+    PaymentType paymentType = PaymentType.cash,
+    decimal totalPrice = 10.00m,
+    string? note = null)
+    {
+        return new Order
+        {
+            Id = id,
+            TableId = tableId,
+            Status = status,
+            PaymentType = paymentType,
+            TotalPrice = totalPrice,
+            Note = note,
+            Products = [] // optional, can add if needed for mapping
+        };
+    }
+
+    public static OrderDto CreateValidOrderDto(
+        int id = 1,
+        OrderStatus status = OrderStatus.created,
+        PaymentType paymentType = PaymentType.cash,
+        decimal totalPrice = 10.00m,
+        string? note = null,
+        string tableLabel = "1")
+    {
+        return new OrderDto
+        {
+            Id = id,
+            Status = status,
+            PaymentType = paymentType,
+            TotalPrice = totalPrice,
+            Note = note,
+            Table = tableLabel,
+            CreatedAt = DateTime.UtcNow.ToShortDateString(),
+            Items = [] // Add item DTOs if you're testing item-related logic
+        };
+    }
+
 
 }
 
