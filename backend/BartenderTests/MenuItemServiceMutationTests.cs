@@ -4,13 +4,11 @@ using Bartender.Data.Models;
 using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.MenuItem;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Repositories;
 using Bartender.Domain.Services.Data;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System.Linq.Expressions;
-using static StackExchange.Redis.Role;
 
 namespace BartenderTests;
 
@@ -104,6 +102,8 @@ public class MenuItemServiceMutationTests
         var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
         _menuRepository.ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(true);
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
+        _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
+        _productRepository.GetByIdAsync(dto.ProductId, true).Returns(TestDataFactory.CreateValidProduct());
 
         // Act
         var result = await _menuService.AddAsync(dto);
@@ -383,9 +383,20 @@ public class MenuItemServiceMutationTests
         // Arrange
         var fromPlaceId = 1;
         var toPlaceId = 2;
+        var fromPlace = TestDataFactory.CreateValidPlace(fromPlaceId);
+        var toPlace = TestDataFactory.CreateValidPlace(toPlaceId);
 
-        _placeRepository.ExistsAsync(p => p.Id == fromPlaceId).Returns(true);
-        _placeRepository.ExistsAsync(p => p.Id == toPlaceId).Returns(false);
+        _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>())
+            .Returns(callInfo =>
+    {
+        var predicate = callInfo.Arg<Expression<Func<Place, bool>>>();
+        var compiled = predicate.Compile();
+
+        if (compiled(fromPlace)) return true;
+        if (compiled(toPlace)) return false;
+
+        return false;
+    });
 
         // Act
         var result = await _menuService.CopyMenuAsync(fromPlaceId, toPlaceId);
@@ -424,8 +435,7 @@ public class MenuItemServiceMutationTests
     {
         // Arrange
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
-        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
-
+        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(role: EmployeeRole.admin));
         _menuRepository.Query().Throws(new ApplicationException("Unexpected DB failure"));
 
         // Act
