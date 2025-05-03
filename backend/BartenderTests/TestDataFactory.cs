@@ -282,5 +282,40 @@ public static class TestDataFactory
         CityName = place.City?.Name ?? "Unknown",
         WorkHours = $"{place.OpensAt:hh\\:mm} - {place.ClosesAt:hh\\:mm}"
     };
+
+    public static UpsertMenuItemDto CreateValidUpsertMenuItemDto(
+    int placeId = 1,
+    int productId = 1,
+    decimal price = 2.00m,
+    string description = "Strong",
+    bool isAvailable = true)
+    {
+        return new UpsertMenuItemDto
+        {
+            PlaceId = placeId,
+            ProductId = productId,
+            Price = price,
+            Description = description,
+            IsAvailable = isAvailable
+        };
+    }
+
+    public static UpsertMenuItemDto CreateUpsertMenuItemDto(
+    int placeId = 1,
+    int productId = 10,
+    decimal price = 2.50m,
+    string description = "Updated desc",
+    bool isAvailable = true)
+    {
+        return new UpsertMenuItemDto
+        {
+            PlaceId = placeId,
+            ProductId = productId,
+            Price = price,
+            Description = description,
+            IsAvailable = isAvailable
+        };
+    }
+
 }
 
