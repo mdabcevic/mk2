@@ -360,6 +360,29 @@ public static class TestDataFactory
         };
     }
 
+    public static UpsertOrderDto CreateValidUpsertOrderDto(
+    int tableId = 1,
+    int menuItemId = 1,
+    int count = 1,
+    decimal totalPrice = 1.5m,
+    PaymentType paymentType = PaymentType.cash,
+    string? note = null)
+    {
+        return new UpsertOrderDto
+        {
+            TableId = tableId,
+            Items =
+        [
+            new() {
+                MenuItemId = menuItemId,
+                Count = count
+            }
+        ],
+            TotalPrice = totalPrice,
+            PaymentType = paymentType,
+            Note = note
+        };
+    }
 
 }
 
