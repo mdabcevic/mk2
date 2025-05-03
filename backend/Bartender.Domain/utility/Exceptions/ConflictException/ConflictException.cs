@@ -1,4 +1,4 @@
-﻿namespace Bartender.Domain.utility.Exceptions.ConflictException;
+﻿namespace Bartender.Domain.utility.Exceptions;
 
 public class ConflictException : BaseException
 {

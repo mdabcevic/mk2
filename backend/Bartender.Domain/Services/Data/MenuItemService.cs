@@ -9,7 +9,7 @@ using Bartender.Data.Enums;
 using System.ComponentModel.DataAnnotations;
 using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Place;
-using Bartender.Domain.utility.Exceptions.NotFoundException;
+using Bartender.Domain.utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 public class MenuItemService(

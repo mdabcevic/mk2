@@ -1,8 +1,8 @@
-﻿using Bartender.Domain.utility.Exceptions.NotFoundException;
-using Bartender.Domain.utility.Exceptions.ValidationException;
+﻿using Bartender.Domain.utility.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
 
 namespace Bartender.Domain.utility.ExceptionHandlers;
 
@@ -18,6 +18,15 @@ public class ValidationExceptionHandler(ILogger<ValidationExceptionHandler> logg
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
             
+            return true;
+        }
+        else if (exception is ValidationException)
+        {
+            var response = new ErrorResponse(exception.Message, StatusCodes.Status400BadRequest);
+
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
+
             return true;
         }
 

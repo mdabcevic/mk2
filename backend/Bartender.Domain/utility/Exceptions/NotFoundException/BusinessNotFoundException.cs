@@ -1,6 +1,6 @@
 ﻿
 
-namespace Bartender.Domain.utility.Exceptions.NotFoundException;
+namespace Bartender.Domain.utility.Exceptions;
 
 public class BusinessNotFoundException : NotFoundException
 {

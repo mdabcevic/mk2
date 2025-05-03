@@ -1,5 +1,4 @@
-﻿using Bartender.Domain.utility.Exceptions.NotFoundException;
-using Bartender.Domain.utility.Exceptions.ValidationException;
+﻿using Bartender.Domain.utility.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

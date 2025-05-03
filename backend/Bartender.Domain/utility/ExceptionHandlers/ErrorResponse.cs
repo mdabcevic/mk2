@@ -1,8 +1,4 @@
-﻿using Bartender.Domain.DTO;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Net;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Bartender.Domain.utility.ExceptionHandlers;
 

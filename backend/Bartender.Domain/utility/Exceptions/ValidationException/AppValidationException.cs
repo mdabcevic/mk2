@@ -1,4 +1,4 @@
-﻿namespace Bartender.Domain.utility.Exceptions.ValidationException;
+﻿namespace Bartender.Domain.utility.Exceptions;
 
 public class AppValidationException : BaseException
 {

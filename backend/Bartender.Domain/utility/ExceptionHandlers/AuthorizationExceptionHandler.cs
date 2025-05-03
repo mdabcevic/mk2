@@ -1,5 +1,4 @@
-﻿
-using Bartender.Domain.utility.Exceptions;
+﻿using Bartender.Domain.utility.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
