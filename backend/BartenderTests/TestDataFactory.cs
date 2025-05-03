@@ -140,11 +140,16 @@ public static class TestDataFactory
         Places = []
     };
 
-    public static ProductCategory CreateValidProductCategory(int id = 2, string name = "Coffee") => new()
-    {
-        Id = id,
-        Name = name
-    };
+    public static ProductCategory CreateValidProductCategory(
+        int id = 2,
+        string name = "Coffee",
+        List<Product>? products = null
+        ) => new()
+        {
+            Id = id,
+            Name = name,
+            Products = products
+        };
 
     public static Product CreateValidProduct(int id = 1, int? businessId = 1, int categoryId = 2, string name = "Espresso", string volume = "ŠAL")
     {
@@ -171,6 +176,16 @@ public static class TestDataFactory
             Name = name,
             Volume = volume,
             Category = new ProductCategoryDto { Id = categoryId, Name = categoryName }
+        };
+    }
+
+    public static ProductBaseDto CreateProductBaseDto(int id, string name = "Unnamed", string volume = "S")
+    {
+        return new ProductBaseDto
+        {
+            Id = id,
+            Name = name,
+            Volume = volume
         };
     }
 }
