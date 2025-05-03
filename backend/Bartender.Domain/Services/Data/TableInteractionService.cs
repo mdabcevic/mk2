@@ -215,7 +215,7 @@ public class TableInteractionService(
         }
         catch (InvalidOperationException ex)
         {
-            logger.LogWarning("Join failed: incorrect passphrase for table {TableId}, exception: {Ex}.", table.Id, ex);
+            logger.LogWarning(ex, "Join failed: incorrect passphrase for table {TableId}.", table.Id);
             return ServiceResult<TableScanDto>.Fail("Incorrect passphrase. Please ask someone at the table.", ErrorType.Unauthorized);
         }
     }
