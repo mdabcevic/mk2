@@ -3,7 +3,7 @@ import { Minus, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cartStorage, CartItem } from "../../../utils/storage";
 import { PaymentType } from "../../../utils/constants";
-import { orderService } from "./order.service";
+import { orderService } from "../../places/menu/order.service";
 import { AppPaths } from "../../../utils/routing/routes";
 import { authService } from "../../../utils/auth/auth.service";
 

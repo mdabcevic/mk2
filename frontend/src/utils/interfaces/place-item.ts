@@ -5,6 +5,19 @@ export interface IPlaceItem{
     imageUrl:string,
     cityName:string,
     workHours?:string,
-    images:string[];
-    freeTablesCount:number
+    banner:string;
+    description:string,
+    freeTablesCount:number;
+    images: PlaceImages[]
+}
+
+export enum ImageType{
+    banner="banner", 
+    gallery= "gallery",
+    logo= "logo"
+} 
+
+export interface PlaceImages {
+  imageType: ImageType;
+  urls: string[];
 }

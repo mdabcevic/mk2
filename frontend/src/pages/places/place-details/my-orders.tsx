@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { orderService } from "./menu/order.service";
-import { AppPaths } from "../../utils/routing/routes";
+import { orderService } from "../menu/order.service";
+import { AppPaths } from "../../../utils/routing/routes";
 import { Link } from "react-router-dom";
 import { t } from "i18next";
-import { notificationService } from "../../utils/services/notification.service";
-import { authService } from "../../utils/auth/auth.service";
-import { placeOrderService } from "../../admin/pages/table-view/place-orders.service";
-import { orderStatusIndex } from "../../utils/table-color";
+import { notificationService } from "../../../utils/services/notification.service";
+import { authService } from "../../../utils/auth/auth.service";
+import { placeOrderService } from "../../../admin/pages/table-view/place-orders.service";
+import { orderStatusIndex } from "../../../utils/table-color";
 
 export interface OrderItem {
   menuItem: string;

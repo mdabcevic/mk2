@@ -16,7 +16,7 @@ const SubscriptionCard = ({ title, price, textColor, bgColor, hoverColor, featur
                 <h2 className={`${textColor} p-5 pb-10 text-center font-semibold text-3xl`}>
                     {title}
                 </h2>
-                <p className="text-3xl pb-5 border-b border-neutral-400">
+                <p className="text-3xl pb-5 border-b border-neutral-400 text-center">
                     {price}
                     <span className="text-base">/{t("month").toLowerCase()}</span>
                 </p>

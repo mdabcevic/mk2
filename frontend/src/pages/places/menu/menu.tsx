@@ -7,7 +7,7 @@ import { cartStorage } from "../../../utils/storage";
 import { authService } from "../../../utils/auth/auth.service";
 import { UserRole } from "../../../utils/constants";
 import { MenuItemsList } from "./menu-items-list";
-import Cart from "./cart";
+import  Cart from "./cart";
 import { AppPaths } from "../../../utils/routing/routes";
 import { CategoryTabs } from "../../../utils/components/menu-category-tabs";
 import Footer from "../../../containers/footer";

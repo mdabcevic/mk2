@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import PlaceCard from "./place-card";
 import { IPlaceItem } from "../../utils/interfaces/place-item";
 import { placeService } from "../../utils/services/place.service";
-import { randomImages } from "../../utils/random-images";
 
 // const availableOptions = ["Zagreb", "Rijeka", "Karlovac", "Osijek"];
 function Places() {
@@ -13,22 +12,20 @@ function Places() {
 
   const fetchPlaces = async () =>{
     let _places = await placeService.getPlaces() as IPlaceItem[];
-    setPlaces(randomImages(_places));
+    setPlaces(_places);
   }
 
   useEffect(()=>{
     fetchPlaces();
   },[]);
   return (
-    <div className="p-4">
+    <div className="p-4 pt-[100px]">
       <h1 className="text-center font-bold text-xs">Coffee Shops</h1>
 
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 m-auto mt-4 max-w-[1500px]">
+      <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-2 m-auto mt-4 max-w-[1500px]">
         {places.length > 0 && (
           places.map((place, index) => (
-            <PlaceCard key={index} place={place} index={index} 
-            />
+            <PlaceCard key={index} place={place} />
         ) ))}
       </div>
 

@@ -1,20 +1,20 @@
 import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
-import Places from "../../pages/home/places.tsx";
-import AboutUs from "../../pages/aboutus.tsx";
+import Places from "../../pages/places/places.tsx";
 import ContactUs from "../../pages/contact-us/contactus.tsx";
-import PlaceDetails from "../../pages/place-details/place-details";
+import PlaceDetails from "../../pages/places/place-details/place-details.tsx";
 import Layout from "../../containers/layout";
-import {Menu} from "../../pages/place-details/menu/menu.tsx";
+import {Menu} from "../../pages/places/menu/menu.tsx";
 import { AppPaths } from "./routes";
 import { lazy, Suspense } from "react";
 import { authService } from "../auth/auth.service";
 import { UserRole } from "../constants";
 import LoginPage from "../auth/login";
 import RedirectPage from "../redirect-page.tsx";
-import PlaceTablesViewPublic from "../../pages/place-details/place-tables-view.tsx";
+import PlaceTablesViewPublic from "../../pages/places/place-details/place-tables-view.tsx";
 import Subscription from "../../pages/subscription/subscription.tsx";
 import { NotificationScreen } from "../../admin/pages/table-view/notifications.tsx";
 import ManagementView from "../../admin/pages/management/management.tsx";
+import HomePage from "../../pages/home/home.tsx";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
 const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
@@ -36,7 +36,7 @@ function AppRoutes(){
       
         {/* Public routes */}
         <Route path={AppPaths.public.home} element={<Layout />}>
-          <Route index element={<AboutUs />} />
+          <Route index element={<HomePage />} />
           <Route path={AppPaths.public.contactUs} element={<ContactUs />} />
           <Route path={AppPaths.public.places} element={<Places />} />
           <Route path={AppPaths.public.placeDetails} element={<PlaceDetails />} />
