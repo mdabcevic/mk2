@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using Bartender.Data.Enums;
 using Bartender.Data.Models;
+using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Product;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Services;
-using Microsoft.EntityFrameworkCore;
+using Bartender.Domain.Services.Data;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
@@ -343,5 +345,22 @@ public class ProductsServiceTests
     //    // Assert
     //    Assert.That(ex.Message, Is.EqualTo("Product with id 999 not found"));
     //}
+    private IRepository<Product> _repository;
+    private IRepository<ProductCategory> _categoryRepository;
+    private IMapper _mapper;
+    private ILogger<ProductService> _logger;
+    private ICurrentUserContext _currentUser;
+    private ProductService _productsService;
+
+    [SetUp]
+    public void SetUp()
+    {
+        _repository = Substitute.For<IRepository<Product>>();
+        _categoryRepository = Substitute.For<IRepository<ProductCategory>>();
+        _mapper = Substitute.For<IMapper>();
+        _logger = Substitute.For<ILogger<ProductService>>();
+        _currentUser = Substitute.For<ICurrentUserContext>();
+        _productsService = new ProductService(_repository, _categoryRepository, _logger, _currentUser, _mapper);
+    }
 }
 

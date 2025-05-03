@@ -2,6 +2,7 @@
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Business;
 using Bartender.Domain.DTO.Place;
+using Bartender.Domain.DTO.Product;
 using Bartender.Domain.DTO.Staff;
 using System.Diagnostics.Eventing.Reader;
 
@@ -65,11 +66,6 @@ public static class TestDataFactory
         Name = "Zagreb"
     };
 
-    public static Product CreateValidProduct(int id = 1) => new()
-    {
-        Id = id,
-        Name = "Espresso"
-    };
 
     private static MenuItem CreateValidMenuItem(int placeId = 1, int productId = 1) => new()
     {
@@ -144,5 +140,36 @@ public static class TestDataFactory
         SubscriptionTier = business.SubscriptionTier,
         Places = []
     };
+
+    public static ProductCategory CreateValidProductCategory(int id = 2, string name = "Coffee") => new()
+    {
+        Id = id,
+        Name = name
+    };
+
+    public static Product CreateValidProduct(int id = 1, int businessId = 1, int categoryId = 2)
+    {
+        var category = CreateValidProductCategory(categoryId);
+        return new Product
+        {
+            Id = id,
+            Name = "Espresso",
+            Volume = "ŠAL",
+            BusinessId = businessId,
+            CategoryId = categoryId,
+            Category = category
+        };
+    }
+
+    public static ProductDto CreateValidProductDto(int id = 1, string name = "Espresso", string volume = "ŠAL")
+    {
+        return new ProductDto
+        {
+            Id = id,
+            Name = name,
+            Volume = volume,
+            Category = new ProductCategoryDto { Id = 2, Name = "Coffee" }
+        };
+    }
 }
 
