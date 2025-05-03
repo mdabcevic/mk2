@@ -516,4 +516,3 @@ public class MenuItemService(
         return place1BusinessId == place2BusinessId;
     }
 }
-

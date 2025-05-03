@@ -1,6 +1,7 @@
 ﻿using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Business;
+using Bartender.Domain.DTO.MenuItem;
 using Bartender.Domain.DTO.Place;
 using Bartender.Domain.DTO.Product;
 using Bartender.Domain.DTO.Staff;
@@ -66,14 +67,15 @@ public static class TestDataFactory
     };
 
 
-    private static MenuItem CreateValidMenuItem(int placeId = 1, int productId = 1) => new()
+    public static MenuItem CreateValidMenuItem(int id = 1, int placeId = 1, int productId = 1, string name = "Espresso", bool isAvailable = true) => new()
     {
+        Id = id,
         PlaceId = placeId,
         ProductId = productId,
         Price = 1.50m,
-        IsAvailable = true,
+        IsAvailable = isAvailable,
         Description = "Strong and black",
-        Product = CreateValidProduct(productId)
+        Product = CreateValidProduct(productId, name: name)
     };
 
     public static Place CreateValidPlace(int id = 1, int businessid = 1, int cityid = 1) => new()
@@ -165,9 +167,6 @@ public static class TestDataFactory
         };
     }
 
-    public static Product CreateSharedProduct(int id = 99, int categoryId = 2, string name = "Shared", string volume = "0.3L")
-    => CreateValidProduct(id, null, categoryId, name, volume);
-
     public static ProductDto CreateValidProductDto(int id = 1, string name = "Espresso", string volume = "ŠAL", int categoryId = 2, string categoryName = "Coffee")
     {
         return new ProductDto
@@ -213,5 +212,75 @@ public static class TestDataFactory
         };
     }
 
+    public static MenuItemBaseDto CreateMenuItemBaseDto(
+    int id = 1,
+    int productId = 1,
+    string name = "Unnamed",
+    string volume = "S",
+    string? category = "Coffee",
+    decimal price = 1.50m,
+    string description = "Sample desc",
+    bool isAvailable = true)
+    {
+        return new MenuItemBaseDto
+        {
+            Id = id,
+            Product = new ProductBaseDto
+            {
+                Id = productId,
+                Name = name,
+                Volume = volume,
+                Category = category
+            },
+            Price = price,
+            Description = description,
+            IsAvailable = isAvailable
+        };
+    }
+    public static List<MenuItem> CreateSampleMenuItems(int placeId = 1) =>
+       [
+            CreateValidMenuItem(1, placeId, 1, "Latte"),
+            CreateValidMenuItem(2, placeId, 2, "Americano")
+       ];
+
+    public static List<MenuItemBaseDto> CreateSampleMenuItemBaseDtos() =>
+        [
+            CreateMenuItemBaseDto(2, 2, "Americano"),
+            CreateMenuItemBaseDto(1, 1, "Latte")
+        ];
+
+    public static MenuItemDto CreateMenuItemDto(
+     int id,
+     ProductBaseDto product,
+     PlaceDto place,
+     decimal price = 1.50m,
+     string? description = "Sample",
+     bool isAvailable = true)
+    {
+        return new MenuItemDto
+        {
+            Id = id,
+            Product = product,
+            Place = place,
+            Price = price,
+            Description = description,
+            IsAvailable = isAvailable
+        };
+    }
+    public static ProductBaseDto CreateProductBaseDtoFromProduct(Product product) => new()
+    {
+        Id = product.Id,
+        Name = product.Name,
+        Volume = product.Volume ?? "",
+        Category = product.Category?.Name ?? "Uncategorized"
+    };
+
+    public static PlaceDto CreatePlaceDtoFromPlace(Place place) => new()
+    {
+        BusinessName = place.Business?.Name ?? "Unknown",
+        Address = place.Address,
+        CityName = place.City?.Name ?? "Unknown",
+        WorkHours = $"{place.OpensAt:hh\\:mm} - {place.ClosesAt:hh\\:mm}"
+    };
 }
 

@@ -118,7 +118,7 @@ public class ProductServiceReadTests
         var products = new List<Product>
         {
             TestDataFactory.CreateValidProduct(1, businessId: 1, name: "Product 1", volume: "0.2L"),
-            TestDataFactory.CreateSharedProduct(2, name: "Product 2", volume: "0.3L")
+            TestDataFactory.CreateValidProduct(2, name: "Product 2", volume: "0.3L")
         };
 
         var productDtos = new List<ProductDto>
@@ -218,7 +218,7 @@ public class ProductServiceReadTests
         var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
         _currentUser.GetCurrentUserAsync().Returns(staff);
 
-        var sharedProduct = TestDataFactory.CreateSharedProduct(2, name: "SharedOnly");
+        var sharedProduct = TestDataFactory.CreateValidProduct(2, name: "SharedOnly");
 
         _repository.GetFilteredAsync(
             true,
