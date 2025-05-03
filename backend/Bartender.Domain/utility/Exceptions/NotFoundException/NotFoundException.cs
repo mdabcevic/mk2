@@ -2,8 +2,8 @@
 
 public class NotFoundException : BaseException
 {
-    public NotFoundException(string message, object? data = null)
-        : base(message, data)
+    public NotFoundException(string message)
+        : base(message)
     {
     }
 }

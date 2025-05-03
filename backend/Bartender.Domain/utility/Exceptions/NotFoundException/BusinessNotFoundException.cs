@@ -6,8 +6,8 @@ public class BusinessNotFoundException : NotFoundException
 {
     public int BusinessId { get; }
 
-    public BusinessNotFoundException(int businessId, object? data = null)
-        : base($"Business was not found.", data)
+    public BusinessNotFoundException(int businessId)
+        : base($"Business was not found.")
     {
         BusinessId = businessId;
     }

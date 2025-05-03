@@ -4,8 +4,8 @@ public class TableNotFoundException : NotFoundException
 {
     public int TableId { get; }
 
-    public TableNotFoundException(int tableId, object? data = null)
-        : base($"Table was not found.", data)
+    public TableNotFoundException(int tableId)
+        : base($"Table was not found.")
     {
         TableId = tableId;
     }
