@@ -15,7 +15,7 @@ public class Product : BaseEntity
     public int CategoryId { get; set; }
 
     [ForeignKey(nameof(CategoryId))]
-    public ProductCategory Category { get; set; }
+    public ProductCategory? Category { get; set; }
 
     public int? BusinessId { get; set; }
 

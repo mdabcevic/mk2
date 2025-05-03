@@ -21,14 +21,11 @@ public interface IRepository<T> where T : class
     Task DeleteRangeAsync(IEnumerable<T> entities);
 
     // Querying
-    //IQueryable<T> Find(Expression<Func<T, bool>> predicate);
     IQueryable<T> Query();
     IQueryable<T> QueryIncluding(params Expression<Func<T, object>>[] includes);
 
     // Additional helpers
     Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
     Task<int> CountAsync(Expression<Func<T, bool>> predicate);
-
-    //void Detach(T entity);
 }
 
