@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { Constants, Table, UserRole } from "../../utils/constants";
-import { tableService } from "../../utils/services/tables.service";
+import { Constants, Table, UserRole } from "../../../utils/constants";
+import { tableService } from "../../../utils/services/tables.service";
 import { useTranslation } from "react-i18next";
-import { getTableColor } from "../../utils/table-color";
-import { AppPaths } from "../../utils/routing/routes";
+import { getTableColor } from "../../../utils/table-color";
+import { AppPaths } from "../../../utils/routing/routes";
 import { Link, useParams } from "react-router-dom";
-import { authService } from "../../utils/auth/auth.service";
-import { placeService } from "../../utils/services/place.service";
-import { IPlaceItem } from "../../utils/interfaces/place-item";
-import { PlaceMainInfo } from "../../utils/components/place-main-info";
-import Footer from "../../containers/footer";
+import { authService } from "../../../utils/auth/auth.service";
+import { placeService } from "../../../utils/services/place.service";
+import { IPlaceItem } from "../../../utils/interfaces/place-item";
+import { PlaceMainInfo } from "../../../utils/components/place-main-info";
+import Footer from "../../../containers/footer";
 
 
 const initial_div_width = Constants.create_tables_container_width;

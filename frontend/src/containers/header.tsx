@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, } from "react-router-dom";
-import { Menu } from "lucide-react";
 import { languages } from "../utils/languages";
 import { AppPaths } from "../utils/routing/routes";
 
@@ -22,10 +21,8 @@ const HeaderComponent = () => {
     <header className="">
 
       <nav className="flex justify-between items-center bg-brown-500 text-light text-[1.2rem] p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2 z-100000">
-      <h1 className=""><img src="/assets/images/icons/logo.svg" width={"100px"} height={"100px"} className="rounded-[30px]" /></h1>
-      <div className="hamburger-cross-icons" onClick={()=> setOpen(!open)}>
-        <Menu size={24} />
-      </div>
+      <h1 className="cursor-pointer" onClick={()=> window.location.href = AppPaths.public.home}><img src="/assets/images/icons/logo.svg" width={"100px"} height={"100px"} className="rounded-[30px]" /></h1>
+
       <ul className={open ? "menu-items active" : "menu-items"}>
       <Link
           to={AppPaths.public.login}
@@ -35,15 +32,6 @@ const HeaderComponent = () => {
           }`}
         >
           {t("header.login")}
-        </Link>
-        <Link
-          to={AppPaths.public.places}
-          onClick={()=> setOpen(!open)}
-          className={`nav-links ${
-            location.pathname === AppPaths.public.places ? "text-orange-500" : "text-light"
-          }`}
-        >
-          {t("header.coffee_shop")}
         </Link>
         
         <div className="relative">

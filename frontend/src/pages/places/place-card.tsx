@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { IPlaceItem } from "../../utils/interfaces/place-item";
 import { AppPaths } from "../../utils/routing/routes";
 
-function PlaceCard( { place, index }: { place: IPlaceItem, index: number }) {
+function PlaceCard( { place }: { place: IPlaceItem }) {
   const navigate = useNavigate();
 
     return (
@@ -11,7 +11,7 @@ function PlaceCard( { place, index }: { place: IPlaceItem, index: number }) {
         onClick={() => navigate(AppPaths.public.placeDetails.replace(":id", place.id.toString()))}
       >
         <img 
-          src={place.imageUrl} 
+          src={place.banner ?? "https://postmeridiemspirits.com/wp-content/uploads/cocktail-glasses-1024x683.jpg.webp"} 
           alt={place.businessName} 
           className="absolute inset-0 w-full h-full object-cover rounded"
         />
