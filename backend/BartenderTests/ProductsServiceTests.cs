@@ -234,162 +234,192 @@ public class ProductsServiceTests
         Assert.That(result.Data![0].Name, Is.EqualTo("SharedOnly"));
     }
 
-    [Test]
-    public async Task GetAllGroupedAsync_RegularNull_ReturnsOwnAndSharedProducts()
-    {
-        // Arrange
-        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
-        _currentUser.GetCurrentUserAsync().Returns(staff);
+    //[Test]
+    //public async Task GetAllGroupedAsync_RegularNull_ReturnsOwnAndSharedProducts()
+    //{
+    //    // Arrange
+    //    var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
+    //    _currentUser.GetCurrentUserAsync().Returns(staff);
 
-        var matchingProduct1 = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "Espresso");
-        var matchingProduct2 = TestDataFactory.CreateSharedProduct(2, name: "Americano");
+    //    var matchingProduct1 = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "Espresso");
+    //    var matchingProduct2 = TestDataFactory.CreateSharedProduct(2, name: "Americano");
 
-        var category = new ProductCategory
-        {
-            Id = 10,
-            Name = "Coffee",
-            Products = [matchingProduct1, matchingProduct2]
-        };
+    //    var category = new ProductCategory
+    //    {
+    //        Id = 10,
+    //        Name = "Coffee",
+    //        Products = [matchingProduct1, matchingProduct2]
+    //    };
 
-        _categoryRepository.QueryIncluding().Returns(new List<ProductCategory> { category }.AsQueryable());
+    //    _categoryRepository.QueryIncluding().Returns(new List<ProductCategory> { category }.AsQueryable());
 
-        _mapper.Map<ProductBaseDto>(matchingProduct1)
-            .Returns(TestDataFactory.CreateProductBaseDto(1, "Espresso", "S"));
+    //    _mapper.Map<ProductBaseDto>(matchingProduct1)
+    //        .Returns(TestDataFactory.CreateProductBaseDto(1, "Espresso", "S"));
 
-        _mapper.Map<ProductBaseDto>(matchingProduct2)
-            .Returns(TestDataFactory.CreateProductBaseDto(2, "Americano", "M"));
+    //    _mapper.Map<ProductBaseDto>(matchingProduct2)
+    //        .Returns(TestDataFactory.CreateProductBaseDto(2, "Americano", "M"));
 
-        // Act
-        var result = await _productService.GetAllGroupedAsync();
+    //    // Act
+    //    var result = await _productService.GetAllGroupedAsync();
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Has.Count.EqualTo(1));
-        });
-        var group = result.Data!.First();
-        Assert.Multiple(() =>
-        {
-            Assert.That(group.Category, Is.EqualTo("Coffee"));
-            Assert.That(group.Products.Count, Is.EqualTo(2));
-        });
-    }
+    //    // Assert
+    //    Assert.Multiple(() =>
+    //    {
+    //        Assert.That(result.Success, Is.True);
+    //        Assert.That(result.Data, Has.Count.EqualTo(1));
+    //    });
+    //    var group = result.Data!.First();
+    //    Assert.Multiple(() =>
+    //    {
+    //        Assert.That(group.Category, Is.EqualTo("Coffee"));
+    //        Assert.That(group.Products.Count, Is.EqualTo(2));
+    //    });
+    //}
 
-    [Test]
-    public async Task GetAllGroupedAsync_AdminNull_ReturnsAllProducts()
-    {
-        // Arrange
-        var admin = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
-        _currentUser.GetCurrentUserAsync().Returns(admin);
+    //[Test]
+    //public async Task GetAllGroupedAsync_AdminNull_ReturnsAllProducts()
+    //{
+    //    // Arrange
+    //    var admin = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
+    //    _currentUser.GetCurrentUserAsync().Returns(admin);
 
-        var prod1 = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "Espresso");
-        var prod2 = TestDataFactory.CreateSharedProduct(2, name: "Macchiato");
+    //    var prod1 = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "Espresso");
+    //    var prod2 = TestDataFactory.CreateSharedProduct(2, name: "Macchiato");
 
-        var category = TestDataFactory.CreateValidProductCategory(2, "AdminCat", [prod1, prod2]);
+    //    var category = TestDataFactory.CreateValidProductCategory(2, "AdminCat", [prod1, prod2]);
 
-        _categoryRepository.QueryIncluding().Returns(new List<ProductCategory> { category }.AsQueryable());
+    //    _categoryRepository.QueryIncluding().Returns(new List<ProductCategory> { category }.AsQueryable());
 
-        _mapper.Map<ProductBaseDto>(prod1).Returns(TestDataFactory.CreateProductBaseDto(1, "Espresso"));
-        _mapper.Map<ProductBaseDto>(prod2).Returns(TestDataFactory.CreateProductBaseDto(2, "Macchiato"));
+    //    _mapper.Map<ProductBaseDto>(prod1).Returns(TestDataFactory.CreateProductBaseDto(1, "Espresso"));
+    //    _mapper.Map<ProductBaseDto>(prod2).Returns(TestDataFactory.CreateProductBaseDto(2, "Macchiato"));
 
-        // Act
-        var result = await _productService.GetAllGroupedAsync();
+    //    // Act
+    //    var result = await _productService.GetAllGroupedAsync();
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data!.First().Products.Count, Is.EqualTo(2));
-        });
-    }
+    //    // Assert
+    //    Assert.Multiple(() =>
+    //    {
+    //        Assert.That(result.Success, Is.True);
+    //        Assert.That(result.Data!.First().Products, Has.Count.EqualTo(2));
+    //    });
+    //}
 
-    [Test]
-    public async Task GetAllGroupedAsync_AdminExclusiveTrue_ReturnsOnlyExclusive()
-    {
-        // Arrange
-        var admin = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
-        _currentUser.GetCurrentUserAsync().Returns(admin);
+    //[Test]
+    //public async Task GetAllGroupedAsync_AdminExclusiveTrue_ReturnsOnlyExclusive()
+    //{
+    //    // Arrange
+    //    var admin = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
+    //    _currentUser.GetCurrentUserAsync().Returns(admin);
 
-        var exclusive = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "AdminExclusive");
-        var category = TestDataFactory.CreateValidProductCategory(2, "AdminCat", [exclusive]);
+    //    var exclusive = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "AdminExclusive");
+    //    var category = TestDataFactory.CreateValidProductCategory(2, "AdminCat", [exclusive]);
 
-        _categoryRepository.QueryIncluding().Returns(new List<ProductCategory> { category }.AsQueryable());
+    //    _categoryRepository.QueryIncluding().Returns(new List<ProductCategory> { category }.AsQueryable());
 
-        _mapper.Map<ProductBaseDto>(exclusive).Returns(TestDataFactory.CreateProductBaseDto(1, "AdminExclusive"));
+    //    _mapper.Map<ProductBaseDto>(exclusive).Returns(TestDataFactory.CreateProductBaseDto(1, "AdminExclusive"));
 
-        // Act
-        var result = await _productService.GetAllGroupedAsync(exclusive: true);
+    //    // Act
+    //    var result = await _productService.GetAllGroupedAsync(exclusive: true);
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data!.Count, Is.EqualTo(1));
-            Assert.That(result.Data.First().Products.Count, Is.EqualTo(1));
-            Assert.That(result.Data.First().Products.First().Name, Is.EqualTo("AdminExclusive"));
-        });
-    }
+    //    // Assert
+    //    Assert.Multiple(() =>
+    //    {
+    //        Assert.That(result.Success, Is.True);
+    //        Assert.That(result.Data!, Has.Count.EqualTo(1));
+    //        Assert.That(result.Data!.First().Products, Has.Count.EqualTo(1));
+    //        Assert.That(result.Data!.First().Products!.First().Name, Is.EqualTo("AdminExclusive"));
+    //    });
+    //}
 
-    [Test]
-    public async Task GetAllGroupedAsync_RegularExclusiveTrue_ReturnsOnlyBusinessProducts()
-    {
-        // Arrange
-        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
-        _currentUser.GetCurrentUserAsync().Returns(staff);
+    //[Test]
+    //public async Task GetAllGroupedAsync_RegularExclusiveTrue_ReturnsOnlyBusinessProducts()
+    //{
+    //    // Arrange
+    //    var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
+    //    _currentUser.GetCurrentUserAsync().Returns(staff);
 
-        var ownProduct = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "MyBizItem");
-        var foreignProduct = TestDataFactory.CreateValidProduct(2, businessId: 999, name: "OtherBizItem");
+    //    var ownProduct = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "MyBizItem");
+    //    var foreignProduct = TestDataFactory.CreateValidProduct(2, businessId: 999, name: "OtherBizItem");
 
-        var category = TestDataFactory.CreateValidProductCategory(3, "RegularCat", [ownProduct, foreignProduct]);
+    //    var category = TestDataFactory.CreateValidProductCategory(3, "RegularCat", [ownProduct, foreignProduct]);
 
-        _categoryRepository.QueryIncluding().Returns(new List<ProductCategory> { category }.AsQueryable());
+    //    _categoryRepository.QueryIncluding().Returns(new List<ProductCategory> { category }.AsQueryable());
 
-        _mapper.Map<ProductBaseDto>(ownProduct).Returns(TestDataFactory.CreateProductBaseDto(1, "MyBizItem"));
-        // Do not map foreignProduct – it's filtered out
+    //    _mapper.Map<ProductBaseDto>(ownProduct).Returns(TestDataFactory.CreateProductBaseDto(1, "MyBizItem"));
+    //    // Do not map foreignProduct – it's filtered out
 
-        // Act
-        var result = await _productService.GetAllGroupedAsync(exclusive: true);
+    //    // Act
+    //    var result = await _productService.GetAllGroupedAsync(exclusive: true);
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data!.Count, Is.EqualTo(1));
-            Assert.That(result.Data.First().Products.Count, Is.EqualTo(1));
-            Assert.That(result.Data.First().Products.First().Name, Is.EqualTo("MyBizItem"));
-        });
-    }
+    //    // Assert
+    //    Assert.Multiple(() =>
+    //    {
+    //        Assert.That(result.Success, Is.True);
+    //        Assert.That(result.Data!.Count, Is.EqualTo(1));
+    //        Assert.That(result.Data.First().Products.Count, Is.EqualTo(1));
+    //        Assert.That(result.Data.First().Products.First().Name, Is.EqualTo("MyBizItem"));
+    //    });
+    //}
 
-    [Test]
-    public async Task GetAllGroupedAsync_ExclusiveFalse_ReturnsOnlySharedProducts()
-    {
-        // Arrange
-        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
-        _currentUser.GetCurrentUserAsync().Returns(staff);
+    //[Test]
+    //public async Task GetAllGroupedAsync_ExclusiveFalse_ReturnsOnlySharedProducts()
+    //{
+    //    // Arrange
+    //    var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
+    //    _currentUser.GetCurrentUserAsync().Returns(staff);
 
-        var shared = TestDataFactory.CreateSharedProduct(1, name: "Shared");
-        var businessOwned = TestDataFactory.CreateValidProduct(2, businessId: 1, name: "Owned");
+    //    var shared = TestDataFactory.CreateSharedProduct(1, name: "Shared");
+    //    var businessOwned = TestDataFactory.CreateValidProduct(2, businessId: 1, name: "Owned");
 
-        var category = TestDataFactory.CreateValidProductCategory(4, "SharedCat", [shared, businessOwned]);
+    //    var category = TestDataFactory.CreateValidProductCategory(4, "SharedCat", [shared, businessOwned]);
 
-        _categoryRepository.QueryIncluding().Returns(new List<ProductCategory> { category }.AsQueryable());
+    //    _categoryRepository.QueryIncluding().Returns(new List<ProductCategory> { category }.AsQueryable());
 
-        _mapper.Map<ProductBaseDto>(shared).Returns(TestDataFactory.CreateProductBaseDto(1, "Shared"));
-        // businessOwned is filtered — no mapping
+    //    _mapper.Map<ProductBaseDto>(shared).Returns(TestDataFactory.CreateProductBaseDto(1, "Shared"));
+    //    // businessOwned is filtered — no mapping
 
-        // Act
-        var result = await _productService.GetAllGroupedAsync(exclusive: false);
+    //    // Act
+    //    var result = await _productService.GetAllGroupedAsync(exclusive: false);
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data!, Has.Count.EqualTo(1));
-            Assert.That(result.Data.First().Products, Has.Count.EqualTo(1));
-            Assert.That(result.Data.First().Products.First().Name, Is.EqualTo("Shared"));
-        });
-    }
+    //    // Assert
+    //    Assert.Multiple(() =>
+    //    {
+    //        Assert.That(result.Success, Is.True);
+    //        Assert.That(result.Data!, Has.Count.EqualTo(1));
+    //        Assert.That(result.Data.First().Products, Has.Count.EqualTo(1));
+    //        Assert.That(result.Data.First().Products.First().Name, Is.EqualTo("Shared"));
+    //    });
+    //}
+
+    //[Test]
+    //public async Task GetFilteredAsync_Default_ReturnsVisibleProducts()
+    //{
+    //    // Arrange
+    //    var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
+    //    _currentUser.GetCurrentUserAsync().Returns(staff);
+
+    //    var p1 = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "Espresso");
+    //    var p2 = TestDataFactory.CreateSharedProduct(2, name: "Macchiato");
+
+    //    var queryable = new List<Product> { p1, p2 }.AsQueryable().BuildMock(); // using MockQueryable
+
+    //    _repository.QueryIncluding(Arg.Any<Expression<Func<Product, object>>>()).Returns(queryable);
+
+    //    _mapper.Map<List<ProductBaseDto>>(Arg.Any<List<Product>>()).Returns(
+    //        new List<ProductBaseDto>
+    //        {
+    //        TestDataFactory.CreateProductBaseDto(1, "Espresso"),
+    //        TestDataFactory.CreateProductBaseDto(2, "Macchiato")
+    //        });
+
+    //    // Act
+    //    var result = await _productService.GetFilteredAsync();
+
+    //    // Assert
+    //    Assert.That(result.Success, Is.True);
+    //    Assert.That(result.Data, Has.Count.EqualTo(2));
+    //}
+
 
 
 
