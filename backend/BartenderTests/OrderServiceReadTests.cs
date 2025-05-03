@@ -576,5 +576,4 @@ public class OrderServiceReadTests
             Assert.That(result.Error, Is.EqualTo("There is currently no active session found"));
         });
     }
-
 }

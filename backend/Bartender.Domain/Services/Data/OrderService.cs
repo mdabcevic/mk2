@@ -38,7 +38,8 @@ public class OrderService(
 
         var calculatedTotal = CalculateTotalPrice(newOrderItems);
         if (calculatedTotal != order.TotalPrice)
-            logger.LogWarning($"Mismatch between frontend and backend total price. Frontend: {order.TotalPrice}, Backend: {calculatedTotal}");
+            logger.LogWarning("Mismatch between frontend and backend total price. Frontend: {FrontendTotal}, Backend: {BackendTotal}", order.TotalPrice, calculatedTotal);
+
 
         order.TotalPrice = calculatedTotal;
         order.Status = OrderStatus.created;
@@ -128,7 +129,7 @@ public class OrderService(
         // if the order is closed or the guest is trying to modify an already approved order, return an error.
         if (existingOrder.Status == OrderStatus.closed || currentUser.IsGuest && existingOrder.Status != OrderStatus.cancelled)
         {
-            logger.LogWarning($"Update failed: Attempt to modify a closed or finalized order with id {id}");
+            logger.LogWarning("Update failed: Attempt to modify a closed or finalized order with id {OrderId}", id);
             return ServiceResult.Fail("Order cannot be changed anymore", ErrorType.Validation);
         }
 
@@ -262,7 +263,7 @@ public class OrderService(
     public async Task<ServiceResult<List<OrderDto>>> GetCurrentOrdersByTableLabelAsync(string tableLabel) //staff only?
     {
         var orders = await repository.GetCurrentOrdersByTableLabelAsync(tableLabel); //TODO: should fetching be done after validation?
-        if(!orders.Any())
+        if(orders.Count == 0)
             return ServiceResult<List<OrderDto>>.Ok(new List<OrderDto>());
         var verifyUser = await validationService.VerifyUserGuestAccess(orders[0].Table.Id);
         if (!verifyUser.Success)
@@ -292,7 +293,7 @@ public class OrderService(
         var table = await tableRepository.GetByIdAsync(order.TableId);
         var menuItems = await GetOrderItemsAsync(order);
 
-        if (!order.Items.Any())
+        if (order.Items.Count == 0)
             return ServiceResult.Fail("Cannot create an order with no items", ErrorType.Validation);
 
         if (table == null)
@@ -350,7 +351,7 @@ public class OrderService(
     }
 
 
-    private decimal CalculateTotalPrice(List<ProductPerOrder> items)
+    private static decimal CalculateTotalPrice(List<ProductPerOrder> items)
     {
         return items.Sum(item => item.Price * item.Count * (1 - item.Discount / 100m));
     }
