@@ -6,6 +6,7 @@ using Bartender.Domain.Mappings;
 using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
 using Bartender.Domain.Services.Data;
+using Bartender.Domain.utility.ExceptionHandlers;
 using Bartender.Domain.Utility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -96,6 +97,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             o.MapEnum<ImageType>("picturetype");
         }));
 
+builder.Services.AddExceptionHandler<AuthorizationExceptionHandler>();
+builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
+builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+builder.Services.AddExceptionHandler<ConflictExceptionHandler>();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+//builder.Services.AddProblemDetails();
+
+
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<ITableRepository, TableRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -150,6 +161,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "Swagger"));
 }
 
+app.UseExceptionHandler( _ => { });
 app.UseHttpsRedirection();
 app.UseCors(allowedOrigins);
 app.UseAuthentication(); // <--- MUST come before UseAuthorization
