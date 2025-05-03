@@ -1,5 +1,4 @@
-﻿
-namespace Bartender.Domain.utility.Exceptions;
+﻿namespace Bartender.Domain.utility.Exceptions;
 
 public class UnknownErrorException : BaseException
 {
