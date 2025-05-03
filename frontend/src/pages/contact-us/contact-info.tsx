@@ -1,5 +1,3 @@
-import { JSX } from "react";
-// import { FiMail, FiPhone, FiMapPin } from "react-icons/fi";
 import SocialIcons from "./social-icons";
 
 function ContactInfo() {
@@ -13,9 +11,9 @@ function ContactInfo() {
 
       <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:flex-col lg:items-start">
 
-        {/* <ContactItem icon={<FiMail />} label="info@mk.com" />
-        <ContactItem icon={<FiPhone />} label="+385 123456789" />
-        <ContactItem icon={<FiMapPin />} label="address 123" /> */}
+        <ContactItem iconSrc={"/assets/images/icons/mailbox.svg"} label="info@mk.com" />
+        <ContactItem iconSrc={"/assets/images/icons/phone.svg"} label="+385 123456789" />
+        <ContactItem iconSrc={"/assets/images/icons/locationContact.svg"} label="address 123" />
       </div>
 
       <SocialIcons />
@@ -26,14 +24,14 @@ function ContactInfo() {
 export default ContactInfo;
 
 type ContactItemProps = {
-  readonly icon: JSX.Element;
+  readonly iconSrc: string;
   readonly label: string;
 };
 
-function ContactItem({ icon, label }: ContactItemProps) {
+function ContactItem({ iconSrc, label }: ContactItemProps) {
   return (
     <div className="flex items-center gap-2 sm:gap-4">
-      <div className="bg-[#F5F0EA] text-[#432B1F] p-2 rounded-full">{icon}</div>
+      <img src={iconSrc} width={"30px"} alt="icon" />
       <span className="text-md">{label}</span>
     </div>
   );

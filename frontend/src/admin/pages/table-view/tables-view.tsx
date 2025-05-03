@@ -9,7 +9,7 @@ import OrdersTable from "./orders-table";
 import { NotificationScreen } from "./notifications";
 import { subscribeToNotifications,Notification } from "../../../utils/notification-store";
 import TableActionModal from "../../../utils/components/table-actions-modal";
-import { orderService } from "../../../pages/place-details/menu/order.service";
+import { orderService } from "../../../pages/places/menu/order.service";
 import OrdersByTableModal, { Order } from "../../../utils/components/orders-by-table-modal";
 
 const initial_div_width = Constants.create_tables_container_width;

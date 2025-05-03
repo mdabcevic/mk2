@@ -66,7 +66,9 @@
     "view_tables":"Popunjenost objekta",
     "free_tables": "Broj slobodnih stolova",
 
-    "aboutUs": {
+    "home": {
+        "explore":"Istraži kafiće u kojima je naručivanje jednostavno.",
+        "explore_desc":"Vidi gdje možeš preskočiti čekanje, naručiti skeniranjem i uživati u ugodnijem iskustvu objedovanja.",
         "title": "Poboljšajte uslugu u svom kafiću uz QR naručivanje",
         "subtitle": "Smanjite vrijeme čekanja, ubrzajte narudžbe i usrećite goste – sve jednim skeniranjem.",
         "contact_us": "Kontaktirajte nas",
@@ -80,7 +82,7 @@
         "step3_desc": "Narudžbe idu izravno osoblju – bez kašnjenja i zabune.",
         "analytics_title": "Ugrađena analitika. Pametnije upravljanje kafićem",
         "analytics_desc": "Od trendova narudžbi i najprodavanijih artikala do uvida u rad osoblja – naša moćna nadzorna ploča daje vam podatke za optimizaciju poslovanja.",
-        "view_pricing": "Pogledajte cijene",
+        "view_pricing": "Cijene",
         "upgrade_text": "Unaprijedite iskustvo svog kafića za nekoliko minuta",
         "get_started": "Započnite",
         "streamlined_operations_title": "Pojednostavljeni procesi",
