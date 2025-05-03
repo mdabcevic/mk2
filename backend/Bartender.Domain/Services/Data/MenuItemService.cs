@@ -8,8 +8,8 @@ using Microsoft.Extensions.Logging;
 using Bartender.Data.Enums;
 using System.ComponentModel.DataAnnotations;
 using Bartender.Domain.DTO;
-using Bartender.Domain.utility.Exceptions;
 using Bartender.Domain.DTO.Place;
+using Bartender.Domain.utility.Exceptions.NotFoundException;
 
 namespace Bartender.Domain.Services.Data;
 public class MenuItemService(
