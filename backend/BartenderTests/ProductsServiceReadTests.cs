@@ -7,11 +7,12 @@ using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using System.Linq.Expressions;
 
 namespace BartenderTests;
 [TestFixture]
-public class ProductsServiceTests
+public class ProductServiceReadTests
 {
     private IRepository<Product> _repository;
     private IRepository<ProductCategory> _categoryRepository;
@@ -75,9 +76,14 @@ public class ProductsServiceTests
         var result = await _productService.GetByIdAsync(1);
 
         // Assert
-        Assert.That(result.Success, Is.False);
-        Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        Assert.That(result.Error, Does.Contain("Product with id 1 not found"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
+            Assert.That(result.Error, Does.Contain("Product with id 1 not found"));
+        });
+        _mapper.DidNotReceive().Map<ProductDto>(Arg.Any<Product>());
+
     }
 
     [Test]
@@ -99,6 +105,7 @@ public class ProductsServiceTests
             Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
             Assert.That(result.Error, Is.EqualTo("Cross-business access denied."));
         });
+        _mapper.DidNotReceive().Map<ProductDto>(Arg.Any<Product>());
     }
 
     [Test]
@@ -139,6 +146,7 @@ public class ProductsServiceTests
             Assert.That(result.Success, Is.True);
             Assert.That(result.Data, Has.Count.EqualTo(2));
         });
+        _mapper.Received(1).Map<List<ProductDto>>(Arg.Any<List<Product>>());
     }
 
     [Test]
@@ -232,6 +240,91 @@ public class ProductsServiceTests
             Assert.That(result.Data, Has.Count.EqualTo(1));
         });
         Assert.That(result.Data![0].Name, Is.EqualTo("SharedOnly"));
+    }
+
+    [Test]
+    public async Task GetAllAsync_ReturnsEmptyList_WhenNoProductsExist()
+    {
+        // Arrange
+        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
+        _currentUser.GetCurrentUserAsync().Returns(staff);
+
+        var emptyList = new List<Product>();
+        _repository.GetFilteredAsync(
+            includeNavigations: true,
+            filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
+            orderByDescending: false,
+            Arg.Any<Expression<Func<Product, object>>[]>()
+        ).Returns(emptyList);
+
+        _mapper.Map<List<ProductDto>>(emptyList).Returns(new List<ProductDto>());
+
+        // Act
+        var result = await _productService.GetAllAsync();
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Data, Is.Empty);
+        });
+        await _repository.Received(1).GetFilteredAsync(
+            includeNavigations: true,
+            filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
+            orderByDescending: false,
+            Arg.Any<Expression<Func<Product, object>>[]>()
+        );
+        _mapper.Received(1).Map<List<ProductDto>>(emptyList);
+    }
+
+    [Test]
+    public async Task GetProductCategoriesAsync_ReturnsMappedCategoryList()
+    {
+        // Arrange
+        var categories = new List<ProductCategory>
+    {
+        TestDataFactory.CreateValidProductCategory(1, "Hot Drinks"),
+        TestDataFactory.CreateValidProductCategory(2, "Cold Drinks")
+    };
+
+        var dtoList = new List<ProductCategoryDto>
+    {
+        new() { Id = 1, Name = "Hot Drinks" },
+        new() { Id = 2, Name = "Cold Drinks" }
+    };
+
+        _categoryRepository.GetAllAsync().Returns(categories);
+        _mapper.Map<List<ProductCategoryDto>>(categories).Returns(dtoList);
+
+        // Act
+        var result = await _productService.GetProductCategoriesAsync();
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Data, Has.Count.EqualTo(2));
+        });
+        await _categoryRepository.Received(1).GetAllAsync();
+        _mapper.Received(1).Map<List<ProductCategoryDto>>(categories);
+    }
+
+    [Test]
+    public async Task GetProductCategoriesAsync_ReturnsFailure_WhenExceptionThrown()
+    {
+        // Arrange
+        _categoryRepository.GetAllAsync().Throws(new Exception("DB error"));
+
+        // Act
+        var result = await _productService.GetProductCategoriesAsync();
+
+        // Assert
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
+            Assert.That(result.Error, Does.Contain("unexpected error"));
+        });
     }
 
     //[Test]
