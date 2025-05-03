@@ -4,7 +4,7 @@ public class ProductNotFoundException : NotFoundException
 {
     public int ProductId { get; }
 
-    public ProductNotFoundException(int productId, object? data)
+    public ProductNotFoundException(int productId, object? data = null)
         : base($"Product was not found.", data)
     {
         ProductId = productId;

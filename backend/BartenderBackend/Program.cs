@@ -160,9 +160,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "Swagger"));
 }
 
-app.UseExceptionHandler( _ => { });
 app.UseHttpsRedirection();
 app.UseCors(allowedOrigins);
+app.UseExceptionHandler(_ => { });
 app.UseAuthentication(); // <--- MUST come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
