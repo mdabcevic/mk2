@@ -6,6 +6,7 @@ using Bartender.Domain.DTO.Business;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
 
 namespace Bartender.Domain.Services.Data;
 
@@ -69,7 +70,7 @@ public class BusinessService(
     public async Task<ServiceResult> UpdateSubscriptionAsync(SubscriptionTier tier)
     {
         var user = await currentUser.GetCurrentUserAsync();
-        if (user.Place == null)
+        if (user?.Place == null)
         {
             logger.LogError("User isn't assigned to any place.");
             return ServiceResult.Fail("Error fetching user's place.", ErrorType.Unknown);
@@ -102,12 +103,11 @@ public class BusinessService(
 
     private async Task<bool> IsAccessAllowedAsync(int targetBusinessId)
     {
-        var user = await currentUser.GetCurrentUserAsync();
-
+        var user = await currentUser.GetCurrentUserAsync() ?? throw new ValidationException();
         if (user.Role == EmployeeRole.owner)
             return true;
 
-        return user.Place.BusinessId == targetBusinessId;
+        return user.Place?.BusinessId == targetBusinessId;
     }
 
 }
