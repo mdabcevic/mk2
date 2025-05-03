@@ -384,5 +384,16 @@ public static class TestDataFactory
         };
     }
 
+    public static UpdateOrderStatusDto CreateUpdateStatusDto(
+    OrderStatus newStatus = OrderStatus.payment_requested,
+    PaymentType? paymentType = null)
+    {
+        return new UpdateOrderStatusDto
+        {
+            Status = newStatus,
+            PaymentType = paymentType
+        };
+    }
+
 }
 
