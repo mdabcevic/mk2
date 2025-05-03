@@ -2,6 +2,7 @@
 using Bartender.Data.Models;
 using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
+using Bartender.Domain.utility.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace Bartender.Domain.Services;
@@ -25,6 +26,9 @@ public class ValidationService(
         {
             var user = await currentUser.GetCurrentUserAsync();
             var table = await tableRepository.GetByIdAsync(orderTableId);
+
+            if (table == null)
+                throw new TableNotFoundException(orderTableId);
 
             if (!await VerifyUserPlaceAccess(table.PlaceId, user))
             {
