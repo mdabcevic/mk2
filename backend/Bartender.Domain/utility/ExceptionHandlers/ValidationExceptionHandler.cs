@@ -12,6 +12,8 @@ public class ValidationExceptionHandler(ILogger<ValidationExceptionHandler> logg
     {
         if (exception is AppValidationException appValidationException)
         {
+            logger.LogError(exception, appValidationException.GetLogMessage());
+
             var additionalData = appValidationException.Data["AdditionalData"];
             var response = new ErrorResponse(exception.Message, StatusCodes.Status400BadRequest, additionalData);
 
@@ -22,7 +24,8 @@ public class ValidationExceptionHandler(ILogger<ValidationExceptionHandler> logg
         }
         else if (exception is ValidationException)
         {
-            var response = new ErrorResponse(exception.Message, StatusCodes.Status400BadRequest);
+            logger.LogError(exception, exception.Message ?? exception.GetType().Name);
+            var response = new ErrorResponse(exception.Message ?? exception.GetType().Name, StatusCodes.Status400BadRequest);
 
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
