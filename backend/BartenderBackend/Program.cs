@@ -19,7 +19,6 @@ using System.Text.Json.Serialization; // <-- ensure this namespace is included
 
 var builder = WebApplication.CreateBuilder(args);
 
-//IdentityModelEventSource.ShowPII = true;
 
 var allowedOrigins = "AllowedOrigins";
 
