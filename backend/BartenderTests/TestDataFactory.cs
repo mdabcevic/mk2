@@ -188,5 +188,30 @@ public static class TestDataFactory
             Volume = volume
         };
     }
+
+    public static UpsertProductDto CreateValidUpsertProductDto(
+    string name = "New Product",
+    string volume = "1L",
+    int categoryId = 1,
+    int? businessId = null
+) => new()
+{
+    Name = name,
+    Volume = volume,
+    CategoryId = categoryId,
+    BusinessId = businessId
+};
+
+    public static Product CreateMappedProductFromDto(UpsertProductDto dto)
+    {
+        return new Product
+        {
+            Name = dto.Name,
+            Volume = dto.Volume,
+            CategoryId = dto.CategoryId,
+            BusinessId = dto.BusinessId
+        };
+    }
+
 }
 
