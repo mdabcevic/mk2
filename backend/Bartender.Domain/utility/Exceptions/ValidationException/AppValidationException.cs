@@ -1,10 +1,9 @@
 ﻿namespace Bartender.Domain.utility.Exceptions.ValidationException;
 
-public class AppValidationException : Exception
+public class AppValidationException : BaseException
 {
-    public AppValidationException(string message) : base(message) { }
-    public virtual string GetLogMessage()
+    public AppValidationException(string message, object? data = null)
+    : base(message, data)
     {
-        return Message;
     }
 }

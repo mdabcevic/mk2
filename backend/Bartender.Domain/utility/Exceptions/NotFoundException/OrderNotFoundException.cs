@@ -4,8 +4,8 @@ public class OrderNotFoundException : NotFoundException
 {
     public int OrderId { get; }
 
-    public OrderNotFoundException(int orderId)
-        : base($"Order was not found.")
+    public OrderNotFoundException(int orderId, object? data)
+        : base($"Order was not found.", data)
     {
         OrderId = orderId;
     }

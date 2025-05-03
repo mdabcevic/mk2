@@ -14,10 +14,12 @@ public class AuthorizationExceptionHandler(ILogger<AuthorizationExceptionHandler
         {
             logger.LogError(exception, authorizationException.GetLogMessage());
 
-            var response = new ErrorResponse(exception.Message, StatusCodes.Status401Unauthorized, exception.Data);
+            var additionalData = authorizationException.Data["AdditionalData"];
+            var response = new ErrorResponse(exception.Message, StatusCodes.Status401Unauthorized, additionalData);
 
-            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
             httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
+            
 
             return true;
         }

@@ -5,8 +5,8 @@ public class PlaceImageNotFoundException : NotFoundException
 {
     public int ImageId { get; }
 
-    public PlaceImageNotFoundException(int imageId)
-        : base($"Image was not found.")
+    public PlaceImageNotFoundException(int imageId, object? data)
+        : base($"Image was not found.", data)
     {
         ImageId = imageId;
     }

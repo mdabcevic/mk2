@@ -1,4 +1,5 @@
-﻿using Bartender.Domain.utility.Exceptions.ValidationException;
+﻿using Bartender.Domain.utility.Exceptions.NotFoundException;
+using Bartender.Domain.utility.Exceptions.ValidationException;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -9,12 +10,14 @@ public class ValidationExceptionHandler(ILogger<ValidationExceptionHandler> logg
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        if (exception is AppValidationException)
+        if (exception is AppValidationException appValidationException)
         {
-            var response = new ErrorResponse(exception.Message, StatusCodes.Status400BadRequest, exception.Data);
+            var additionalData = appValidationException.Data["AdditionalData"];
+            var response = new ErrorResponse(exception.Message, StatusCodes.Status400BadRequest, additionalData);
 
-            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
             httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
+            
             return true;
         }
 

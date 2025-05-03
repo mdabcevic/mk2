@@ -4,8 +4,8 @@ public class MenuItemNotFoundException : NotFoundException
 {
     public int MenuItemId { get; }
 
-    public MenuItemNotFoundException(int menuItemId)
-        : base($"Menu item was not found.")
+    public MenuItemNotFoundException(int menuItemId, object? data)
+        : base($"Menu item was not found.", data)
     {
         MenuItemId = menuItemId;
     }

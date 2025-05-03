@@ -12,7 +12,7 @@ public class ErrorResponse
     public int StatusCode;
 
     public ErrorResponse() { }
-    public ErrorResponse(string error, int statusCode, object data = null)
+    public ErrorResponse(string error, int statusCode, object? data = null)
     {
         Error = error;
         StatusCode = statusCode;

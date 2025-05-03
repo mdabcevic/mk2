@@ -1,4 +1,5 @@
 ﻿using Bartender.Domain.utility.Exceptions;
+using Bartender.Domain.utility.Exceptions.NotFoundException;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
         if (exception is UnknownErrorException unknownError)
         {
-            response = new ErrorResponse(unknownError.Message ?? "An unexpected error occurred.", StatusCodes.Status500InternalServerError, exception.Data);
+            var additionalData = unknownError.Data["AdditionalData"];
+            response = new ErrorResponse(unknownError.Message ?? "An unexpected error occurred.", StatusCodes.Status500InternalServerError, additionalData);
             string logMessage = string.IsNullOrEmpty(unknownError.Message)
                 ? "An unknown error occurred."
                 : unknownError.Message;
@@ -30,8 +32,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             };
         }
 
-        await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
         httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);  
 
         return true;
     }

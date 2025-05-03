@@ -4,8 +4,8 @@ public class StaffNotFound : NotFoundException
 {
     public int StaffId { get; }
 
-    public StaffNotFound(int staffId)
-        : base($"Staff was not found.")
+    public StaffNotFound(int staffId, object? data)
+        : base($"Staff was not found.", data)
     {
         StaffId = staffId;
     }

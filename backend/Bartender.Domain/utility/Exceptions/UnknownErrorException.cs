@@ -1,11 +1,10 @@
 ﻿
 namespace Bartender.Domain.utility.Exceptions;
 
-public class UnknownErrorException : Exception
+public class UnknownErrorException : BaseException
 {
-    public UnknownErrorException(string message) : base(message) { }
-    public virtual string GetLogMessage()
+    public UnknownErrorException(string message, object? data = null)
+    : base(message, data)
     {
-        return null;
     }
 }

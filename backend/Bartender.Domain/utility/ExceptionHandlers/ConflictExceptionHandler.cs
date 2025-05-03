@@ -14,10 +14,12 @@ public class ConflictExceptionHandler(ILogger<ConflictExceptionHandler> logger) 
         {
             logger.LogError(exception, conflictException.GetLogMessage());
 
-            var response = new ErrorResponse(exception.Message, StatusCodes.Status409Conflict, conflictException.GetData());
+            var additionalData = conflictException.Data["AdditionalData"];
+            var response = new ErrorResponse(exception.Message, StatusCodes.Status409Conflict, additionalData);
 
-            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
             httpContext.Response.StatusCode = StatusCodes.Status409Conflict;
+            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
+            
             return true;
         }
 
