@@ -28,8 +28,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy(allowedOrigins,
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173/", "http://localhost:8080/", "http://localhost:5173", "http://localhost:8080",
-                "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io")
+            policy.WithOrigins("http://localhost:5173", "http://localhost:8080",
+                "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io", "https://definite-squid-29206.upstash.io")
                   .AllowAnyHeader()
                   .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                   .AllowCredentials();
@@ -81,6 +81,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSettings.Key)),
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/hubs/place")))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -169,7 +185,7 @@ app.UseExceptionHandler(_ => { });
 app.UseAuthentication(); // <--- MUST come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
-app.MapHub<PlaceHub>("/hubs/place");
+app.MapHub<PlaceHub>("/hubs/place").RequireCors(allowedOrigins);
 
 app.MapGet("/health", () => Results.Ok("Application is healthy."))
    .WithName("HealthCheck")
