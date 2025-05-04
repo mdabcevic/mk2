@@ -21,7 +21,7 @@ const SubscriptionTableBody = ({ t, benefits }: SubscriptionTableBodyProps) => {
                         return (
                             <td key={colIndex} className={`px-4 py-2 text-center ${bg}`}>
                                 {value === true ? (
-                                    <img src="../../../public/assets/images/checkmark.svg" className="w-5 h-5 md:w-6 md:h-6 mx-auto" alt="✓" />
+                                    <img src="/assets/images/checkmark.svg" className="w-5 h-5 md:w-6 md:h-6 mx-auto" alt="✓" />
                                 ) : value === false || value === "" ? null : isNaN(Number(value as string)) ? (
                                     t(value as string)
                                 ) : (
