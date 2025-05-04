@@ -28,8 +28,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy(allowedOrigins,
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173/", "http://localhost:8080/", "http://localhost:5173", "http://localhost:8080",
-                "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io")
+            policy.WithOrigins("http://localhost:5173", "http://localhost:8080",
+                "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io", "https://definite-squid-29206.upstash.io")
                   .AllowAnyHeader()
                   .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                   .AllowCredentials();
