@@ -28,12 +28,13 @@ httpClient.interceptors.response.use(
     return response;
   },
   (error) => {
+    return;
     if (error.response) {
-      alert(`Error: ${error.response.data.message || "Something went wrong!"}`);
+      //alert(`Error: ${error.response.data.message || "Something went wrong!"}`);
     } else if (error.request) {
-      alert("Network error! Please check your internet connection.");
+      //alert("Network error! Please check your internet connection.");
     } else {
-      alert("An unexpected error occurred.");
+      //alert("An unexpected error occurred.");
     }
     
     return Promise.reject(error);
@@ -44,9 +45,9 @@ httpClient.interceptors.response.use(
 const sendRequest = async (method:string, url:string, data = null, params = {}) => {
   try {
     const response = await httpClient({ method, url, data, params });
-    return response.data;
+    return response?.data ?? "";
   } catch (error:any) {
-    console.error("API Error:", error.response?.data || error.message);
+    // console.error("API Error:", error.response?.data || error.message);
     throw error.response?.data || error.message;
   }
 };
