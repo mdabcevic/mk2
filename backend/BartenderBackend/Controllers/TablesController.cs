@@ -17,8 +17,8 @@ public class TablesController(
     [Authorize(Roles = "manager")]
     public async Task<IActionResult> Delete(string label)
     {
-        var result = await tableManagementService.DeleteAsync(label);
-        return result.ToActionResult();
+        await tableManagementService.DeleteAsync(label);
+        return NoContent();
     }
 
     [HttpPost("bulk-upsert")]
@@ -28,22 +28,22 @@ public class TablesController(
         if (tables == null || tables.Count == 0)
             return BadRequest("No table data provided.");
 
-        var result = await tableManagementService.BulkUpsertAsync(tables);
-        return result.ToActionResult();
+        await tableManagementService.BulkUpsertAsync(tables);
+        return NoContent();
     }
 
     [HttpGet("{label}")]
     public async Task<IActionResult> GetById(string label)
     {
         var result = await tableManagementService.GetByLabelAsync(label);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
         var result = await tableManagementService.GetAllAsync();
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     //TODO: should this be in place/tables instead?
@@ -52,7 +52,7 @@ public class TablesController(
     public async Task<IActionResult> GetTablesByPlaceId(int placeId)
     {
         var result = await tableManagementService.GetByPlaceId(placeId);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [HttpGet("lookup")]
@@ -60,7 +60,7 @@ public class TablesController(
     public async Task<IActionResult> GetBySalt([FromQuery] string salt, [FromQuery] string? passphrase = null)
     {
         var result = await tableInteractionService.GetBySaltAsync(salt, passphrase);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [HttpPost("{label}/rotate-token")]
@@ -68,22 +68,22 @@ public class TablesController(
     public async Task<IActionResult> RegenerateSalt(string label)
     {
         var result = await tableManagementService.RegenerateSaltAsync(label);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [HttpPatch("{label}/toggle-disabled")]
     [Authorize(Roles = "manager")]
     public async Task<IActionResult> SetDisabled(string label, [FromBody] bool disable)
     {
-        var result = await tableManagementService.SwitchDisabledAsync(label, disable);
-        return result.ToActionResult();
+        await tableManagementService.SwitchDisabledAsync(label, disable);
+        return NoContent();
     }
 
     [AllowAnonymous] // TODO: check if this is needed
     [HttpPatch("{token}/status")]
     public async Task<IActionResult> ChangeStatus(string token, [FromBody] TableStatus status)
     {
-        var result = await tableInteractionService.ChangeStatusAsync(token, status);
-        return result.ToActionResult();
+        await tableInteractionService.ChangeStatusAsync(token, status);
+        return NoContent();
     }
 }

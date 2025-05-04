@@ -1,7 +1,7 @@
 ﻿using Bartender.Data;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
@@ -38,14 +38,14 @@ public class NotificationService(
         logger.LogInformation("Notification broadcasted to group {Group}", placeGroupKey);
     }
 
-    public async Task<ServiceResult<List<TableNotification>>> GetNotificationsAsync(int tableId)
+    public async Task<List<TableNotification>> GetNotificationsAsync(int tableId)
     {
         var validUser = await validationService.VerifyUserGuestAccess(tableId);
 
-        if (!validUser.Success)
+        if (!validUser)
         {
-            logger.LogWarning("Unauthorized attempt to read notifications for table {TableId}", tableId);
-            return ServiceResult<List<TableNotification>>.Fail("Cannot access notifications for this table.", ErrorType.Unauthorized);
+            throw new AuthorizationException("Cannot access notifications for this table.")
+                .WithLogMessage($"Unauthorized attempt to read notifications for table {tableId}");
         }
 
         var entries = await _db.HashGetAllAsync(Key(tableId));
@@ -54,25 +54,25 @@ public class NotificationService(
             .ToList();
 
         logger.LogInformation("Fetched {Count} notifications for table {TableId}", result.Count, tableId);
-        return ServiceResult<List<TableNotification>>.Ok(result);
+        return result;
     }
 
-    public async Task<ServiceResult> MarkNotificationComplete(int tableId, string notificationId)
+    public async Task MarkNotificationComplete(int tableId, string notificationId)
     {
         var validUser = await validationService.VerifyUserGuestAccess(tableId);
 
-        if (!validUser.Success)
+        if (!validUser)
         {
-            logger.LogWarning("Unauthorized attempt to update notification {NotificationId} on table {TableId}", notificationId, tableId);
-            return ServiceResult.Fail("Cannot update notification.", ErrorType.Unauthorized);
+            throw new AuthorizationException("Cannot update notification.")
+                .WithLogMessage($"Unauthorized attempt to update notification {notificationId} on table {tableId}");
         }
 
         var entry = await _db.HashGetAsync(Key(tableId), notificationId);
 
         if (!entry.HasValue)
         {
-            logger.LogWarning("Notification {NotificationId} not found for table {TableId}", notificationId, tableId);
-            return ServiceResult.Fail("Notification not found.", ErrorType.NotFound);
+            throw new NotFoundException("Notification not found.")
+                .WithLogMessage($"Notification {notificationId} not found for table {tableId}");
         }
 
         var notif = JsonSerializer.Deserialize<TableNotification>(entry!)!;
@@ -81,22 +81,22 @@ public class NotificationService(
         await _db.HashSetAsync(Key(tableId), notificationId, JsonSerializer.Serialize(notif));
 
         logger.LogInformation("Notification {NotificationId} marked as complete for table {TableId}", notificationId, tableId);
-        return ServiceResult.Ok();
+        return;
     }
 
-    public async Task<ServiceResult> ClearNotificationsAsync(int tableId)
+    public async Task ClearNotificationsAsync(int tableId)
     {
         var validUser = await validationService.VerifyUserGuestAccess(tableId);
 
-        if (!validUser.Success)
+        if (!validUser)
         {
-            logger.LogWarning("Unauthorized attempt to clear notifications for table {TableId}", tableId);
-            return ServiceResult.Fail("Cannot delete notifications for this table.", ErrorType.Unauthorized);
+            throw new AuthorizationException("Cannot delete notifications for this table.")
+                .WithLogMessage($"Unauthorized attempt to clear notifications for table {tableId}");
         }
 
         await _db.KeyDeleteAsync(Key(tableId));
         logger.LogInformation("All notifications cleared for table {TableId}", tableId);
-        return ServiceResult.Ok();
+        return;
     }
 
     private async Task MarkOrderNotificationsAsCompleteAsync(int tableId, int orderId)

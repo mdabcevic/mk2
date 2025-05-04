@@ -13,36 +13,39 @@ public class PlacesController(IPlaceService placesService) : ControllerBase
     public async Task<IActionResult> Get(int? id)
     {
         if (id.HasValue)
-            return (await placesService.GetByIdAsync(id.Value)).ToActionResult();
+            return Ok(await placesService.GetByIdAsync(id.Value));
 
-        return (await placesService.GetAllAsync()).ToActionResult();
+        return Ok(await placesService.GetAllAsync());
     }
 
     [HttpGet("notify-staff/{salt}")]
     public async Task<IActionResult> NotifyStaff(string salt)
     {
-        var result = await placesService.NotifyStaffAsync(salt);
-        return result.ToActionResult();
+        await placesService.NotifyStaffAsync(salt);
+        return NoContent();
     }
 
     [Authorize(Roles = "manager")] //switch to admin/owner maybe
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] InsertPlaceDto dto)
     {
-        return (await placesService.AddAsync(dto)).ToActionResult();
+        await placesService.AddAsync(dto);
+        return NoContent();
     }
 
     [Authorize(Roles = "manager")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdatePlaceDto dto)
     {
-        return (await placesService.UpdateAsync(id, dto)).ToActionResult();
+        await placesService.UpdateAsync(id, dto);
+        return NoContent();
     }
 
     [Authorize(Roles = "manager")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        return (await placesService.DeleteAsync(id)).ToActionResult();
+        await placesService.DeleteAsync(id);
+        return NoContent();
     }
 }

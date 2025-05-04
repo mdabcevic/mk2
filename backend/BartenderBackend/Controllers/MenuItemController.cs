@@ -13,7 +13,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
     public async Task<IActionResult> GetById(int placeId, int productId)
     {
         var result = await menuItemsService.GetByIdAsync(placeId, productId);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [Authorize(Roles = "owner")]
@@ -21,7 +21,7 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
     public async Task<IActionResult> GetAll()
     {
         var result = await menuItemsService.GetAllAsync();
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [HttpGet("{placeId}")]
@@ -33,18 +33,18 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
         if (groupByCategory)
         {
             var resultGrouped = await menuItemsService.GetByPlaceIdGroupedAsync(placeId, onlyAvailable);
-            return resultGrouped.ToActionResult();
+            return Ok(resultGrouped);
         }
 
         var result = await menuItemsService.GetByPlaceIdAsync(placeId, onlyAvailable);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [HttpGet("search")]
     public async Task<IActionResult> GetFilteredList(int placeId, [FromQuery] string searchProduct)
     {
         var result = await menuItemsService.GetFilteredAsync(placeId, searchProduct);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     /*[HttpPost]
@@ -58,40 +58,40 @@ public class MenuItemController(IMenuItemService menuItemsService) : ControllerB
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] List<UpsertMenuItemDto> menuItems)
     {
-        var result = await menuItemsService.AddMultipleAsync(menuItems);
-        return result.ToActionResult();
+        await menuItemsService.AddMultipleAsync(menuItems);
+        return NoContent();
     }
 
     [Authorize(Roles = "admin, manager")]
     [HttpPost("{fromPlaceId}/{toPlaceId}/copy")]
     public async Task<IActionResult> CreateCopy(int fromPlaceId, int toPlaceId)
     {
-        var result = await menuItemsService.CopyMenuAsync(fromPlaceId, toPlaceId);
-        return result.ToActionResult();
+        await menuItemsService.CopyMenuAsync(fromPlaceId, toPlaceId);
+        return NoContent();
     }
 
     [Authorize(Roles = "admin, manager")]
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] UpsertMenuItemDto menuItem)
     {
-        var result = await menuItemsService.UpdateAsync(menuItem);
-        return result.ToActionResult();
+        await menuItemsService.UpdateAsync(menuItem);
+        return NoContent();
     }
 
     [Authorize(Roles = "admin, manager, regular")]
     [HttpPut("{placeId}/{productId}/availability")]
     public async Task<IActionResult> UpdateAvailability(int placeId, int productId, [FromBody] bool isAvailable)
     {
-        var result = await menuItemsService.UpdateItemAvailabilityAsync(placeId, productId, isAvailable);
-        return result.ToActionResult();
+        await menuItemsService.UpdateItemAvailabilityAsync(placeId, productId, isAvailable);
+        return NoContent();
     }
 
     [Authorize(Roles = "admin, manager")]
     [HttpDelete("{placeId}/{productId}")]
     public async Task<IActionResult> Delete(int placeId, int productId)
     {
-        var result = await menuItemsService.DeleteAsync(placeId, productId);
-        return result.ToActionResult();
+        await menuItemsService.DeleteAsync(placeId, productId);
+        return NoContent();
     }
 }
 

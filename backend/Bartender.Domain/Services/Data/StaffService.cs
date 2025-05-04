@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Staff;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
+using Bartender.Domain.Utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 
@@ -14,38 +14,35 @@ public class StaffService(
     IMapper mapper
     ) : IStaffService
 {
-    public async Task<ServiceResult> AddAsync(UpsertStaffDto dto)
+    public async Task AddAsync(UpsertStaffDto dto)
     {
         if (!await IsSameBusinessAsync(dto.PlaceId))
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            throw new UnauthorizedBusinessAccessException();
 
         if (await repository.ExistsAsync(s => s.Username == dto.Username))
         {
-            logger.LogWarning("Username conflict: {Username}", dto.Username);
-            return ServiceResult.Fail($"Staff with username '{dto.Username}' already exists.", ErrorType.Conflict);
+            throw new ConflictException($"Staff with username '{dto.Username}' already exists.");
         }
 
         var employee = mapper.Map<Staff>(dto);
         await repository.AddAsync(employee);
         logger.LogInformation("User {UserId} created new staff: {Username}", currentUser.UserId, dto.Username);
-        return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult> DeleteAsync(int id)
+    public async Task DeleteAsync(int id)
     {
         var staff = await repository.GetByIdAsync(id);
         if (staff == null)
-            return ServiceResult.Fail($"Staff with ID {id} not found.", ErrorType.NotFound);
+            throw new StaffNotFoundException(id);
 
         if (!await IsSameBusinessAsync(staff.PlaceId))
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            throw new UnauthorizedPlaceAccessException(id);
 
         await repository.DeleteAsync(staff);
         logger.LogInformation("Staff deleted with ID: {StaffId}", id);
-        return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult<List<StaffDto>>> GetAllAsync()
+    public async Task<List<StaffDto>> GetAllAsync()
     {
         var user = await currentUser.GetCurrentUserAsync();
         var staffList = await repository.GetAllAsync(); //TODO: filter directly on Database with IQueryable?
@@ -55,35 +52,34 @@ public class StaffService(
             .Select(s => mapper.Map<StaffDto>(s))
             .ToList();
 
-        return ServiceResult<List<StaffDto>>.Ok(filtered);
+        return filtered;
     }
 
-    public async Task<ServiceResult<StaffDto>> GetByIdAsync(int id, bool includeNavigations = false)
+    public async Task<StaffDto> GetByIdAsync(int id, bool includeNavigations = false)
     {
         var staff = await repository.GetByIdAsync(id, includeNavigations);
         if (staff is null)
-            return ServiceResult<StaffDto>.Fail($"Staff with ID {id} not found.", ErrorType.NotFound);
+            throw new StaffNotFoundException(id);
 
         if (!await IsSameBusinessAsync(staff.PlaceId))
-            return ServiceResult<StaffDto>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            throw new UnauthorizedPlaceAccessException(id);
 
         var dto = mapper.Map<StaffDto>(staff);
-        return ServiceResult<StaffDto>.Ok(dto);
+        return dto;
     }
 
-    public async Task<ServiceResult> UpdateAsync(int id, UpsertStaffDto dto)
+    public async Task UpdateAsync(int id, UpsertStaffDto dto)
     {
         var employee = await repository.GetByIdAsync(id);
         if (employee == null)
-            return ServiceResult.Fail($"Staff with ID {id} not found.", ErrorType.NotFound);
+            throw new StaffNotFoundException(id);
 
         if (!await IsSameBusinessAsync(dto.PlaceId))
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            throw new UnauthorizedPlaceAccessException(id);
 
         mapper.Map(dto, employee);
         await repository.UpdateAsync(employee);
         logger.LogInformation("Staff updated with ID: {StaffId}", employee.Id);
-        return ServiceResult.Ok();
     }
 
     private async Task<bool> IsSameBusinessAsync(int targetPlaceId)

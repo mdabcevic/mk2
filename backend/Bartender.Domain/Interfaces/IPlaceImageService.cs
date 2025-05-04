@@ -6,8 +6,8 @@ namespace Bartender.Domain.Interfaces;
 
 public interface IPlaceImageService
 {
-    Task<ServiceResult<List<ImageGroupedDto>>> GetImagesAsync(int placeId, ImageType? pictureType = null, bool onlyVisible = true);
-    Task<ServiceResult> AddImageAsync(UpsertImageDto newPicture);
-    Task<ServiceResult> UpdateImageAsync(int id, UpsertImageDto newPicture);
-    Task<ServiceResult> DeleteImageAsync(int id);
+    Task<List<ImageGroupedDto>> GetImagesAsync(int placeId, ImageType? pictureType = null, bool onlyVisible = true);
+    Task AddImageAsync(UpsertImageDto newPicture);
+    Task UpdateImageAsync(int id, UpsertImageDto newPicture);
+    Task DeleteImageAsync(int id);
 }
