@@ -200,18 +200,17 @@ public class MenuItemService(
             }
         }
 
-        if (validMenuItems.Count() > 0)
+        if (validMenuItems.Count > 0)
         {
             await repository.AddMultipleAsync(validMenuItems);
             logger.LogInformation("User {UserId} added {Count} products to the menu.",
                 currentUser.UserId, validMenuItems.Count);
         }
 
-        if (failedMenuItems.Count() > 0)
+        if (failedMenuItems.Count > 0)
             throw new ConflictException($"Successfully added {validMenuItems.Count}, failed: {failedMenuItems.Count}", data: failedMenuItems);
 
         return failedMenuItems;
-        
     }
 
     public async Task<List<FailedMenuItemDto>> CopyMenuAsync(int fromPlaceId, int toPlaceId)
@@ -262,7 +261,7 @@ public class MenuItemService(
                 validMenuItems.Add(newMenuItem);
             }
 
-            if (validMenuItems.Count() > 0)
+            if (validMenuItems.Count > 0)
             {
                 await repository.AddMultipleAsync(validMenuItems);
                 logger.LogInformation(
@@ -271,7 +270,7 @@ public class MenuItemService(
 
             }
 
-        if (failedMenuItems.Count() > 0)
+        if (failedMenuItems.Count > 0)
             throw new ConflictException($"Successfully copied {validMenuItems.Count}, failed: {failedMenuItems.Count}", data: failedMenuItems);
         
         return failedMenuItems;
@@ -311,7 +310,8 @@ public class MenuItemService(
 
         menuItem.IsAvailable = isAvailable;
         await repository.UpdateAsync(menuItem);
-        logger.LogInformation($"User {currentUser.UserId} updated availability for product {menuItem.ProductId} in menu for place {menuItem.PlaceId}. New availability: {isAvailable}");
+        logger.LogInformation("User {UserId} updated availability for product {ProductId} in menu for place {PlaceId}. New availability: {IsAvailable}",
+            currentUser.UserId, menuItem.ProductId, menuItem.PlaceId, isAvailable);
     }
 
     public async Task DeleteAsync(int placeId, int productId)
@@ -329,7 +329,6 @@ public class MenuItemService(
         logger.LogInformation("User {UserId} deleted product {ProductId} in menu for place {PlaceId}",
             currentUser.UserId, menuItem.ProductId, menuItem.PlaceId);
     }
-
 
     public async Task<List<MenuItemBaseDto>> GetFilteredAsync(int placeId, string searchProduct)
     {

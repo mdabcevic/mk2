@@ -5,6 +5,7 @@ using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Product;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.Linq.Expressions;
@@ -35,7 +36,7 @@ public class ProductServiceMutationTests
     // AddAsync tests
 
     [Test]
-    public async Task AddAsync_ValidProduct_ReturnsSuccess()
+    public async Task AddAsync_ValidProduct_ShouldAddSuccessfully()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertProductDto();
@@ -47,65 +48,55 @@ public class ProductServiceMutationTests
 
         var product = TestDataFactory.CreateMappedProductFromDto(dto);
         product.BusinessId = 1;
+
         _mapper.Map<Product>(dto).Returns(product);
 
-        // Act
-        var result = await _productService.AddAsync(dto);
-
-        // Assert
-        Assert.That(result.Success, Is.True);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(async () => await _productService.AddAsync(dto));
         await _repository.Received(1).AddAsync(product);
     }
 
     [Test]
-    public async Task AddAsync_InvalidCategory_ReturnsValidationFailure()
+    public async Task AddAsync_ShouldThrow_WhenCategoryDoesNotExist()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertProductDto(categoryId: 999);
         var staff = TestDataFactory.CreateValidStaff();
-        _currentUser.GetCurrentUserAsync().Returns(staff);
 
+        _currentUser.GetCurrentUserAsync().Returns(staff);
         _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>()).Returns(false);
 
-        // Act
-        var result = await _productService.AddAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(async () =>
+            await _productService.AddAsync(dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Validation));
-        });
+        Assert.That(ex.Message, Is.EqualTo("Product category id 999 not found"));
         await _repository.DidNotReceive().AddAsync(Arg.Any<Product>());
     }
 
     [Test]
-    public async Task AddAsync_DuplicateProduct_ReturnsConflictFailure()
+    public async Task AddAsync_ShouldThrow_WhenDuplicateProductExists()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertProductDto();
         var staff = TestDataFactory.CreateValidStaff(businessid: 1);
+
         _currentUser.GetCurrentUserAsync().Returns(staff);
-
         _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>()).Returns(true);
-        _repository.ExistsAsync(Arg.Any<Expression<Func<Product, bool>>>()).Returns(true);
+        _repository.ExistsAsync(Arg.Any<Expression<Func<Product, bool>>>()).Returns(true); // duplicate
 
-        // Act
-        var result = await _productService.AddAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ConflictException>(async () =>
+            await _productService.AddAsync(dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Conflict));
-        });
+        Assert.That(ex.Message, Does.Contain($"Product with name '{dto.Name}'"));
         await _repository.DidNotReceive().AddAsync(Arg.Any<Product>());
     }
 
     // UpdateAsync tests go here
 
     [Test]
-    public async Task UpdateAsync_ValidUpdate_ReturnsSuccess()
+    public async Task UpdateAsync_ShouldUpdate_WhenValid()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertProductDto(name: "Updated", volume: "2L", categoryId: 1);
@@ -117,17 +108,15 @@ public class ProductServiceMutationTests
         _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>()).Returns(true);
         _repository.ExistsAsync(Arg.Any<Expression<Func<Product, bool>>>()).Returns(false);
 
-        // Act
-        var result = await _productService.UpdateAsync(1, dto);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(async () => await _productService.UpdateAsync(1, dto));
 
-        // Assert
-        Assert.That(result.Success, Is.True);
         _mapper.Received(1).Map(dto, existing);
         await _repository.Received(1).UpdateAsync(existing);
     }
 
     [Test]
-    public async Task UpdateAsync_ProductNotFound_ReturnsNotFound()
+    public async Task UpdateAsync_ShouldThrow_WhenProductNotFound()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertProductDto();
@@ -136,47 +125,41 @@ public class ProductServiceMutationTests
         _currentUser.GetCurrentUserAsync().Returns(staff);
         _repository.GetByIdAsync(999).Returns((Product?)null);
 
-        // Act
-        var result = await _productService.UpdateAsync(999, dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ProductNotFoundException>(async () =>
+            await _productService.UpdateAsync(999, dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
+        Assert.That(ex.Message, Does.Contain("not found"));
+
         await _repository.DidNotReceive().UpdateAsync(Arg.Any<Product>());
         _mapper.DidNotReceive().Map(Arg.Any<UpsertProductDto>(), Arg.Any<Product>());
     }
 
     [Test]
-    public async Task UpdateAsync_CrossBusinessDenied_ReturnsUnauthorized()
+    public async Task UpdateAsync_ShouldThrow_WhenCrossBusinessAccessDenied()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertProductDto(businessId: 2);
         var existing = TestDataFactory.CreateValidProduct(1, businessId: 2);
-        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1);
+        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.regular, businessid: 1); // different business
 
         _currentUser.GetCurrentUserAsync().Returns(staff);
         _repository.GetByIdAsync(1).Returns(existing);
         _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>()).Returns(true);
         _repository.ExistsAsync(Arg.Any<Expression<Func<Product, bool>>>()).Returns(false);
 
-        // Act
-        var result = await _productService.UpdateAsync(1, dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AuthorizationException>(async () =>
+            await _productService.UpdateAsync(1, dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-        });
+        Assert.That(ex.Message, Is.EqualTo("Access to product denied"));
+
         await _repository.DidNotReceive().UpdateAsync(Arg.Any<Product>());
         _mapper.DidNotReceive().Map(Arg.Any<UpsertProductDto>(), Arg.Any<Product>());
     }
 
     [Test]
-    public async Task UpdateAsync_DuplicateProduct_ReturnsConflict()
+    public async Task UpdateAsync_ShouldThrow_WhenDuplicateProductExists()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertProductDto(name: "Duplicate", volume: "1L");
@@ -186,17 +169,14 @@ public class ProductServiceMutationTests
         _currentUser.GetCurrentUserAsync().Returns(staff);
         _repository.GetByIdAsync(1).Returns(existing);
         _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>()).Returns(true);
-        _repository.ExistsAsync(Arg.Any<Expression<Func<Product, bool>>>()).Returns(true); // name+volume already taken
+        _repository.ExistsAsync(Arg.Any<Expression<Func<Product, bool>>>()).Returns(true); // duplicate
 
-        // Act
-        var result = await _productService.UpdateAsync(1, dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ConflictException>(async () =>
+            await _productService.UpdateAsync(1, dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Conflict));
-        });
+        Assert.That(ex.Message, Does.Contain($"Product with name '{dto.Name}'"));
+
         await _repository.DidNotReceive().UpdateAsync(Arg.Any<Product>());
         _mapper.DidNotReceive().Map(Arg.Any<UpsertProductDto>(), Arg.Any<Product>());
     }
@@ -204,7 +184,7 @@ public class ProductServiceMutationTests
     // DeleteAsync tests go here
 
     [Test]
-    public async Task DeleteAsync_ValidDelete_ReturnsSuccess()
+    public async Task DeleteAsync_ShouldSucceed_WhenProductIsValidAndAuthorized()
     {
         // Arrange
         var product = TestDataFactory.CreateValidProduct(1, businessId: 1);
@@ -213,34 +193,27 @@ public class ProductServiceMutationTests
         _repository.GetByIdAsync(1).Returns(product);
         _currentUser.GetCurrentUserAsync().Returns(staff);
 
-        // Act
-        var result = await _productService.DeleteAsync(1);
-
-        // Assert
-        Assert.That(result.Success, Is.True);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(async () => await _productService.DeleteAsync(1));
         await _repository.Received(1).DeleteAsync(product);
     }
 
     [Test]
-    public async Task DeleteAsync_ProductNotFound_ReturnsNotFound()
+    public async Task DeleteAsync_ShouldThrow_WhenProductNotFound()
     {
         // Arrange
         _repository.GetByIdAsync(999).Returns((Product?)null);
 
-        // Act
-        var result = await _productService.DeleteAsync(999);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ProductNotFoundException>(async () =>
+            await _productService.DeleteAsync(999));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
+        Assert.That(ex.Message, Does.Contain("not found"));
         await _repository.DidNotReceive().DeleteAsync(Arg.Any<Product>());
     }
 
     [Test]
-    public async Task DeleteAsync_CrossBusinessDenied_ReturnsFailure()
+    public async Task DeleteAsync_ShouldThrow_WhenAccessingProductFromOtherBusiness()
     {
         // Arrange
         var product = TestDataFactory.CreateValidProduct(1, businessId: 2); // foreign business
@@ -249,15 +222,11 @@ public class ProductServiceMutationTests
         _repository.GetByIdAsync(1).Returns(product);
         _currentUser.GetCurrentUserAsync().Returns(staff);
 
-        // Act
-        var result = await _productService.DeleteAsync(1);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AuthorizationException>(async () =>
+            await _productService.DeleteAsync(1));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
-        });
+        Assert.That(ex.Message, Is.EqualTo("Access to product denied"));
         await _repository.DidNotReceive().DeleteAsync(Arg.Any<Product>());
     }
 }

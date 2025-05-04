@@ -37,7 +37,8 @@ public class OrderService(
 
         var calculatedTotal = CalculateTotalPrice(newOrderItems);
         if (calculatedTotal != order.TotalPrice)
-            logger.LogWarning($"Mismatch between frontend and backend total price. Frontend: {order.TotalPrice}, Backend: {calculatedTotal}");
+            logger.LogWarning("Mismatch between frontend and backend total price. Frontend: {FrontendTotal}, Backend: {BackendTotal}", order.TotalPrice, calculatedTotal);
+
 
         order.TotalPrice = calculatedTotal;
         order.Status = OrderStatus.created;
@@ -157,10 +158,7 @@ public class OrderService(
     /// <returns></returns>
     public async Task DeleteAsync(int id)
     {
-        var order = await repository.GetByIdAsync(id);
-        if (order == null)
-            throw new OrderNotFoundException(id);
-
+        var order = await repository.GetByIdAsync(id) ?? throw new OrderNotFoundException(id);
         var verifyAccess = await validationService.VerifyUserGuestAccess(order.TableId);
         if (!verifyAccess)
             throw new UnauthorizedOrderAccessException(id);
@@ -231,10 +229,7 @@ public class OrderService(
     //TODO: troubleshoot validation...
     public async Task<OrderDto?> GetByIdAsync(int id, bool skipValidation)
     {
-        var order = await repository.getOrderById(id); //TODO: should fetching be done after validation?
-
-        if (order == null)
-            throw new OrderNotFoundException(id);
+        var order = await repository.getOrderById(id) ?? throw new OrderNotFoundException(id); //TODO: should fetching be done after validation?
 
         if (!skipValidation)
         {
@@ -250,8 +245,8 @@ public class OrderService(
     public async Task<List<OrderDto>> GetCurrentOrdersByTableLabelAsync(string tableLabel) //staff only?
     {
         var orders = await repository.GetCurrentOrdersByTableLabelAsync(tableLabel); //TODO: should fetching be done after validation?
-        if(!orders.Any())
-            return new List<OrderDto>();
+        if(orders.Count == 0)
+            return [];
 
         var verifyAccess = await validationService.VerifyUserGuestAccess(orders[0].Table.Id);
         if (!verifyAccess)
@@ -263,13 +258,9 @@ public class OrderService(
         return dtos;
     }
 
-
     public async Task<List<OrderDto>> GetActiveTableOrdersForUserAsync(bool userSpecific = true)
     {
-        var guest = await guestSessionRepo.GetByKeyAsync(g => g.Token == currentUser.GetRawToken());
-        if (guest == null)
-            throw new NoActiveSessionFoundException();
-
+        var guest = await guestSessionRepo.GetByKeyAsync(g => g.Token == currentUser.GetRawToken()) ?? throw new NoActiveSessionFoundException();
         var order = userSpecific ? await repository.GetActiveOrdersByGuestIdAsync(guest.Id) :      
             await repository.GetActiveOrdersByTableIdAsync(guest.TableId);
 
@@ -283,7 +274,7 @@ public class OrderService(
         var table = await tableRepository.GetByIdAsync(order.TableId);
         var menuItems = await GetOrderItemsAsync(order);
 
-        if (!order.Items.Any())
+        if (order.Items.Count == 0)
             throw new AppValidationException("Cannot create an order with no items");
 
         if (table == null)
@@ -297,7 +288,7 @@ public class OrderService(
             .Select(oi => oi.MenuItemId)
             .ToList();
 
-        if (missingItems.Any())
+        if (missingItems.Count != 0)
             throw new NotFoundException($"One or more menu items do not exist or are not available: {string.Join(", ", missingItems)}");
 
         var unavailableItems = menuItems
@@ -307,7 +298,7 @@ public class OrderService(
                 : "Unknown Product") 
             .ToList();
 
-        if (unavailableItems.Any())
+        if (unavailableItems.Count != 0)
             throw new AppValidationException($"These items are currently unavailable: {string.Join(", ", unavailableItems)}");
     }
 
@@ -338,8 +329,7 @@ public class OrderService(
         return combinedItems;
     }
 
-
-    private decimal CalculateTotalPrice(List<ProductPerOrder> items)
+    private static decimal CalculateTotalPrice(List<ProductPerOrder> items)
     {
         return items.Sum(item => item.Price * item.Count * (1 - item.Discount / 100m));
     }
