@@ -8,6 +8,7 @@ using Bartender.Domain.DTO.Place;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Bartender.Domain.utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 
@@ -20,32 +21,30 @@ public class PlaceService(
     IMapper mapper
     ) : IPlaceService
 {
-    public async Task<ServiceResult> AddAsync(InsertPlaceDto dto)
+    public async Task AddAsync(InsertPlaceDto dto)
     {
         if (!await IsSameBusinessAsync(dto.BusinessId))
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            throw new UnauthorizedBusinessAccessException();
 
         var entity = mapper.Map<Place>(dto);
         await repository.AddAsync(entity);
         logger.LogInformation("Place created: {Address}, BusinessId: {BusinessId}", dto.Address, dto.BusinessId);
-        return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult> DeleteAsync(int id)
+    public async Task DeleteAsync(int id)
     {
         var place = await repository.GetByIdAsync(id);
         if (place == null)
-            return ServiceResult.Fail($"Place with ID {id} not found.", ErrorType.NotFound);
+            throw new PlaceNotFoundException(id);
 
         if (!await IsSameBusinessAsync(place.BusinessId))
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            throw new UnauthorizedPlaceAccessException(id);
 
         await repository.DeleteAsync(place);
         logger.LogInformation("Place deleted with ID: {PlaceId}", id);
-        return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult<List<PlaceDto>>> GetAllAsync()
+    public async Task<List<PlaceDto>> GetAllAsync()
     {
         var placesWithMenus = await repository.QueryIncluding(
             p => p.Business,
@@ -63,10 +62,10 @@ public class PlaceService(
             return dto;
         }).ToList();
 
-        return ServiceResult<List<PlaceDto>>.Ok(list);
+        return list;
     }
 
-    public async Task<ServiceResult<PlaceWithMenuDto>> GetByIdAsync(int id, bool includeNavigations = true)
+    public async Task<PlaceWithMenuDto> GetByIdAsync(int id, bool includeNavigations = true)
     {
         //TODO: move query to dedicated repository
         var place = await repository.Query()
@@ -79,7 +78,7 @@ public class PlaceService(
         .FirstOrDefaultAsync(p => p.Id == id);
 
         if (place == null)
-            return ServiceResult<PlaceWithMenuDto>.Fail($"Place with ID {id} not found.", ErrorType.NotFound);
+            throw new PlaceNotFoundException(id);
 
         var groupedImages = place.Images?
             .Where(i => i.IsVisible)
@@ -96,39 +95,36 @@ public class PlaceService(
         if (groupedImages != null)
             dto.Images = groupedImages;
 
-        return ServiceResult<PlaceWithMenuDto>.Ok(dto);
+        return dto;
     }
 
-    public async Task<ServiceResult> UpdateAsync(int id, UpdatePlaceDto dto)
+    public async Task UpdateAsync(int id, UpdatePlaceDto dto)
     {
         var place = await repository.GetByIdAsync(id);
         if (place == null)
-            return ServiceResult.Fail($"Place with ID {id} not found.", ErrorType.NotFound);
+            throw new PlaceNotFoundException(id);
 
         if (!await IsSameBusinessAsync(place.BusinessId))
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            throw new UnauthorizedPlaceAccessException(id);
 
         mapper.Map(dto, place);
         await repository.UpdateAsync(place);
         logger.LogInformation("Place updated with ID: {PlaceId}", place.Id);
-        return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult> NotifyStaffAsync(string salt)
+    public async Task NotifyStaffAsync(string salt)
     {
         var table = await tableRepository.GetBySaltAsync(salt);
 
         if (table is null)
         {
-            logger.LogWarning("NotifyStaff failed: Table does not exist.");
-            return ServiceResult.Fail("Table not found", ErrorType.NotFound);
+            throw new TableNotFoundException(salt);
         }
 
         await notificationService.AddNotificationAsync(table, 
             NotificationFactory.ForTableStatus(table, $"Waiter requested at table {table.Label}.", NotificationType.StaffNeeded));
 
         logger.LogInformation("Staff notified for table {Label}", table.Label);
-        return ServiceResult.Ok();
     }
 
     //TODO: move to validation
