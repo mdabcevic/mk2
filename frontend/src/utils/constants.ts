@@ -1,18 +1,19 @@
 
+const backend_port = 7281;
 
-export enum Constants{
-    backend_port = 7281,
-    tokenKey = "token",
-    cartKey = "cart",
-    passcode = "passcode",
-    salt = "salt",
-    place_id = "place_id",
-    api_base_url = import.meta.env.VITE_API_BASE_URL || `https://localhost:${backend_port}`,
-    url_qr = import.meta.env.VITE_FRONTEND_QR_URL || "http://localhost:5173/table-lookup/{placeId}/{salt}",
-    create_tables_container_width = 550, // Matches the width of the 'place_view.png' template image
-    create_tables_container_height = 471 , // Matches the height of the 'place_view.png' template image
-    template_image = "assets/images/place_view.png",
-    signalR_hub_url = import.meta.env.VITE_SIGNALR_HUB_URL || `https://localhost:${backend_port}/hubs/place`
+export const Constants = {
+    backend_port : backend_port,
+    tokenKey : "token",
+    cartKey : "cart",
+    passcode : "passcode",
+    salt : "salt",
+    place_id : "place_id",
+    api_base_url : import.meta.env.VITE_API_BASE_URL || `https://localhost:${backend_port}`,
+    url_qr : import.meta.env.VITE_FRONTEND_QR_URL || "http://localhost:5173/table-lookup/{placeId}/{salt}",
+    create_tables_container_width : 550, // Matches the width of the 'place_view.png' template image
+    create_tables_container_height : 471 , // Matches the height of the 'place_view.png' template image
+    template_image : "assets/images/place_view.png",
+    signalR_hub_url : import.meta.env.VITE_SIGNALR_HUB_URL || `https://localhost:${backend_port}/hubs/place`
 }
 
 export enum UserRole{
