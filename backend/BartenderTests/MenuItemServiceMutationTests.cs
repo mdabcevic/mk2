@@ -156,7 +156,7 @@ public class MenuItemServiceMutationTests
         var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(false);
-        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(false);
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.AddAsync(dto));
