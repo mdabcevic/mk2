@@ -13,22 +13,22 @@ public class NotificationsController(INotificationService service) : ControllerB
     public async Task<IActionResult> Get(int tableId)
     {
         var result = await service.GetNotificationsAsync(tableId);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [Authorize(Roles = "manager, employee")]
     [HttpDelete]
     public async Task<IActionResult> Clear(int tableId)
     {
-        var result = await service.ClearNotificationsAsync(tableId);
-        return result.ToActionResult();
+        await service.ClearNotificationsAsync(tableId);
+        return NoContent();
     }
 
     [Authorize(Roles = "manager, employee")]
     [HttpPatch("{notificationId}/mark-complete")]
     public async Task<IActionResult> MarkAsRead(int tableId, string notificationId)
     {
-        var result = await service.MarkNotificationComplete(tableId, notificationId);
-        return result.ToActionResult();
+        await service.MarkNotificationComplete(tableId, notificationId);
+        return NoContent();
     }
 }

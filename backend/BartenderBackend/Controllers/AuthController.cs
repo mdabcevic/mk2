@@ -15,6 +15,6 @@ public class AuthController(
     public async Task<IActionResult> Create([FromBody] LoginStaffDto dto)
     {
         var result = await authService.LoginAsync(dto);
-        return result.ToActionResult();
+        return Ok(result);
     }
 }
