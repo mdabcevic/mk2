@@ -84,7 +84,7 @@ const ProductsSection = forwardRef((_, ref) => {
   );
 
   return (
-    <div className="p-4 w-full max-w-[1500px] bg-gray-50 text-gray-800 m-auto">
+    <div className="p-4 w-full max-w-[1500px] text-gray-800 m-auto">
       <section className="bg-white p-4 w-full">
         <div className="flex flex-col md:flex-row md:items-center gap-2 mb-4">
           <input
@@ -108,7 +108,7 @@ const ProductsSection = forwardRef((_, ref) => {
         <table className="min-w-[600px] w-full text-left text-sm text-black">
           <thead>
             <tr className="border-b-2 text-[#737373]">
-              <th className="p-2 text-center">{t("product_modal.product").toUpperCase()}</th>
+              <th className="p-2 text-center">{t("product_modal.product_name").toUpperCase()}</th>
               <th className="p-2 text-center">{t("product_modal.volume").toUpperCase()}</th>
               <th className="p-2 text-center">{t("product_modal.category").toUpperCase()}</th>
               <th className="p-2 text-center">{t("product_modal.custom").toUpperCase()}</th>

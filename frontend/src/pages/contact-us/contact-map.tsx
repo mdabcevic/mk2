@@ -1,7 +1,7 @@
 function ContactMap() {
   return (
-    <div className="h-[300px] sm:h-[400px] lg:h-[445px] w-full sm:w-[700px] lg:w-[1200px] 
-      rounded-none sm:rounded-[150px] lg:rounded-l-[215px] 
+    <div className="h-[300px] sm:h-[400px] lg:h-[445px] w-full max-w-[500px] 
+      rounded-none sm:rounded-[10px] lg:rounded-l-[215px] 
       overflow-hidden border border-gray-300 
       translate-x-0 lg:translate-x-1/4 mt-8 lg:mt-0">
         <iframe

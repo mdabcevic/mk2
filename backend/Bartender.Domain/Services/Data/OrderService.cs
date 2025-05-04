@@ -52,17 +52,17 @@ public class OrderService(
             order.GuestSessionId = guest.Id;
         }
 
-        var orderDetails = await GetByIdAsync(order.TableId,true); //TODO: get by tableid or regular id?
+        
+        // create order transaction - either completes both order and items creation or rolls back completely on any failure 
+        var newOrder = await repository.CreateOrderWithItemsAsync(mapper.Map<Order>(order), newOrderItems);
+        var orderDetails = await GetByIdAsync(newOrder!.Id, true);
         var messageMenuItems = "";
         orderDetails?.Items.ForEach(i =>
         {
             messageMenuItems += $"{i.Count} x {i.MenuItem},";
         });
-        // create order transaction - either completes both order and items creation or rolls back completely on any failure 
-        var newOrder = await repository.CreateOrderWithItemsAsync(mapper.Map<Order>(order), newOrderItems);
-
         await notificationService.AddNotificationAsync(newOrder.Table,
-            NotificationFactory.ForOrder(newOrder.Table, newOrder.Id, $"Table {newOrder.Table.Label}: {messageMenuItems}", NotificationType.OrderCreated));
+            NotificationFactory.ForOrder(newOrder!.Table, newOrder.Id, $"Table {newOrder!.Table!.Label}: {messageMenuItems}", NotificationType.OrderCreated));
     }
 
     public async Task UpdateStatusAsync(int id, UpdateOrderStatusDto newStatus)

@@ -55,8 +55,9 @@ const PlaceTablesViewPublic = () => {
   }, []);
 
   return (
-    <div
-      className="flex flex-col w-full h-full min-h-screen items-center"
+    <div>
+      <div
+      className="flex flex-col w-full h-full min-h-[95vh] items-center"
     >
       <div className="max-w-[1500px] w-full mt-30">
         <Link to={AppPaths.public.placeDetails.replace(":id",placeId!)} className="ml-4 mt-4 mb-4 w-full">{t("go_back")}</Link>
@@ -98,8 +99,11 @@ const PlaceTablesViewPublic = () => {
           ))}
         </div>
       )}
-      {userRole !== UserRole.guest && userRole !== UserRole.manager && userRole !== UserRole.admin && <Footer />}
+      
     </div>
+    {userRole !== UserRole.guest && userRole !== UserRole.manager && userRole !== UserRole.admin && <Footer />}
+    </div>
+    
   );
 };
 

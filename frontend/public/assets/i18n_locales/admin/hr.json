@@ -3,6 +3,7 @@
     "menu_link_text": "Menu",
     "products": "Proizvodi",
     "logout": "Odjava",
+    "management":"Upravljanje",
     "lang_option_cro":"Hrvatski",
     "lang_option_eng":"Engleski",
     "quantity_text":"Količina",
@@ -13,6 +14,7 @@
     "save":"Spremi",
     "product":"Proizvod",
     "volume":"Pakiranje",
+    
     "description":"Opis",
     "availability":"Dostupnost",
     "selected_products":"Odabrani proizvodi",
@@ -33,7 +35,9 @@
         "product_name": "Naziv proizvoda",
         "volume": "Volumen",
         "category": "Kategorija",
-        "select_category": "Odaberite kategoriju"
+        "select_category": "Odaberite kategoriju",
+        "search":"Pretraži",
+        "custom":"Vlastiti"
     }
       
     

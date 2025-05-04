@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { orderService } from "../menu/order.service";
 import { AppPaths } from "../../../utils/routing/routes";
 import { Link } from "react-router-dom";
-import { t } from "i18next";
 import { notificationService } from "../../../utils/services/notification.service";
 import { authService } from "../../../utils/auth/auth.service";
 import { placeOrderService } from "../../../admin/pages/table-view/place-orders.service";
 import { orderStatusIndex } from "../../../utils/table-color";
+import { useTranslation } from "react-i18next";
 
 export interface OrderItem {
   menuItem: string;
@@ -21,7 +21,7 @@ export interface Order {
   table: string;
   note: string;
   paymentType: string;
-  totalPrice: number;
+  totalPrice: number; 
   status: string;
   customer: string | null;
   createdAt: string;
@@ -30,7 +30,8 @@ const passCode = authService.passCode();
 function MyOrders({ placeId }: { placeId: string }) {
   const [myOrders, setMyOrders] = useState<Order[]>([]);
   const [showOrders, setShowOrders] = useState(false);
-
+  const { t } = useTranslation("public");
+  
   const fetchMyOrders = async () => {
     const response = await orderService.getMyOrders();
     setMyOrders(response);

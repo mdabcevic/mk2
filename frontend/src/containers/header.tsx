@@ -1,8 +1,9 @@
-import { useState } from "react";
+import {  useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, } from "react-router-dom";
 import { languages } from "../utils/languages";
 import { AppPaths } from "../utils/routing/routes";
+
 
 const HeaderComponent = () => {
   const { t, i18n } = useTranslation("public");
@@ -16,6 +17,8 @@ const HeaderComponent = () => {
     setSelectedLang(lang);
     setShowLanguages(false);
   };
+  
+
 
   return (
     <header className="">
