@@ -7,6 +7,7 @@ using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
+using Bartender.Domain.utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 
@@ -17,267 +18,188 @@ public class ProductService(
     ICurrentUserContext currentUser,
     IMapper mapper) : IProductService
 {
-    private const string GenericErrorMessage = "An unexpected error occurred. Please try again later.";
-    public async Task<ServiceResult<ProductDto?>> GetByIdAsync(int id)
+    public async Task<ProductDto?> GetByIdAsync(int id)
     {
-        try
+        var user = await currentUser.GetCurrentUserAsync();
+        var product = await repository.GetByIdAsync(id, true);
+
+        if (product == null)
+            throw new ProductNotFoundException(id);
+
+        if (!VerifyProductAccess(user!, product.BusinessId, false))
         {
-            var user = await currentUser.GetCurrentUserAsync();
-            var product = await repository.GetByIdAsync(id, true);
+            throw new AuthorizationException(
+                message: "Access to product denied",
+                logMessage: $"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to access product from Business {product.BusinessId}.");
+        }
 
-            if (product == null)
-                return ServiceResult<ProductDto?>.Fail($"Product with id {id} not found", ErrorType.NotFound);
+        var dto = mapper.Map<ProductDto>(product);
+        return dto;
+    }
 
-            if (!VerifyProductAccess(user!, product.BusinessId, false))
+    public async Task<List<ProductDto>> GetAllAsync(bool? exclusive = null)
+    {
+        var user = await currentUser.GetCurrentUserAsync();
+
+        Expression<Func<Product, bool>>? filter = null;
+
+        if (user!.Role != EmployeeRole.admin && exclusive == null)
+            filter = p => p.BusinessId == user.Place!.BusinessId || p.BusinessId == null;
+
+        else if (exclusive == true)
+        {
+            if (user!.Role == EmployeeRole.admin)
+                filter = p => p.BusinessId != null;
+            else
+                filter = p => p.BusinessId == user.Place!.BusinessId;
+        }
+
+        else if (exclusive == false)
+            filter = p => p.BusinessId == null;    
+
+        var products = await repository.GetFilteredAsync(
+            includeNavigations: true,
+            filterBy: filter,
+            orderBy: p => p.Name);
+
+        var dto = mapper.Map<List<ProductDto>>(products);
+        return dto;
+    }
+
+    public async Task<List<GroupedProductsDto>> GetAllGroupedAsync(bool? exclusive = null)
+    {
+        var user = await currentUser.GetCurrentUserAsync();
+
+        var groupedProducts = await categoryRepository.QueryIncluding()
+            .Select(g => new GroupedProductsDto
             {
-                logger.LogWarning(
-                    "Access denied: User {UserId} (Business: {UserBusinessId}) attempted to access product from Business {ProductBusinessId}.",
-                    user!.Id,
-                    user.Place!.BusinessId,
-                    product.BusinessId
-                );
+                Category = g.Name,
+                Products = g.Products
+                    .Where(p =>
+                        exclusive == null && user!.Role == EmployeeRole.admin ||
+                        exclusive == null && (p.BusinessId == user.Place!.BusinessId || p.BusinessId == null) ||
+                        exclusive == true && user!.Role == EmployeeRole.admin && p.BusinessId != null ||
+                        exclusive == true && p.BusinessId == user.Place!.BusinessId ||
+                        exclusive == false && p.BusinessId == null
+                    )
+                    .OrderBy(p => p.Name)
+                    .Select(p => mapper.Map<ProductBaseDto>(p))
+                    .ToList()
+            })
+            .Where(g => g.Products.Any())
+            .ToListAsync();
 
-                return ServiceResult<ProductDto?>.Fail($"Cross-business access denied.", ErrorType.NotFound);
-            }
-
-            var dto = mapper.Map<ProductDto>(product);
-            return ServiceResult<ProductDto?>.Ok(dto);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An unexpected error occurred while fetching the product.");
-            return ServiceResult<ProductDto?>.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+        return groupedProducts;
     }
 
-    public async Task<ServiceResult<List<ProductDto>>> GetAllAsync(bool? exclusive = null)
+    public async Task<List<ProductBaseDto>> GetFilteredAsync(bool? exclusive = null, string? name = null, string? category = null)
     {
-        try
+        var user = await currentUser.GetCurrentUserAsync();
+
+        var query = repository.QueryIncluding(p => p.Category);
+
+
+        Expression<Func<Product, bool>>? filter = null;
+
+        if (exclusive == null && user!.Role != EmployeeRole.admin)
+            filter = p => p.BusinessId == user.Place!.BusinessId || p.BusinessId == null;
+
+        else if (exclusive == true)
         {
-            var user = await currentUser.GetCurrentUserAsync();
-
-            Expression<Func<Product, bool>>? filter = null;
-
-            if (user!.Role != EmployeeRole.admin && exclusive == null)
-                filter = p => p.BusinessId == user.Place!.BusinessId || p.BusinessId == null;
-
-            else if (exclusive == true)
-            {
-                if (user!.Role == EmployeeRole.admin)
-                    filter = p => p.BusinessId != null;
-                else
-                    filter = p => p.BusinessId == user.Place!.BusinessId;
-            }
-
-            else if (exclusive == false)
-                filter = p => p.BusinessId == null;    
-
-            var products = await repository.GetFilteredAsync(
-                includeNavigations: true,
-                filterBy: filter,
-                orderBy: p => p.Name);
-
-            var dto = mapper.Map<List<ProductDto>>(products);
-            return ServiceResult<List<ProductDto>>.Ok(dto);
+            if (user!.Role == EmployeeRole.admin)
+                filter = p => p.BusinessId != null;
+            else
+                filter = p => p.BusinessId == user.Place!.BusinessId;
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An unexpected error occurred while fetching the products.");
-            return ServiceResult<List<ProductDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+
+        else if (exclusive == false)
+            filter = p => p.BusinessId == null;
+
+        if (filter != null)
+            query = query.Where(filter);
+
+        query = query.Where(p =>
+            (name == null || EF.Functions.ILike(p.Name, $"%{name}%")) &&
+            (category == null || EF.Functions.ILike(p.Category.Name, $"%{category}%")));
+
+        var products = await query.ToListAsync();
+
+        var dto = mapper.Map<List<ProductBaseDto>>(products);
+        return dto;
     }
 
-    public async Task<ServiceResult<List<GroupedProductsDto>>> GetAllGroupedAsync(bool? exclusive = null)
+    public async Task AddAsync(UpsertProductDto product)
     {
-        try
-        {
-            var user = await currentUser.GetCurrentUserAsync();
+        var user = await currentUser.GetCurrentUserAsync();
 
-            var groupedProducts = await categoryRepository.QueryIncluding()
-                .Select(g => new GroupedProductsDto
-                {
-                    Category = g.Name,
-                    Products = g.Products
-                        .Where(p =>
-                            exclusive == null && user!.Role == EmployeeRole.admin ||
-                            exclusive == null && (p.BusinessId == user.Place!.BusinessId || p.BusinessId == null) ||
-                            exclusive == true && user!.Role == EmployeeRole.admin && p.BusinessId != null ||
-                            exclusive == true && p.BusinessId == user.Place!.BusinessId ||
-                            exclusive == false && p.BusinessId == null
-                        )
-                        .OrderBy(p => p.Name)
-                        .Select(p => mapper.Map<ProductBaseDto>(p))
-                        .ToList()
-                })
-                .Where(g => g.Products.Any())
-                .ToListAsync();
+        if (user!.Role != EmployeeRole.admin)
+            product.BusinessId = user!.Place!.BusinessId;
 
-            return ServiceResult<List<GroupedProductsDto>>.Ok(groupedProducts);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An unexpected error occurred while fetching the products.");
-            return ServiceResult<List<GroupedProductsDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+        await ValidateProductAsync(product);
+
+        var newProduct = mapper.Map<Product>(product);
+
+        await repository.AddAsync(newProduct);
+        logger.LogInformation(
+            "Product created: {ProductName} {ProductVolume}, BusinessId: {BusinessId}", product.Name, product.Volume, product.BusinessId);
     }
 
-    public async Task<ServiceResult<List<ProductBaseDto>>> GetFilteredAsync(bool? exclusive = null, string? name = null, string? category = null)
+    public async Task UpdateAsync(int id, UpsertProductDto product)
     {
-        try
+        var user = await currentUser.GetCurrentUserAsync();
+
+        var updateProduct = await repository.GetByIdAsync(id);
+        if (updateProduct == null)
+            throw new ProductNotFoundException(id);
+
+        if (product.BusinessId != updateProduct.BusinessId && user!.Role != EmployeeRole.admin)
+            product.BusinessId = updateProduct.BusinessId;
+
+        if (!VerifyProductAccess(user!, product.BusinessId, true))
         {
-            var user = await currentUser.GetCurrentUserAsync();
-
-            var query = repository.QueryIncluding(p => p.Category);
-
-
-            Expression<Func<Product, bool>>? filter = null;
-
-            if (exclusive == null && user!.Role != EmployeeRole.admin)
-                filter = p => p.BusinessId == user.Place!.BusinessId || p.BusinessId == null;
-
-            else if (exclusive == true)
-            {
-                if (user!.Role == EmployeeRole.admin)
-                    filter = p => p.BusinessId != null;
-                else
-                    filter = p => p.BusinessId == user.Place!.BusinessId;
-            }
-
-            else if (exclusive == false)
-                filter = p => p.BusinessId == null;
-
-            if (filter != null)
-                query = query.Where(filter);
-
-            query = query.Where(p =>
-                (name == null || EF.Functions.ILike(p.Name, $"%{name}%")) &&
-                (category == null || EF.Functions.ILike(p.Category.Name, $"%{category}%")));
-
-            var products = await query.ToListAsync();
-
-            var dto = mapper.Map<List<ProductBaseDto>>(products);
-            return ServiceResult<List<ProductBaseDto>>.Ok(dto);
+            throw new AuthorizationException(
+                message: "Access to product denied",
+                logMessage: $"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to update product from Business {product.BusinessId}.");
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An unexpected error occurred while fetching the products.");
-            return ServiceResult<List<ProductBaseDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+
+        await ValidateProductAsync(product,id);  
+
+        mapper.Map(product, updateProduct);
+
+        await repository.UpdateAsync(updateProduct);
+        logger.LogInformation("Product updated with ID: {ProductId}", id);
     }
 
-    public async Task<ServiceResult> AddAsync(UpsertProductDto product)
+    public async Task DeleteAsync(int id)
     {
-        try
+        var product = await repository.GetByIdAsync(id);
+        if (product == null)
+            throw new ProductNotFoundException(id);
+
+        var user = await currentUser.GetCurrentUserAsync();
+        if (user!.Role != EmployeeRole.admin && product.BusinessId != user!.Place!.BusinessId)
         {
-            var user = await currentUser.GetCurrentUserAsync();
-
-            if (user!.Role != EmployeeRole.admin)
-                product.BusinessId = user!.Place!.BusinessId;
-
-            var validationResult = await ValidateProductAsync(product);
-
-            if (!validationResult.Success)
-                return validationResult;
-
-            var newProduct = mapper.Map<Product>(product);
-
-            await repository.AddAsync(newProduct);
-            logger.LogInformation(
-                "Product created: {ProductName} {ProductVolume}, BusinessId: {BusinessId}", product.Name, product.Volume, product.BusinessId);
-            return ServiceResult.Ok();
+            throw new AuthorizationException(
+                message: "Access to product denied",
+                logMessage: $"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to delete product from Business {product.BusinessId}.");
         }
-        catch (Exception ex) {
-            logger.LogError(ex, "An unexpected error occurred while adding a product.");
-            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+
+        await repository.DeleteAsync(product);
+        logger.LogInformation("Product deleted with ID: {ProductId}", id);
     }
 
-    public async Task<ServiceResult> UpdateAsync(int id, UpsertProductDto product)
+    public async Task<List<ProductCategoryDto>> GetProductCategoriesAsync()
     {
-        try
-        {
-            var user = await currentUser.GetCurrentUserAsync();
-
-            var updateProduct = await repository.GetByIdAsync(id);
-            if (updateProduct == null)
-                return ServiceResult.Fail($"Product with id {id} not found", ErrorType.NotFound);
-
-            if (product.BusinessId != updateProduct.BusinessId && user!.Role != EmployeeRole.admin)
-                product.BusinessId = updateProduct.BusinessId;
-
-            if (!VerifyProductAccess(user!, product.BusinessId, true))
-            {
-                logger.LogWarning("Access denied: User {UserId} (Business: {UserBusinessId}) attempted to update product from Business {ProductBusinessId}.",
-                    user!.Id, user.Place!.BusinessId, product.BusinessId);
-                return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
-            }
-
-            var validationResult = await ValidateProductAsync(product,id);
-
-            if (!validationResult.Success)
-                return validationResult;
-    
-
-            mapper.Map(product, updateProduct);
-
-            await repository.UpdateAsync(updateProduct);
-            logger.LogInformation("Product updated with ID: {ProductId}", id);
-            return ServiceResult.Ok();
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An unexpected error occurred while updating a product.");
-            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
+        var categories = await categoryRepository.GetAllAsync();
+        var dto = mapper.Map<List<ProductCategoryDto>>(categories);
+        return dto;
     }
 
-    public async Task<ServiceResult> DeleteAsync(int id)
-    {
-        try
-        {
-            var product = await repository.GetByIdAsync(id);
-            if (product == null)
-                return ServiceResult.Fail($"Product with id {id} not found", ErrorType.NotFound);
-
-            var user = await currentUser.GetCurrentUserAsync();
-            if (user!.Role != EmployeeRole.admin && product.BusinessId != user!.Place!.BusinessId)
-            {
-                logger.LogWarning("Access denied: User {UserId} (Business: {UserBusinessId}) attempted to delete product from Business {ProductBusinessId}.",
-                    user.Id, user.Place!.BusinessId, product.BusinessId);
-                return ServiceResult.Fail("Product can only be deleted by owning business or administrators.", ErrorType.Unknown);
-            }
-
-            await repository.DeleteAsync(product);
-            logger.LogInformation("Product deleted with ID: {ProductId}", id);
-            return ServiceResult.Ok();
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An unexpected error occurred while deleting a product.");
-            return ServiceResult.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
-    }
-
-    public async Task<ServiceResult<List<ProductCategoryDto>>> GetProductCategoriesAsync()
-    {
-        try
-        {
-            var categories = await categoryRepository.GetAllAsync();
-            var dto = mapper.Map<List<ProductCategoryDto>>(categories);
-            return ServiceResult<List<ProductCategoryDto>>.Ok(dto);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An unexpected error occurred while fetching product categories.");
-            return ServiceResult<List<ProductCategoryDto>>.Fail(GenericErrorMessage, ErrorType.Unknown);
-        }
-    }
-
-    private async Task<ServiceResult> ValidateProductAsync(UpsertProductDto product, int? id = null)
+    private async Task ValidateProductAsync(UpsertProductDto product, int? id = null)
     {
         bool categoryExists = await categoryRepository.ExistsAsync(c => c.Id == product.CategoryId);
         if (!categoryExists)
-            return ServiceResult.Fail($"Product category id {product.CategoryId} doesn't exist", ErrorType.Validation);
+            throw new NotFoundException($"Product category id {product.CategoryId} not found");
 
         var existingProduct = await repository.ExistsAsync(p =>
             (id == null || p.Id != id) &&
@@ -287,9 +209,7 @@ public class ProductService(
              p.Volume != null && product.Volume != null && p.Volume.ToLower() == product.Volume.ToLower()));
 
         if (existingProduct)
-            return ServiceResult.Fail($"Product with name '{product.Name}' and volume '{product.Volume}' already exists.", ErrorType.Conflict);
-
-        return ServiceResult.Ok();
+            throw new ConflictException($"Product with name '{product.Name}' and volume '{product.Volume}' already exists.");
     }
 
     private static bool VerifyProductAccess(Staff user, int? businessId, bool upsert)
