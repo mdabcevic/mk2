@@ -3,6 +3,7 @@ using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Product;
 using Bartender.Domain.Interfaces;
+using Bartender.Domain.Repositories;
 using Bartender.Domain.Services.Data;
 using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
@@ -14,22 +15,24 @@ namespace BartenderTests;
 [TestFixture]
 public class ProductServiceReadTests
 {
-    private IRepository<Product> _repository;
+    private IProductRepository _repository;
     private IRepository<ProductCategory> _categoryRepository;
     private IMapper _mapper;
     private ILogger<ProductService> _logger;
     private ICurrentUserContext _currentUser;
+    private IValidationService _validationService;
     private ProductService _productService;
 
     [SetUp]
     public void SetUp()
     {
-        _repository = Substitute.For<IRepository<Product>>();
+        _repository = Substitute.For<IProductRepository>();
         _categoryRepository = Substitute.For<IRepository<ProductCategory>>();
         _mapper = Substitute.For<IMapper>();
         _logger = Substitute.For<ILogger<ProductService>>();
         _currentUser = Substitute.For<ICurrentUserContext>();
-        _productService = new ProductService(_repository, _categoryRepository, _logger, _currentUser, _mapper);
+        _validationService = Substitute.For<IValidationService>();
+        _productService = new ProductService(_repository, _categoryRepository, _logger, _currentUser, _validationService, _mapper);
     }
 
     [Test]
@@ -42,6 +45,7 @@ public class ProductServiceReadTests
         var staff = TestDataFactory.CreateValidStaff(businessid: 1);
         _currentUser.GetCurrentUserAsync().Returns(staff);
         _repository.GetByIdAsync(1, true).Returns(product);
+        _validationService.VerifyProductAccess(staff.Place!.BusinessId, false, staff).Returns(true);
         _mapper.Map<ProductDto>(product).Returns(productDto);
 
         // Act
@@ -111,13 +115,12 @@ public class ProductServiceReadTests
     {
         TestDataFactory.CreateValidProductDto(1, name: "Product 1", volume: "0.2L"),
         TestDataFactory.CreateValidProductDto(2, name: "Product 2", volume: "0.3L")
-    };
+        };
 
-        _repository.GetFilteredAsync(
-            includeNavigations: true,
-            filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
-            orderBy: Arg.Any<Expression<Func<Product, object>>>()
-        ).Returns(products);
+        _repository.GetAllProductsAsync(
+            businessId: 1,
+            exclusive: null,
+            isAdmin: false).Returns(products);
 
         _mapper.Map<List<ProductDto>>(products).Returns(productDtos);
 
@@ -243,10 +246,10 @@ public class ProductServiceReadTests
 
         var emptyList = new List<Product>();
 
-        _repository.GetFilteredAsync(
-            includeNavigations: true,
-            filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
-            orderBy: Arg.Any<Expression<Func<Product, object>>>()
+        _repository.GetAllProductsAsync(
+            businessId: staff.Place!.BusinessId,
+            exclusive: null,
+            isAdmin: false
         ).Returns(emptyList);
 
         _mapper.Map<List<ProductDto>>(emptyList).Returns(new List<ProductDto>());
@@ -257,10 +260,10 @@ public class ProductServiceReadTests
         // Assert
         Assert.That(result, Is.Empty);
 
-        await _repository.Received(1).GetFilteredAsync(
-            includeNavigations: true,
-            filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
-            orderBy: Arg.Any<Expression<Func<Product, object>>>()
+        await _repository.Received(1).GetAllProductsAsync(
+            businessId: staff.Place!.BusinessId,
+            exclusive: null,
+            isAdmin: false
         );
 
         _mapper.Received(1).Map<List<ProductDto>>(emptyList);
