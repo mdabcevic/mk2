@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO.Table;
 using Bartender.Data;
 using Bartender.Domain.DTO;
+using Bartender.Domain.utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 
@@ -25,13 +26,14 @@ public class TableInteractionService(
     /// </summary>
     /// <param name="salt">Rotating token used for QR - also unique identifier for table.</param>
     /// <returns></returns>
-    public async Task<ServiceResult<TableScanDto>> GetBySaltAsync(string salt, string? passphrase = null)
+    public async Task<TableScanDto> GetBySaltAsync(string salt, string? passphrase = null)
     {
         var table = await repository.GetByKeyAsync(t => t.QrSalt == salt);
         if (table is null)
         {
-            logger.LogWarning("QR lookup failed: Stale or invalid Token was used: {Token}", salt);
-            return ServiceResult<TableScanDto>.Fail("Invalid QR code", ErrorType.NotFound);
+            throw new NotFoundException(
+                message: "Invalid QR code",
+                logMessage: $"QR lookup failed: Stale or invalid Token was used: {salt}");
         }
 
         return currentUser.IsGuest
@@ -39,22 +41,26 @@ public class TableInteractionService(
             : await HandleStaffScanAsync(table);
     }
 
-    public async Task<ServiceResult> ChangeStatusAsync(string token, TableStatus newStatus)
+    public async Task ChangeStatusAsync(string token, TableStatus newStatus)
     {
         // Should it also use GetValidTableBySalt
         var table = await repository.GetByKeyAsync(t => t.QrSalt == token);
         if (table is null)
         {
-            logger.LogWarning("ChangeStatus failed: Table {Token} not found", token);
-            return ServiceResult.Fail("Table not found", ErrorType.NotFound);
+            throw new TableNotFoundException(token);
         }
 
-        return currentUser.IsGuest
-            ? await HandleGuestStatusChangeAsync(table, newStatus, currentUser.GetRawToken()!) // not table access token, user access token for session...
-            : await HandleStaffStatusChangeAsync(table, newStatus);
+        if (currentUser.IsGuest)
+        {
+            await HandleGuestStatusChangeAsync(table, newStatus, currentUser.GetRawToken()!);  // not table access token, user access token for session...
+        }
+        else
+        {
+            await HandleStaffStatusChangeAsync(table, newStatus);
+        }
     }
 
-    private async Task<ServiceResult<TableScanDto>> HandleGuestScanAsync(Table table, string? passphrase)
+    private async Task<TableScanDto> HandleGuestScanAsync(Table table, string? passphrase)
     {
         if (table.IsDisabled)
         {
@@ -63,7 +69,7 @@ public class TableInteractionService(
             await notificationService.AddNotificationAsync(table,
                 NotificationFactory.ForTableStatus(table, $"Staff attention needed at Disabled table {table.Label}.", NotificationType.StaffNeeded));
 
-            return ServiceResult<TableScanDto>.Fail("QR for this table is currently unavailable. Waiter is coming.", ErrorType.Unauthorized);
+            throw new UnauthorizedAccessException("QR for this table is currently unavailable. Waiter is coming.");
         }
 
         // 1. Resume if guest already has a valid session on THIS table
@@ -74,7 +80,7 @@ public class TableInteractionService(
             var dto = mapper.Map<TableScanDto>(table);
             dto.GuestToken = token;
             dto.IsSessionEstablished = true;
-            return ServiceResult<TableScanDto>.Ok(dto);
+            return dto;
         }
 
         // 2. Prevent starting a session if guest is active elsewhere
@@ -84,8 +90,9 @@ public class TableInteractionService(
 
             if (activeSession != null)
             {
-                logger.LogWarning("Guest tried to join Table {CurrentTableId} while already active on Table {OtherTableId}.", table.Id, activeSession.TableId);
-                return ServiceResult<TableScanDto>.Fail("You already have an active session on another table. Mark it as complete before next attempt.", ErrorType.Conflict);
+                throw new ConflictException(
+                    message: "You already have an active session on another table. Mark it as complete before next attempt.",
+                    logMessage: $"Guest tried to join Table {table.Id} while already active on Table {activeSession.TableId}.");
             }
         }
 
@@ -98,44 +105,44 @@ public class TableInteractionService(
     }
 
     //TODO: add check for unpaid receipts before emptying table.
-    private async Task<ServiceResult> HandleGuestStatusChangeAsync(Table table, TableStatus newStatus, string token)
+    private async Task HandleGuestStatusChangeAsync(Table table, TableStatus newStatus, string token)
     {
         var accessToken = currentUser.GetRawToken();
         if (string.IsNullOrWhiteSpace(accessToken))
         {
             logger.LogWarning("Guest attempted to change table {Id} without token", token);
-            return ServiceResult.Fail("Missing authentication token.", ErrorType.Unauthorized);
+            throw new AuthorizationException("Missing authentication token.");
         }
 
         if (!await tableSessionService.HasActiveSessionAsync(table.Id, token))
         {
             logger.LogWarning("Invalid session for guest trying to change status on Table {Id}", table.Id);
-            return ServiceResult.Fail("Unauthorized or expired session.", ErrorType.Unauthorized);
+            throw new AuthorizationException("Unauthorized or expired session.");
         }
 
         if (newStatus != TableStatus.empty)
         {
             logger.LogWarning("Guest tried to set status to {Status} on Table {Id} — only 'empty' is allowed", newStatus, table.Id);
-            return ServiceResult.Fail("Guests can only free tables.", ErrorType.Unauthorized);
+            throw new AuthorizationException("Guests can only free tables.");
         }
 
         if (table.Status == TableStatus.empty)
         {
             logger.LogInformation("Guest attempted to free an already empty Table {Id}", table.Id);
-            return ServiceResult.Ok();
+            return;
         }
 
         await ApplyEmptyStatusAsync(table); //TODO: look into applying orders as complete
-        return ServiceResult.Ok();
+        return;
     }
 
-    private async Task<ServiceResult> HandleStaffStatusChangeAsync(Table table, TableStatus newStatus)
+    private async Task HandleStaffStatusChangeAsync(Table table, TableStatus newStatus)
     {
         var user = await currentUser.GetCurrentUserAsync();
         if (!await IsSameBusinessAsync(table.PlaceId))
         {
             logger.LogWarning("Unauthorized staff (User {UserId}) tried to change status of Table {Id}", user!.Id, table.Id);
-            return ServiceResult.Fail("Unauthorized", ErrorType.Unauthorized);
+            throw new UnauthorizedBusinessAccessException();
         }
 
         if (newStatus == TableStatus.empty)
@@ -146,15 +153,15 @@ public class TableInteractionService(
         logger.LogInformation("User {UserId} changed Table {Id} status to {NewStatus}", user!.Id, table.Id, newStatus);
         table.Status = newStatus;
         await repository.UpdateAsync(table);
-        return ServiceResult.Ok();
+        return;
     }
 
-    private async Task<ServiceResult<TableScanDto>> HandleStaffScanAsync(Table table)
+    private async Task<TableScanDto> HandleStaffScanAsync(Table table)
     {
         table.Status = TableStatus.occupied;
         await repository.UpdateAsync(table);
         logger.LogInformation("Table {Id} marked as occupied by staff.", table.Id);
-        return ServiceResult<TableScanDto>.Ok(mapper.Map<TableScanDto>(table));
+        return mapper.Map<TableScanDto>(table);
     }
 
     private async Task<bool> IsSameBusinessAsync(int placeId) //TODO: use validation service
@@ -170,7 +177,7 @@ public class TableInteractionService(
         return new string([.. Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)])]);
     }
 
-    private async Task<ServiceResult<TableScanDto>> StartFirstSession(Table table)
+    private async Task<TableScanDto> StartFirstSession(Table table)
     {
         table.Status = TableStatus.occupied; //TODO: background job that empties tables with no active group sessions? Or wrap into transaction?
         await repository.UpdateAsync(table);
@@ -187,17 +194,17 @@ public class TableInteractionService(
         await notificationService.AddNotificationAsync(table,
             NotificationFactory.ForTableStatus(table, $"New guest at table {table.Label}.", NotificationType.GuestJoinedTable));
 
-        return ServiceResult<TableScanDto>.Ok(dto);
+        return dto;
     }
 
-    private async Task<ServiceResult<TableScanDto>> TryJoinExistingSession(Table table, string? submittedPassphrase)
+    private async Task<TableScanDto> TryJoinExistingSession(Table table, string? submittedPassphrase)
     {
         if (string.IsNullOrWhiteSpace(submittedPassphrase))
         {
             var dto = mapper.Map<TableScanDto>(table);
             dto.Message = "This table is currently occupied. Enter the passphrase to join.";
             dto.IsSessionEstablished = false;
-            return ServiceResult<TableScanDto>.Ok(dto); //Token should be null / empty here i think.
+            return dto; //Token should be null / empty here i think.
         }
            
         try
@@ -211,12 +218,13 @@ public class TableInteractionService(
             await notificationService.AddNotificationAsync(table,
                 NotificationFactory.ForTableStatus(table, $"New guest at table {table.Label}.", NotificationType.GuestJoinedTable));
 
-            return ServiceResult<TableScanDto>.Ok(dto);
+            return dto;
         }
         catch (InvalidOperationException ex)
         {
             logger.LogWarning(ex, "Join failed: incorrect passphrase for table {TableId}.", table.Id);
-            return ServiceResult<TableScanDto>.Fail("Incorrect passphrase. Please ask someone at the table.", ErrorType.Unauthorized);
+            throw new UnauthorizedAccessException("Incorrect passphrase. Please ask someone at the table.");
+
         }
     }
 

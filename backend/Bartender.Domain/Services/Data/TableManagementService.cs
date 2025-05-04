@@ -3,6 +3,7 @@ using Bartender.Data.Models;
 using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
+using Bartender.Domain.utility.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace Bartender.Domain.Services.Data;
@@ -18,36 +19,35 @@ public class TableManagementService(
     /// Gets tables for current user’s place
     /// </summary>
     /// <returns></returns>
-    public async Task<ServiceResult<List<TableDto>>> GetAllAsync()
+    public async Task<List<TableDto>> GetAllAsync()
     {
         var user = await currentUser.GetCurrentUserAsync();
         var tables = await repository.GetAllByPlaceAsync(user!.PlaceId);
         var result = mapper.Map<List<TableDto>>(tables);
 
-        return ServiceResult<List<TableDto>>.Ok(result);
+        return result;
     }
 
-    public async Task<ServiceResult<List<BaseTableDto>>> GetByPlaceId(int placeId)
+    public async Task<List<BaseTableDto>> GetByPlaceId(int placeId)
     {
         var tables = await repository.GetActiveByPlaceAsync(placeId);
         var result = mapper.Map<List<BaseTableDto>>(tables);
-        return ServiceResult<List<BaseTableDto>>.Ok(result);
+        return result;
     }
 
-    public async Task<ServiceResult<TableDto>> GetByLabelAsync(string label)
+    public async Task<TableDto> GetByLabelAsync(string label)
     {
         var user = await currentUser.GetCurrentUserAsync();
         var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
 
         if (table is null)
         {
-            logger.LogWarning("Table with label '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
-            return ServiceResult<TableDto>.Fail("Table not found", ErrorType.NotFound);
+            throw new TableNotFoundException(label:  label);
         }
-        return ServiceResult<TableDto>.Ok(mapper.Map<TableDto>(table));
+        return mapper.Map<TableDto>(table);
     }
 
-    public async Task<ServiceResult> BulkUpsertAsync(List<UpsertTableDto> dtoList)
+    public async Task BulkUpsertAsync(List<UpsertTableDto> dtoList)
     {
         var duplicatesInInput = dtoList
             .GroupBy(dto => dto.Label, StringComparer.OrdinalIgnoreCase)
@@ -57,8 +57,7 @@ public class TableManagementService(
 
         if (duplicatesInInput.Count != 0)
         {
-            logger.LogWarning("Duplicate labels in bulk upsert input: {Labels}", string.Join(", ", duplicatesInInput));
-            return ServiceResult.Fail("Duplicate labels found in input: " + string.Join(", ", duplicatesInInput), ErrorType.Conflict);
+            throw new ConflictException("Duplicate labels found in input: " + string.Join(", ", duplicatesInInput));
         }
 
         var user = await currentUser.GetCurrentUserAsync();
@@ -90,55 +89,54 @@ public class TableManagementService(
             await repository.AddMultipleAsync(toInsert);
         logger.LogInformation("Bulk updated {Count} tables for place {PlaceId}", toUpdate.Count, user!.PlaceId);
         logger.LogInformation("Bulk inserted {Count} tables for place {PlaceId}", toInsert.Count, user!.PlaceId);
-        return ServiceResult.Ok();
+        return;
     }
 
-    public async Task<ServiceResult> DeleteAsync(string label)
+    public async Task DeleteAsync(string label)
     {
         var user = await currentUser.GetCurrentUserAsync();
         var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
 
         if (table is null)
         {
-            logger.LogWarning("Delete failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
-            return ServiceResult.Fail("Table not found", ErrorType.NotFound);
+            throw new TableNotFoundException(label: label);
         }
         await repository.DeleteAsync(table);
         logger.LogInformation("Table '{Label}' deleted by User {UserId}", label, user!.Id);
-        return ServiceResult.Ok();
+        return;
     }
 
-    public async Task<ServiceResult<string>> RegenerateSaltAsync(string label)
+    public async Task<string> RegenerateSaltAsync(string label)
     {
         var user = await currentUser.GetCurrentUserAsync();
         var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
 
         if (table is null)
         {
-            logger.LogWarning("Resalt failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
-            return ServiceResult<string>.Fail("Table not found", ErrorType.NotFound);
+            throw new TableNotFoundException(label: label);
+            //logger.LogWarning("Resalt failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
         }
 
         table.QrSalt = Guid.NewGuid().ToString("N");
         await repository.UpdateAsync(table);
         logger.LogInformation("Salt rotated for Table '{Label}' by User {UserId}", label, user!.Id);
-        return ServiceResult<string>.Ok(table.QrSalt);
+        return table.QrSalt;
     }
 
-    public async Task<ServiceResult> SwitchDisabledAsync(string label, bool flag)
+    public async Task SwitchDisabledAsync(string label, bool flag)
     {
         var user = await currentUser.GetCurrentUserAsync();
         var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
 
         if (table is null)
         {
-            logger.LogWarning("Disable toggle failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
-            return ServiceResult.Fail("Table not found", ErrorType.NotFound);
+            //logger.LogWarning("Disable toggle failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
+            throw new TableNotFoundException(label: label);
         }
 
         table.IsDisabled = flag;
         await repository.UpdateAsync(table);
         logger.LogInformation("Table '{Label}' disabled state set to {Flag} by Staff {UserId}", label, flag, user!.Id);
-        return ServiceResult.Ok();
+        return;
     }
 }

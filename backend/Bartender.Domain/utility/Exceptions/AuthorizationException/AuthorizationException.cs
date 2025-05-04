@@ -17,7 +17,7 @@ public class AuthorizationException : BaseException
     public override string GetLogMessage()
     {
         return string.IsNullOrEmpty(LogMessage) ? 
-            $"Cross-entity request detected" :
+            Message :
             LogMessage;
     }
 }
