@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
 
 namespace Bartender.Domain.utility.ExceptionHandlers;
 
@@ -9,30 +10,18 @@ public class AuthorizationExceptionHandler(ILogger<AuthorizationExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        if (exception is AuthorizationException authorizationException)
-        {
-            logger.LogError(exception, authorizationException.GetLogMessage());
+        if (exception is not (AuthorizationException or UnauthorizedAccessException))
+            return false;
 
-            var additionalData = authorizationException.Data["AdditionalData"];
-            var response = new ErrorResponse(exception.Message, StatusCodes.Status401Unauthorized, additionalData);
+        var message = exception is AuthorizationException authEx ? authEx.GetLogMessage() : exception.Message ?? exception.GetType().Name;
+        var data = exception is AuthorizationException ? exception.Data["AdditionalData"] : null;
 
-            httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
-            
+        logger.LogWarning(exception, message);
+        httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        var response = new ErrorResponse(message, StatusCodes.Status401Unauthorized, data);
 
-            return true;
-        }
-        else if (exception is UnauthorizedAccessException)
-        {
-            logger.LogError(exception, exception.Message ?? exception.GetType().Name);
-            var response = new ErrorResponse(exception.Message ?? exception.GetType().Name, StatusCodes.Status401Unauthorized);
+        await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
 
-            httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
-
-            return true;
-        }
-
-        return false;
+        return true;
     }
 }

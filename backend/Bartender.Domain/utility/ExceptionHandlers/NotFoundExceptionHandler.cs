@@ -11,7 +11,7 @@ public class NotFoundExceptionHandler(ILogger<NotFoundExceptionHandler> logger) 
     {
         if (exception is NotFoundException notFoundException)
         {
-            logger.LogError(exception, notFoundException.GetLogMessage());
+            logger.LogWarning(exception, notFoundException.GetLogMessage());
 
             var additionalData = notFoundException.Data["AdditionalData"];
             var response = new ErrorResponse(exception.Message, StatusCodes.Status404NotFound, additionalData);

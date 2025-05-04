@@ -1,6 +1,5 @@
 ﻿using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.utility.Exceptions;
 using Microsoft.Extensions.Logging;

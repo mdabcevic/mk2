@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.utility.Exceptions;
@@ -42,7 +41,7 @@ public class TableManagementService(
 
         if (table is null)
         {
-            throw new TableNotFoundException(label:  label);
+            throw new TableNotFoundException(label: label);
         }
         return mapper.Map<TableDto>(table);
     }
@@ -113,8 +112,8 @@ public class TableManagementService(
 
         if (table is null)
         {
-            throw new TableNotFoundException(label: label);
-            //logger.LogWarning("Resalt failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
+            throw new TableNotFoundException(label: label)
+                .WithLogMessage($"Resalt failed: Table '{label}' not found for Place {user!.PlaceId}");
         }
 
         table.QrSalt = Guid.NewGuid().ToString("N");
@@ -130,8 +129,8 @@ public class TableManagementService(
 
         if (table is null)
         {
-            //logger.LogWarning("Disable toggle failed: Table '{Label}' not found for Place {PlaceId}", label, user!.PlaceId);
-            throw new TableNotFoundException(label: label);
+            throw new TableNotFoundException(label: label)
+                .WithLogMessage($"Disable toggle failed: Table '{label}' not found for Place {user!.PlaceId}");
         }
 
         table.IsDisabled = flag;

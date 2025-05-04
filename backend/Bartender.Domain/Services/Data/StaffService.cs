@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Staff;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;

@@ -10,29 +10,18 @@ public class ValidationExceptionHandler(ILogger<ValidationExceptionHandler> logg
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        if (exception is AppValidationException appValidationException)
-        {
-            logger.LogError(exception, appValidationException.GetLogMessage());
+        if (exception is not (AppValidationException or ValidationException or ArgumentNullException or InvalidOperationException))
+            return false;
 
-            var additionalData = appValidationException.Data["AdditionalData"];
-            var response = new ErrorResponse(exception.Message, StatusCodes.Status400BadRequest, additionalData);
+        var message = exception is AppValidationException appEx ? appEx.GetLogMessage() : exception.Message ?? exception.GetType().Name;
+        var data = exception is AppValidationException ? exception.Data["AdditionalData"] : null;
 
-            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
-            
-            return true;
-        }
-        else if (exception is ValidationException || exception is ArgumentNullException || exception is InvalidOperationException)
-        {
-            logger.LogError(exception, exception.Message ?? exception.GetType().Name);
-            var response = new ErrorResponse(exception.Message ?? exception.GetType().Name, StatusCodes.Status400BadRequest);
+        logger.LogError(exception, message);
+        httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+        var response = new ErrorResponse(message, StatusCodes.Status404NotFound, data);
 
-            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
+        await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
 
-            return true;
-        }
-
-        return false;
+        return true;
     }
 }

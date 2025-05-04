@@ -5,7 +5,6 @@ using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO.Table;
 using Bartender.Data;
-using Bartender.Domain.DTO;
 using Bartender.Domain.utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
@@ -108,20 +107,20 @@ public class TableInteractionService(
         var accessToken = currentUser.GetRawToken();
         if (string.IsNullOrWhiteSpace(accessToken))
         {
-            logger.LogWarning("Guest attempted to change table {Id} without token", token);
-            throw new AuthorizationException("Missing authentication token.");
+            throw new AuthorizationException("Missing authentication token.")
+                .WithLogMessage($"Guest attempted to change table {token} without token");
         }
 
         if (!await tableSessionService.HasActiveSessionAsync(table.Id, token))
         {
-            logger.LogWarning("Invalid session for guest trying to change status on Table {Id}", table.Id);
-            throw new AuthorizationException("Unauthorized or expired session.");
+            throw new AuthorizationException("Unauthorized or expired session.")
+                .WithLogMessage($"Invalid session for guest trying to change status on Table {table.Id}");
         }
 
         if (newStatus != TableStatus.empty)
         {
-            logger.LogWarning("Guest tried to set status to {Status} on Table {Id} — only 'empty' is allowed", newStatus, table.Id);
-            throw new AuthorizationException("Guests can only free tables.");
+            throw new AuthorizationException("Guests can only free tables.")
+                .WithLogMessage($"Guest tried to set status to {newStatus} on Table {table.Id} — only 'empty' is allowed");
         }
 
         if (table.Status == TableStatus.empty)
@@ -139,8 +138,8 @@ public class TableInteractionService(
         var user = await currentUser.GetCurrentUserAsync();
         if (!await IsSameBusinessAsync(table.PlaceId))
         {
-            logger.LogWarning("Unauthorized staff (User {UserId}) tried to change status of Table {Id}", user!.Id, table.Id);
-            throw new UnauthorizedBusinessAccessException();
+            throw new UnauthorizedBusinessAccessException()
+                .WithLogMessage($"Unauthorized staff (User {user!.Id}) tried to change status of Table {table.Id}");
         }
 
         if (newStatus == TableStatus.empty)

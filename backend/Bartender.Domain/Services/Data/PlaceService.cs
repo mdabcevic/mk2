@@ -2,7 +2,6 @@
 using Bartender.Data;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Picture;
 using Bartender.Domain.DTO.Place;
 using Bartender.Domain.Interfaces;

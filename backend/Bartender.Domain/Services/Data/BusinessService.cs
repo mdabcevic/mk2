@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Business;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.utility.Exceptions;

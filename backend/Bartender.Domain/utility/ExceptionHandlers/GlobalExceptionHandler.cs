@@ -23,7 +23,6 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         else
         {
             logger.LogError(exception, "An unexpected error occurred.");
-
             response = new ErrorResponse()
             {
                 StatusCode = StatusCodes.Status500InternalServerError,
