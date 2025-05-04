@@ -4,7 +4,6 @@ import { Link, useParams } from "react-router-dom";
 import ImageSlider from "./image-slider";
 import { ImageType, IPlaceItem } from "../../../utils/interfaces/place-item";
 import { placeService } from "../../../utils/services/place.service";
-import { randomImages } from "../../../utils/random-images";
 import { AppPaths } from "../../../utils/routing/routes";
 import { authService } from "../../../utils/auth/auth.service";
 import { UserRole } from "../../../utils/constants";
@@ -27,7 +26,7 @@ const PlaceDetails = () => {
 
   const getPlaceDetails = async () => {
     let place = await placeService.getPlaceDetailsById(Number(id));
-    setPlace(randomImages(place));
+    setPlace(place);
   };
 
   return (
