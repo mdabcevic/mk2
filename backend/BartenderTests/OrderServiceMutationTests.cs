@@ -2,13 +2,12 @@
 using Bartender.Data;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Order;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NUnit.Framework;
 using System.Linq.Expressions;
 
 namespace BartenderTests;
@@ -54,77 +53,62 @@ public class OrderServiceMutationTests
     }
 
     [Test]
-    public async Task AddAsync_ShouldFail_WhenGuestAccessValidationFails()
+    public void AddAsync_ShouldThrow_WhenGuestAccessValidationFails()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertOrderDto();
-        _validationService.VerifyUserGuestAccess(dto.TableId)
-            .Returns(ServiceResult.Fail("Unauthorized", ErrorType.Unauthorized));
+        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(false);
 
-        // Act
-        var result = await _service.AddAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<TableAccessDeniedException>(() => _service.AddAsync(dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Is.EqualTo("Unauthorized"));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Table with ID {dto.TableId}"));
     }
 
     [Test]
-    public async Task AddAsync_ShouldFail_WhenOrderValidationFails()
+    public void AddAsync_ShouldThrow_WhenOrderValidationFails()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertOrderDto();
 
-        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(ServiceResult.Ok());
-        _validationService.EnsurePlaceExistsAsync(Arg.Any<int>()).Returns(ServiceResult.Ok());
-        _service.GetType().GetMethod("ValidateOrderAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
-            .Invoke(_service, [dto]);
+        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(true);
 
-        _tableRepo.GetByIdAsync(dto.TableId)
-            .Returns(TestDataFactory.CreateValidTable(dto.TableId, status: TableStatus.empty));
+        // Simulate a table in invalid state (e.g., not occupied)
+        var table = TestDataFactory.CreateValidTable(dto.TableId, status: TableStatus.empty);
+        _tableRepo.GetByIdAsync(dto.TableId).Returns(table);
 
-        // Act
-        var result = await _service.AddAsync(dto);
+        _menuItemRepo.GetFilteredAsync(true, Arg.Any<Expression<Func<MenuItem, bool>>>())
+        .Returns([]);
 
-        // Assert
-        Assert.That(result.Success, Is.False);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AuthorizationException>(() => _service.AddAsync(dto));
+        Assert.That(ex!.Message, Does.Contain("unoccupied table"));
     }
 
     [Test]
-    public async Task AddAsync_ShouldFail_WhenGuestSessionNotFound()
+    public void AddAsync_ShouldThrow_WhenGuestSessionNotFound()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertOrderDto(tableId: 1, menuItemId: 1, count: 1, totalPrice: 5m);
 
-        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(true);
         _tableRepo.GetByIdAsync(dto.TableId)
             .Returns(TestDataFactory.CreateValidTable(dto.TableId));
 
         _menuItemRepo.GetFilteredAsync(
-            filterBy: Arg.Any<Expression<Func<MenuItem, bool>>>(),
-            includeNavigations: true
-        ).Returns(TestDataFactory.CreateSampleMenuItems());
-
+            true,
+            Arg.Any<Expression<Func<MenuItem, bool>>>())
+        .Returns(TestDataFactory.CreateSampleMenuItems());
 
         _currentUser.IsGuest.Returns(true);
         _currentUser.GetRawToken().Returns("invalid-token");
         _guestSessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>())
             .Returns((GuestSession?)null);
 
-        // Act
-        var result = await _service.AddAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NoActiveSessionFoundException>(() => _service.AddAsync(dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Is.EqualTo("There is currently no active session found"));
-        });
+        Assert.That(ex!.Message, Is.EqualTo("There is currently no active session found"));
     }
 
     [Test]
@@ -135,28 +119,30 @@ public class OrderServiceMutationTests
         var guest = TestDataFactory.CreateValidGuestSession(table);
         var dto = TestDataFactory.CreateValidUpsertOrderDto(tableId: table.Id, menuItemId: 1, count: 1, totalPrice: 5m);
 
-        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(true);
         _tableRepo.GetByIdAsync(dto.TableId).Returns(table);
         _menuItemRepo.GetFilteredAsync(
-            filterBy: Arg.Any<Expression<Func<MenuItem, bool>>>(),
-            includeNavigations: true
-        ).Returns(TestDataFactory.CreateSampleMenuItems());
+            true,
+            Arg.Any<Expression<Func<MenuItem, bool>>>())
+            .Returns(TestDataFactory.CreateSampleMenuItems());
 
         _currentUser.IsGuest.Returns(true);
         _currentUser.GetRawToken().Returns(guest.Token);
         _guestSessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(guest);
 
+        var newOrder = new Order { Id = 1, Table = table };
+
         _mapper.Map<Order>(dto).Returns(new Order { Table = table });
-        _orderRepo.CreateOrderWithItemsAsync(Arg.Any<Order>(), Arg.Any<List<ProductPerOrder>>()).Returns(new Order { Id = 1, Table = table });
+        _orderRepo.CreateOrderWithItemsAsync(Arg.Any<Order>(), Arg.Any<List<ProductPerOrder>>())
+            .Returns(newOrder);
 
         _mapper.Map<OrderDto>(Arg.Any<Order>())
-        .Returns(TestDataFactory.CreateValidOrderDto(id: 1, tableLabel: table.Label));
+            .Returns(TestDataFactory.CreateValidOrderDto(id: 1, tableLabel: table.Label));
 
-        // Act
-        var result = await _service.AddAsync(dto);
-
-        // Assert
-        Assert.That(result.Success, Is.True);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(() => _service.AddAsync(dto));
+        await _orderRepo.Received(1).CreateOrderWithItemsAsync(Arg.Any<Order>(), Arg.Any<List<ProductPerOrder>>());
+        await _notificationService.Received(1).AddNotificationAsync(Arg.Any<Table>(), Arg.Any<TableNotification>());
     }
 
     [Test]
@@ -171,28 +157,30 @@ public class OrderServiceMutationTests
             TotalPrice = 5m
         };
 
-        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(true);
         _tableRepo.GetByIdAsync(dto.TableId).Returns(table);
-        _menuItemRepo.GetFilteredAsync(filterBy: Arg.Any<Expression<Func<MenuItem, bool>>>(), includeNavigations: true)
+        _menuItemRepo.GetFilteredAsync(
+            true,
+            Arg.Any<Expression<Func<MenuItem, bool>>>())
             .Returns(TestDataFactory.CreateSampleMenuItems());
 
         _currentUser.IsGuest.Returns(false);
 
         _mapper.Map<Order>(dto).Returns(new Order { Table = table });
-        _orderRepo.CreateOrderWithItemsAsync(Arg.Any<Order>(), Arg.Any<List<ProductPerOrder>>()).Returns(new Order { Id = 1, Table = table });
+        _orderRepo.CreateOrderWithItemsAsync(Arg.Any<Order>(), Arg.Any<List<ProductPerOrder>>())
+            .Returns(new Order { Id = 1, Table = table });
 
         _mapper.Map<OrderDto>(Arg.Any<Order>())
             .Returns(TestDataFactory.CreateValidOrderDto(id: 1, tableLabel: table.Label));
 
-        // Act
-        var result = await _service.AddAsync(dto);
-
-        // Assert
-        Assert.That(result.Success, Is.True);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(() => _service.AddAsync(dto));
+        await _orderRepo.Received(1).CreateOrderWithItemsAsync(Arg.Any<Order>(), Arg.Any<List<ProductPerOrder>>());
+        await _notificationService.Received(1).AddNotificationAsync(Arg.Any<Table>(), Arg.Any<TableNotification>());
     }
 
     [Test]
-    public async Task UpdateStatusAsync_ShouldFail_WhenOrderDoesNotExist()
+    public void UpdateStatusAsync_ShouldThrow_WhenOrderDoesNotExist()
     {
         // Arrange
         var orderId = 99;
@@ -200,67 +188,50 @@ public class OrderServiceMutationTests
 
         _orderRepo.GetByIdAsync(orderId, true).Returns((Order?)null);
 
-        // Act
-        var result = await _service.UpdateStatusAsync(orderId, updateDto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<OrderNotFoundException>(() =>
+            _service.UpdateStatusAsync(orderId, updateDto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Is.EqualTo($"Order with id {orderId} not found"));
-        });
+        Assert.That(ex!.Message, Is.EqualTo($"Order with id {orderId} not found"));
     }
 
     [Test]
-    public async Task UpdateStatusAsync_ShouldFail_WhenGuestAccessValidationFails()
+    public void UpdateStatusAsync_ShouldThrow_WhenGuestAccessValidationFails()
     {
         // Arrange
         var order = TestDataFactory.CreateValidOrder(id: 1, tableId: 10);
         var updateDto = TestDataFactory.CreateUpdateStatusDto(OrderStatus.cancelled);
 
         _orderRepo.GetByIdAsync(order.Id, true).Returns(order);
-        _validationService.VerifyUserGuestAccess(order.TableId)
-            .Returns(ServiceResult.Fail("Access denied", ErrorType.Unauthorized));
+        _validationService.VerifyUserGuestAccess(order.TableId).Returns(false);
 
-        // Act
-        var result = await _service.UpdateStatusAsync(order.Id, updateDto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedOrderAccessException>(() =>
+            _service.UpdateStatusAsync(order.Id, updateDto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Is.EqualTo("Access denied"));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Order {order.Id}"));
     }
 
     [Test]
-    public async Task UpdateStatusAsync_ShouldFail_WhenGuestTriesInvalidStatusChange()
+    public void UpdateStatusAsync_ShouldThrow_WhenGuestTriesInvalidStatusChange()
     {
         // Arrange
         var table = TestDataFactory.CreateValidTable();
         var order = TestDataFactory.CreateValidOrder(id: 2, tableId: table.Id, status: OrderStatus.delivered);
         order.Table = table;
 
-        var updateDto = TestDataFactory.CreateUpdateStatusDto(OrderStatus.cancelled); // not allowed
+        var updateDto = TestDataFactory.CreateUpdateStatusDto(OrderStatus.cancelled); // Invalid transition
 
         _orderRepo.GetByIdAsync(order.Id, true).Returns(order);
-        _validationService.VerifyUserGuestAccess(order.TableId).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(order.TableId).Returns(true);
         _currentUser.IsGuest.Returns(true);
 
-        // Act
-        var result = await _service.UpdateStatusAsync(order.Id, updateDto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AuthorizationException>(() =>
+            _service.UpdateStatusAsync(order.Id, updateDto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Is.EqualTo($"Order status cannot be changed to {updateDto.Status}"));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Order status cannot be changed to {updateDto.Status}"));
     }
-
     [Test]
     public async Task UpdateStatusAsync_ShouldSucceed_WhenGuestCancelsCreatedOrder()
     {
@@ -272,14 +243,11 @@ public class OrderServiceMutationTests
         var updateDto = TestDataFactory.CreateUpdateStatusDto(OrderStatus.cancelled);
 
         _orderRepo.GetByIdAsync(order.Id, true).Returns(order);
-        _validationService.VerifyUserGuestAccess(order.TableId).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(order.TableId).Returns(true); // Now returns bool
         _currentUser.IsGuest.Returns(true);
 
-        // Act
-        var result = await _service.UpdateStatusAsync(order.Id, updateDto);
-
-        // Assert
-        Assert.That(result.Success, Is.True);
+        // Act & Assert (no exception means success)
+        Assert.DoesNotThrowAsync(() => _service.UpdateStatusAsync(order.Id, updateDto));
         await _orderRepo.Received().UpdateAsync(Arg.Is<Order>(o => o.Status == OrderStatus.cancelled));
         await _notificationService.Received().AddNotificationAsync(
             Arg.Any<Table>(),
@@ -298,17 +266,16 @@ public class OrderServiceMutationTests
         var updateDto = TestDataFactory.CreateUpdateStatusDto(OrderStatus.payment_requested, PaymentType.creditcard);
 
         _orderRepo.GetByIdAsync(order.Id, true).Returns(order);
-        _validationService.VerifyUserGuestAccess(order.TableId).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(order.TableId).Returns(true); // Updated to match new bool-returning method
         _currentUser.IsGuest.Returns(true);
 
-        // Act
-        var result = await _service.UpdateStatusAsync(order.Id, updateDto);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(() => _service.UpdateStatusAsync(order.Id, updateDto));
 
-        // Assert
-        Assert.That(result.Success, Is.True);
         await _orderRepo.Received().UpdateAsync(Arg.Is<Order>(o =>
             o.Status == OrderStatus.payment_requested &&
             o.PaymentType == PaymentType.creditcard));
+
         await _notificationService.Received().AddNotificationAsync(
             Arg.Any<Table>(),
             Arg.Is<TableNotification>(n => n.Type == NotificationType.OrderStatusUpdated)
@@ -326,17 +293,16 @@ public class OrderServiceMutationTests
         var updateDto = TestDataFactory.CreateUpdateStatusDto(OrderStatus.delivered, PaymentType.creditcard);
 
         _orderRepo.GetByIdAsync(order.Id, true).Returns(order);
-        _validationService.VerifyUserGuestAccess(order.TableId).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(order.TableId).Returns(true); // Adjusted for new bool return
         _currentUser.IsGuest.Returns(false);
 
-        // Act
-        var result = await _service.UpdateStatusAsync(order.Id, updateDto);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(() => _service.UpdateStatusAsync(order.Id, updateDto));
 
-        // Assert
-        Assert.That(result.Success, Is.True);
         await _orderRepo.Received().UpdateAsync(Arg.Is<Order>(o =>
             o.Status == OrderStatus.delivered &&
             o.PaymentType == PaymentType.creditcard));
+
         await _notificationService.Received().AddNotificationAsync(
             Arg.Any<Table>(),
             Arg.Is<TableNotification>(n => n.Type == NotificationType.OrderStatusUpdated)
@@ -344,7 +310,7 @@ public class OrderServiceMutationTests
     }
 
     [Test]
-    public async Task UpdateAsync_ShouldFail_WhenOrderDoesNotExist()
+    public void UpdateAsync_ShouldThrow_WhenOrderDoesNotExist()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertOrderDto(tableId: 1);
@@ -352,20 +318,14 @@ public class OrderServiceMutationTests
 
         _orderRepo.GetByIdAsync(orderId, true).Returns((Order?)null);
 
-        // Act
-        var result = await _service.UpdateAsync(orderId, dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<OrderNotFoundException>(() => _service.UpdateAsync(orderId, dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Is.EqualTo($"Order with id {orderId} not found"));
-        });
+        Assert.That(ex!.Message, Is.EqualTo($"Order with id {orderId} not found"));
     }
 
     [Test]
-    public async Task UpdateAsync_ShouldFail_WhenGuestAccessValidationFails()
+    public void UpdateAsync_ShouldThrow_WhenGuestAccessValidationFails()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertOrderDto(tableId: 10);
@@ -373,78 +333,66 @@ public class OrderServiceMutationTests
 
         _orderRepo.GetByIdAsync(existingOrder.Id, true).Returns(existingOrder);
         _validationService.VerifyUserGuestAccess(dto.TableId)
-            .Returns(ServiceResult.Fail("Access denied", ErrorType.Unauthorized));
+            .Returns(false); // Now returns a bool, not ServiceResult
 
-        // Act
-        var result = await _service.UpdateAsync(existingOrder.Id, dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedOrderAccessException>(() =>
+            _service.UpdateAsync(existingOrder.Id, dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Is.EqualTo("Access denied"));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Order {existingOrder.Id}"));
     }
 
     [Test]
-    public async Task UpdateAsync_ShouldFail_WhenOrderIsClosed()
+    public void UpdateAsync_ShouldThrow_WhenOrderIsClosed()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertOrderDto(tableId: 10);
         var closedOrder = TestDataFactory.CreateValidOrder(id: 3, tableId: dto.TableId, status: OrderStatus.closed);
 
         _orderRepo.GetByIdAsync(closedOrder.Id, true).Returns(closedOrder);
-        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(ServiceResult.Ok());
-        _currentUser.IsGuest.Returns(false); // doesn't matter here
+        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(true); // validation now returns bool
+        _currentUser.IsGuest.Returns(false); // doesn't matter if role is not elevated
 
-        // Act
-        var result = await _service.UpdateAsync(closedOrder.Id, dto);
+        _currentUser.GetCurrentUserAsync()
+            .Returns(TestDataFactory.CreateValidStaff(role: EmployeeRole.regular)); // regular can't override closed orders
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Validation));
-            Assert.That(result.Error, Is.EqualTo("Order cannot be changed anymore"));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AuthorizationException>(() =>
+            _service.UpdateAsync(closedOrder.Id, dto));
+
+        Assert.That(ex!.Message, Does.Contain("Access to change order denied"));
     }
 
     [Test]
-    public async Task UpdateAsync_ShouldFail_WhenGuestTriesToUpdateNonCancelledOrder()
+    public void UpdateAsync_ShouldThrow_WhenGuestTriesToUpdateNonCancelledOrder()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertOrderDto(tableId: 20);
         var existingOrder = TestDataFactory.CreateValidOrder(id: 4, tableId: dto.TableId, status: OrderStatus.delivered);
 
         _orderRepo.GetByIdAsync(existingOrder.Id, true).Returns(existingOrder);
-        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(true);
         _currentUser.IsGuest.Returns(true); // guest is trying this
 
-        // Act
-        var result = await _service.UpdateAsync(existingOrder.Id, dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AuthorizationException>(() =>
+            _service.UpdateAsync(existingOrder.Id, dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Validation));
-            Assert.That(result.Error, Is.EqualTo("Order cannot be changed anymore"));
-        });
+        Assert.That(ex!.Message, Does.Contain("Access to change order denied"));
     }
 
     [Test]
-    public async Task UpdateAsync_ShouldFail_WhenOrderValidationFails()
+    public void UpdateAsync_ShouldThrow_WhenOrderValidationFails()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertOrderDto(tableId: 5);
         var existingOrder = TestDataFactory.CreateValidOrder(id: 5, tableId: dto.TableId, status: OrderStatus.cancelled);
 
         _orderRepo.GetByIdAsync(existingOrder.Id, true).Returns(existingOrder);
-        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(ServiceResult.Ok());
-        _currentUser.IsGuest.Returns(true); // guest updating cancelled order is valid
+        _validationService.VerifyUserGuestAccess(dto.TableId).Returns(true);
+        _currentUser.IsGuest.Returns(true); // guest updating cancelled order is allowed
 
-        // Simulate failure from ValidateOrderAsync (e.g. table unoccupied)
+        // Simulate failure in validation: table is not occupied
         var table = TestDataFactory.CreateValidTable(id: dto.TableId, status: TableStatus.empty);
         _tableRepo.GetByIdAsync(dto.TableId).Returns(table);
         _menuItemRepo.GetFilteredAsync(
@@ -452,16 +400,10 @@ public class OrderServiceMutationTests
             includeNavigations: true
         ).Returns(TestDataFactory.CreateSampleMenuItems());
 
-        // Act
-        var result = await _service.UpdateAsync(existingOrder.Id, dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AuthorizationException>(() => _service.UpdateAsync(existingOrder.Id, dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Is.EqualTo("Cannot create an order on an unoccupied table"));
-        });
+        Assert.That(ex!.Message, Does.Contain("unoccupied table"));
     }
 
     [Test]
@@ -474,10 +416,12 @@ public class OrderServiceMutationTests
         existingOrder.Table = table;
 
         _orderRepo.GetByIdAsync(existingOrder.Id, true).Returns(existingOrder);
-        _validationService.VerifyUserGuestAccess(table.Id).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(table.Id).Returns(true); // now returns bool
         _currentUser.IsGuest.Returns(false); // staff
 
+        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(role: EmployeeRole.admin));
         _tableRepo.GetByIdAsync(table.Id).Returns(table);
+
         _menuItemRepo.GetFilteredAsync(
             filterBy: Arg.Any<Expression<Func<MenuItem, bool>>>(),
             includeNavigations: true
@@ -487,10 +431,10 @@ public class OrderServiceMutationTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _service.UpdateAsync(existingOrder.Id, dto);
+        await _service.UpdateAsync(existingOrder.Id, dto);
 
         // Assert
-        Assert.That(result.Success, Is.True);
+        Assert.DoesNotThrowAsync(() => _service.UpdateAsync(existingOrder.Id, dto));
         await _orderRepo.Received().UpdateOrderWithItemsAsync(existingOrder, Arg.Any<List<ProductPerOrder>>());
         await _notificationService.Received().AddNotificationAsync(
             Arg.Any<Table>(),
@@ -508,8 +452,8 @@ public class OrderServiceMutationTests
         cancelledOrder.Table = table;
 
         _orderRepo.GetByIdAsync(cancelledOrder.Id, true).Returns(cancelledOrder);
-        _validationService.VerifyUserGuestAccess(table.Id).Returns(ServiceResult.Ok());
-        _currentUser.IsGuest.Returns(true); // guest
+        _validationService.VerifyUserGuestAccess(table.Id).Returns(true);
+        _currentUser.IsGuest.Returns(true);
 
         _tableRepo.GetByIdAsync(table.Id).Returns(table);
         _menuItemRepo.GetFilteredAsync(
@@ -520,11 +464,9 @@ public class OrderServiceMutationTests
         _orderRepo.UpdateOrderWithItemsAsync(cancelledOrder, Arg.Any<List<ProductPerOrder>>())
             .Returns(Task.CompletedTask);
 
-        // Act
-        var result = await _service.UpdateAsync(cancelledOrder.Id, dto);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(() => _service.UpdateAsync(cancelledOrder.Id, dto));
 
-        // Assert
-        Assert.That(result.Success, Is.True);
         await _orderRepo.Received().UpdateOrderWithItemsAsync(cancelledOrder, Arg.Any<List<ProductPerOrder>>());
         await _notificationService.Received().AddNotificationAsync(
             Arg.Any<Table>(),
@@ -533,63 +475,42 @@ public class OrderServiceMutationTests
     }
 
     [Test]
-    public async Task DeleteAsync_ShouldFail_WhenOrderDoesNotExist()
+    public void DeleteAsync_ShouldThrow_WhenOrderDoesNotExist()
     {
         // Arrange
         int orderId = 999;
         _orderRepo.GetByIdAsync(orderId).Returns((Order?)null);
 
-        // Act
-        var result = await _service.DeleteAsync(orderId);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Is.EqualTo($"Order with ID {orderId} not found"));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<OrderNotFoundException>(() => _service.DeleteAsync(orderId));
+        Assert.That(ex!.Message, Does.Contain($"Order with id {orderId}"));
     }
 
     [Test]
-    public async Task DeleteAsync_ShouldFail_WhenGuestAccessValidationFails()
+    public void DeleteAsync_ShouldThrow_WhenGuestAccessValidationFails()
     {
         // Arrange
         var order = TestDataFactory.CreateValidOrder(id: 2, tableId: 10);
         _orderRepo.GetByIdAsync(order.Id).Returns(order);
         _validationService.VerifyUserGuestAccess(order.TableId)
-            .Returns(ServiceResult.Fail("Access denied", ErrorType.Unauthorized));
+            .Returns(false); // Not a ServiceResult anymore
 
-        // Act
-        var result = await _service.DeleteAsync(order.Id);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Is.EqualTo("Access denied"));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedOrderAccessException>(() => _service.DeleteAsync(order.Id));
+        Assert.That(ex!.Message, Does.Contain($"Access to order {order.Id} denied").IgnoreCase);
     }
 
     [Test]
-    public async Task DeleteAsync_ShouldFail_WhenOrderIsNotCancelled()
+    public void DeleteAsync_ShouldThrow_WhenOrderIsNotCancelled()
     {
         // Arrange
         var order = TestDataFactory.CreateValidOrder(id: 3, status: OrderStatus.delivered);
         _orderRepo.GetByIdAsync(order.Id).Returns(order);
-        _validationService.VerifyUserGuestAccess(order.TableId).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(order.TableId).Returns(true);
 
-        // Act
-        var result = await _service.DeleteAsync(order.Id);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Is.EqualTo("Only cancelled orders can be removed"));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AppValidationException>(() => _service.DeleteAsync(order.Id));
+        Assert.That(ex!.Message, Is.EqualTo("Only cancelled orders can be removed"));
     }
 
     [Test]
@@ -598,14 +519,10 @@ public class OrderServiceMutationTests
         // Arrange
         var order = TestDataFactory.CreateValidOrder(id: 4, status: OrderStatus.cancelled);
         _orderRepo.GetByIdAsync(order.Id).Returns(order);
-        _validationService.VerifyUserGuestAccess(order.TableId).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(order.TableId).Returns(true);
 
-        // Act
-        var result = await _service.DeleteAsync(order.Id);
-
-        // Assert
-        Assert.That(result.Success, Is.True);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(() => _service.DeleteAsync(order.Id));
         await _orderRepo.Received().DeleteAsync(order);
     }
-
 }

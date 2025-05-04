@@ -6,8 +6,10 @@ using Bartender.Domain.DTO.Order;
 using Bartender.Domain.DTO.Place;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using System.Linq.Expressions;
 
 namespace BartenderTests;
@@ -60,11 +62,8 @@ public class OrderServiceReadTests
         var order = TestDataFactory.CreateValidOrder(id: 1, tableId: placeId);
         var orderDto = TestDataFactory.CreateValidOrderDto(id: 1);
 
-        _validationService.EnsurePlaceExistsAsync(placeId)
-            .Returns(ServiceResult.Ok());
-
-        _validationService.VerifyUserPlaceAccess(placeId)
-            .Returns(true);
+        _validationService.EnsurePlaceExistsAsync(placeId).Returns(Task.CompletedTask);
+        _validationService.VerifyUserPlaceAccess(placeId).Returns(true);
 
         _orderRepo.GetAllByPlaceIdAsync(placeId, Arg.Any<int>())
             .Returns(([order], 1));
@@ -76,61 +75,39 @@ public class OrderServiceReadTests
         var result = await _service.GetAllClosedOrdersByPlaceIdAsync(placeId, page: 1);
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data!.Items, Is.Not.Null);
-        });
-        Assert.That(result.Data!.Items, Has.Count.EqualTo(1));
-        Assert.That(result.Data!.Items![0].Id, Is.EqualTo(orderDto.Id));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Items, Has.Count.EqualTo(1));
+        Assert.That(result.Items[0].Id, Is.EqualTo(orderDto.Id));
     }
 
-
     [Test]
-    public async Task GetAllClosedOrdersByPlaceIdAsync_ShouldReturnFail_WhenPlaceAccessInvalid()
+    public void GetAllClosedOrdersByPlaceIdAsync_ShouldThrow_WhenPlaceAccessInvalid()
     {
         // Arrange
         var placeId = 1;
-        _validationService.EnsurePlaceExistsAsync(placeId).Returns(ServiceResult.Ok());
+        _validationService.EnsurePlaceExistsAsync(placeId).Returns(Task.CompletedTask);
         _validationService.VerifyUserPlaceAccess(placeId).Returns(false); // simulate cross-access
 
-        // Act
-        var result = await _service.GetAllClosedOrdersByPlaceIdAsync(placeId, page: 1);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Is.EqualTo("Cross-business access denied."));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(
+            () => _service.GetAllClosedOrdersByPlaceIdAsync(placeId, page: 1)
+        );
+        Assert.That(ex!.Message, Is.EqualTo("Cross-business access denied."));
     }
 
     [Test]
-    public async Task GetAllActiveOrdersByPlaceIdAsync_ShouldReturnActiveOrders_WhenAccessValid()
+    public void GetAllActiveOrdersByPlaceIdAsync_ShouldThrow_WhenPlaceAccessInvalid()
     {
         // Arrange
         var placeId = 1;
-        var order = TestDataFactory.CreateValidOrder(id: 1, tableId: placeId);
-        var orderDto = TestDataFactory.CreateValidOrderDto(id: 1);
+        _validationService.EnsurePlaceExistsAsync(placeId).Returns(Task.CompletedTask); // Ensure the place exists
+        _validationService.VerifyUserPlaceAccess(placeId).Returns(false); // Simulate cross-access
 
-        _validationService.EnsurePlaceExistsAsync(placeId).Returns(ServiceResult.Ok());
-        _validationService.VerifyUserPlaceAccess(placeId).Returns(true);
-        _orderRepo.GetActiveByPlaceIdAsync(placeId).Returns([order]);
-        _mapper.Map<List<OrderDto>>(Arg.Any<List<Order>>()).Returns([orderDto]);
-
-        // Act
-        var result = await _service.GetAllActiveOrdersByPlaceIdAsync(placeId, onlyWaitingForStaff: false);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-        });
-        Assert.That(result.Data!, Has.Count.EqualTo(1));
-        Assert.That(result.Data![0].Id, Is.EqualTo(orderDto.Id));
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(
+            () => _service.GetAllActiveOrdersByPlaceIdAsync(placeId, onlyWaitingForStaff: false)
+        );
+        Assert.That(ex!.Message, Is.EqualTo("Cross-business access denied."));
     }
 
     [Test]
@@ -141,10 +118,13 @@ public class OrderServiceReadTests
         var order = TestDataFactory.CreateValidOrder(id: 2, tableId: placeId);
         var orderDto = TestDataFactory.CreateValidOrderDto(id: 2);
 
-        _validationService.EnsurePlaceExistsAsync(placeId).Returns(ServiceResult.Ok());
-        _validationService.VerifyUserPlaceAccess(placeId).Returns(true);
-        _orderRepo.GetPendingByPlaceIdAsync(placeId).Returns([order]);
-        _mapper.Map<List<OrderDto>>(Arg.Any<List<Order>>()).Returns([orderDto]);
+        // Simulate that place exists and the user has access
+        _validationService.EnsurePlaceExistsAsync(placeId).Returns(Task.CompletedTask); // no result means no error
+        _validationService.VerifyUserPlaceAccess(placeId).Returns(true); // User has access
+
+        // Simulate getting pending orders from repository
+        _orderRepo.GetPendingByPlaceIdAsync(placeId).Returns(new List<Order> { order });
+        _mapper.Map<List<OrderDto>>(Arg.Any<List<Order>>()).Returns(new List<OrderDto> { orderDto });
 
         // Act
         var result = await _service.GetAllActiveOrdersByPlaceIdAsync(placeId, onlyWaitingForStaff: true);
@@ -152,33 +132,27 @@ public class OrderServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
+            Assert.That(result, Is.Not.Null);  // Check that the result is not null
+            Assert.That(result, Has.Count.EqualTo(1));  // Check that exactly one order is returned
+            Assert.That(result[0].Id, Is.EqualTo(orderDto.Id));  // Check that the order ID is correct
         });
-        Assert.That(result.Data!, Has.Count.EqualTo(1));
-        Assert.That(result.Data![0].Id, Is.EqualTo(orderDto.Id));
     }
 
     [Test]
-    public async Task GetAllActiveOrdersByPlaceIdAsync_ShouldFail_WhenValidationFails()
+    public void GetAllActiveOrdersByPlaceIdAsync_ShouldFail_WhenValidationFails()
     {
         // Arrange
         var placeId = 1;
         _validationService.EnsurePlaceExistsAsync(placeId)
-            .Returns(ServiceResult.Ok());
+            .Returns(Task.CompletedTask); // Simulate valid place
         _validationService.VerifyUserPlaceAccess(placeId)
-            .Returns(false); // Unauthorized access
+            .Returns(false); // Simulate unauthorized access
 
-        // Act
-        var result = await _service.GetAllActiveOrdersByPlaceIdAsync(placeId);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+            await _service.GetAllActiveOrdersByPlaceIdAsync(placeId));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Is.EqualTo("Cross-business access denied."));
-        });
+        Assert.That(ex.Message, Is.EqualTo("Cross-business access denied."));
     }
 
     [Test]
@@ -193,13 +167,13 @@ public class OrderServiceReadTests
 
         var grouped = new Dictionary<OrderStatus, List<Order>>
         {
-            [OrderStatus.created] = [order]
+            [OrderStatus.created] = new List<Order> { order }
         };
 
-        _validationService.EnsurePlaceExistsAsync(placeId).Returns(ServiceResult.Ok());
-        _validationService.VerifyUserPlaceAccess(placeId).Returns(true);
-        _orderRepo.GetActiveByPlaceIdGroupedAsync(placeId, page).Returns((grouped, 1));
-        _mapper.Map<List<OrderDto>>(grouped[OrderStatus.created]).Returns([orderDto]);
+        _validationService.EnsurePlaceExistsAsync(placeId).Returns(Task.CompletedTask); // Simulate valid place
+        _validationService.VerifyUserPlaceAccess(placeId).Returns(true); // User has access
+        _orderRepo.GetActiveByPlaceIdGroupedAsync(placeId, page).Returns((grouped, 1)); // Simulate grouped orders
+        _mapper.Map<List<OrderDto>>(grouped[OrderStatus.created]).Returns(new List<OrderDto> { orderDto }); // Map orders to DTOs
 
         // Act
         var result = await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page);
@@ -207,16 +181,17 @@ public class OrderServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
+            Assert.That(result.Items, Is.Not.Null); // Check if Items is not null
+            Assert.That(result.Items, Has.Count.EqualTo(1)); // One group (OrderStatus.created)
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Items[0].Status, Is.EqualTo(OrderStatus.created)); // Check the status of the group
+                Assert.That(result.Items[0].Orders, Has.Count.EqualTo(1)); // One order in this group
+            });
+
+            Assert.That(result.Items[0].Orders[0].Id, Is.EqualTo(orderDto.Id)); // Check the ID of the order
         });
-        Assert.That(result.Data!.Items, Has.Count.EqualTo(1));
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Data!.Items![0].Status!, Is.EqualTo(OrderStatus.created));
-            Assert.That(result.Data!.Items[0].Orders, Has.Count.EqualTo(1));
-        });
-        Assert.That(result.Data!.Items![0].Orders![0].Id, Is.EqualTo(orderDto.Id));
     }
 
     [Test]
@@ -231,11 +206,11 @@ public class OrderServiceReadTests
 
         var grouped = new Dictionary<OrderStatus, List<Order>>
         {
-            [OrderStatus.payment_requested] = [order]
+            [OrderStatus.payment_requested] = new List<Order> { order }
         };
 
-        _validationService.EnsurePlaceExistsAsync(placeId).Returns(ServiceResult.Ok());
-        _validationService.VerifyUserPlaceAccess(placeId).Returns(true);
+        _validationService.EnsurePlaceExistsAsync(placeId).Returns(Task.CompletedTask); // No ServiceResult, just ensuring no exception is thrown
+        _validationService.VerifyUserPlaceAccess(placeId).Returns(true); // Simulating valid access
         _orderRepo.GetPendingByPlaceIdGroupedAsync(placeId, page).Returns((grouped, 1));
         _mapper.Map<List<OrderDto>>(grouped[OrderStatus.payment_requested]).Returns([orderDto]);
 
@@ -243,36 +218,30 @@ public class OrderServiceReadTests
         var result = await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page, onlyWaitingForStaff: true);
 
         // Assert
+        Assert.That(result.Items, Is.Not.Null); // Accessing Items instead of Data
+        Assert.That(result.Items, Has.Count.EqualTo(1)); // Checking the number of grouped orders
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-        });
-        Assert.That(result.Data!.Items, Has.Count.EqualTo(1));
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Data!.Items![0].Status!, Is.EqualTo(OrderStatus.payment_requested));
-            Assert.That(result.Data!.Items![0].Orders![0].Id, Is.EqualTo(orderDto.Id));
+            Assert.That(result.Items[0].Status, Is.EqualTo(OrderStatus.payment_requested)); // Verifying status
+            Assert.That(result.Items[0].Orders[0].Id, Is.EqualTo(orderDto.Id)); // Verifying order ID in the group
         });
     }
 
     [Test]
-    public async Task GetAllActiveOrdersByPlaceIdGroupedAsync_ShouldFail_WhenValidationFails()
+    public void GetAllActiveOrdersByPlaceIdGroupedAsync_ShouldFail_WhenValidationFails()
     {
         // Arrange
         var placeId = 1;
-        _validationService.EnsurePlaceExistsAsync(placeId).Returns(ServiceResult.Ok());
-        _validationService.VerifyUserPlaceAccess(placeId).Returns(false);
 
-        // Act
-        var result = await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page: 1);
+        // Simulate that place exists but user does not have access
+        _validationService.EnsurePlaceExistsAsync(placeId).Returns(Task.CompletedTask); // No result, just ensures no exception
+        _validationService.VerifyUserPlaceAccess(placeId).Returns(false); // Unauthorized access
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+            await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page: 1));
+
+        Assert.That(ex.Message, Is.EqualTo("Cross-business access denied."));
     }
 
     [Test]
@@ -287,69 +256,63 @@ public class OrderServiceReadTests
 
         var input = new Dictionary<Place, List<Order>>
     {
-        { place, [order] }
+        { place, new List<Order> { order } }
     };
 
-        _validationService.EnsureBusinessExistsAsync(businessId).Returns(ServiceResult.Ok());
-        _validationService.VerifyUserBusinessAccess(businessId).Returns(true);
+        // Simulating that business exists and user has access
+        _validationService.EnsureBusinessExistsAsync(businessId).Returns(Task.CompletedTask); // Ensures business exists
+        _validationService.VerifyUserBusinessAccess(businessId).Returns(true); // User has access
+
+        // Simulating order fetch and mapping
         _orderRepo.GetAllOrdersByBusinessIdAsync(businessId).Returns(input);
         _mapper.Map<PlaceDto>(place).Returns(placeDto);
-        _mapper.Map<List<OrderDto>>(Arg.Any<List<Order>>()).Returns([orderDto]);
+        _mapper.Map<List<OrderDto>>(Arg.Any<List<Order>>()).Returns(new List<OrderDto> { orderDto });
 
         // Act
         var result = await _service.GetAllByBusinessIdAsync(businessId);
 
         // Assert
-        Assert.That(result.Success, Is.True);
         Assert.Multiple(() =>
         {
-            Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data, Has.Count.EqualTo(1));
-            Assert.That(result.Data![0].Place.Address, Is.EqualTo(placeDto.Address));
-            Assert.That(result.Data![0].Orders, Has.Count.EqualTo(1));
-            Assert.That(result.Data![0].Orders![0].Id, Is.EqualTo(orderDto.Id));
+            Assert.That(result, Is.Not.Null);  // Check that result is not null
+            Assert.That(result, Has.Count.EqualTo(1));  // Ensure one business order is returned
+            Assert.That(result[0].Place.Address, Is.EqualTo(placeDto.Address));
+            Assert.That(result[0].Orders, Has.Count.EqualTo(1));
+            Assert.That(result[0].Orders![0].Id, Is.EqualTo(orderDto.Id));
         });
     }
 
     [Test]
-    public async Task GetAllByBusinessIdAsync_ShouldFail_WhenBusinessDoesNotExist()
+    public void GetAllByBusinessIdAsync_ShouldFail_WhenBusinessDoesNotExist()
     {
         // Arrange
         var businessId = 1;
+
+        // Simulate the validation service throwing an exception when business does not exist
         _validationService.EnsureBusinessExistsAsync(businessId)
-            .Returns(ServiceResult.Fail("Business not found", ErrorType.NotFound));
+            .ThrowsAsync(new BusinessNotFoundException(businessId));
 
-        // Act
-        var result = await _service.GetAllByBusinessIdAsync(businessId);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<BusinessNotFoundException>(() => _service.GetAllByBusinessIdAsync(businessId));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Is.EqualTo("Business not found"));
-        });
+        Assert.That(ex.Message, Is.EqualTo($"Business with ID {businessId} not found"));
     }
 
-
     [Test]
-    public async Task GetAllByBusinessIdAsync_ShouldFail_WhenAccessIsDenied()
+    public void GetAllByBusinessIdAsync_ShouldFail_WhenAccessIsDenied()
     {
         // Arrange
         var businessId = 1;
-        _validationService.EnsureBusinessExistsAsync(businessId).Returns(ServiceResult.Ok());
+
+        // Simulate business existence check passing but user access being denied
+        _validationService.EnsureBusinessExistsAsync(businessId).Returns(Task.CompletedTask);
         _validationService.VerifyUserBusinessAccess(businessId).Returns(false);
 
-        // Act
-        var result = await _service.GetAllByBusinessIdAsync(businessId);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedBusinessAccessException>(() => _service.GetAllByBusinessIdAsync(businessId));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Is.EqualTo("Cross-business access denied."));
-        });
+        // Assert the exception message
+        Assert.That(ex.Message, Is.EqualTo("Cross-business access denied."));
     }
 
     [Test]
@@ -359,8 +322,9 @@ public class OrderServiceReadTests
         var order = TestDataFactory.CreateValidOrder(id: 1, tableId: 5);
         var orderDto = TestDataFactory.CreateValidOrderDto(id: 1);
 
+        // Simulate that order exists and user has access
         _orderRepo.getOrderById(order.Id).Returns(order);
-        _validationService.VerifyUserGuestAccess(order.TableId).Returns(ServiceResult.Ok());
+        _validationService.VerifyUserGuestAccess(order.TableId).Returns(true); // Assuming true means access granted
         _mapper.Map<OrderDto>(order).Returns(orderDto);
 
         // Act
@@ -369,50 +333,41 @@ public class OrderServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data!.Id, Is.EqualTo(orderDto.Id));
+            Assert.That(result, Is.Not.Null);  // Check that result is not null
+            Assert.That(result.Id, Is.EqualTo(orderDto.Id));  // Check if the order's ID matches
         });
     }
 
-
     [Test]
-    public async Task GetByIdAsync_ShouldReturnNotFound_WhenOrderIsMissing()
+    public void GetByIdAsync_ShouldThrowOrderNotFoundException_WhenOrderIsMissing()
     {
         // Arrange
         _orderRepo.getOrderById(Arg.Any<int>()).Returns((Order?)null);
 
-        // Act
-        var result = await _service.GetByIdAsync(123, skipValidation: true);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<OrderNotFoundException>(async () =>
+            await _service.GetByIdAsync(123, skipValidation: true));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
+        Assert.That(ex, Is.Not.Null);
+        Assert.That(ex.Message, Does.Contain("Order with id 123 not found"));
     }
 
     [Test]
-    public async Task GetByIdAsync_ShouldFail_WhenValidationFails()
+    public void GetByIdAsync_ShouldThrowUnauthorizedOrderAccessException_WhenValidationFails()
     {
         // Arrange
         var order = TestDataFactory.CreateValidOrder(id: 2, tableId: 10);
 
         _orderRepo.getOrderById(order.Id).Returns(order);
         _validationService.VerifyUserGuestAccess(order.TableId)
-            .Returns(ServiceResult.Fail("Access denied", ErrorType.Unauthorized));
+            .Returns(false); // Simulate failure (i.e., access denied)
 
-        // Act
-        var result = await _service.GetByIdAsync(order.Id, skipValidation: false);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedOrderAccessException>(async () =>
+            await _service.GetByIdAsync(order.Id, skipValidation: false));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Is.EqualTo("Access denied"));
-        });
+        Assert.That(ex, Is.Not.Null);
+        Assert.That(ex.Message, Does.Contain($"Access denied for order with id {order.Id}"));
     }
 
     [Test]
@@ -422,18 +377,19 @@ public class OrderServiceReadTests
         var order = TestDataFactory.CreateValidOrder(id: 3, tableId: 20);
         var dto = TestDataFactory.CreateValidOrderDto(id: 3);
 
-        _orderRepo.getOrderById(order.Id).Returns(order);
-        _mapper.Map<OrderDto>(order).Returns(dto);
+        _orderRepo.getOrderById(order.Id).Returns(order);  // Simulating retrieval of the order
+        _mapper.Map<OrderDto>(order).Returns(dto);  // Mapping the order to an OrderDto
 
         // Act
-        var result = await _service.GetByIdAsync(order.Id, skipValidation: true);
+        var result = await _service.GetByIdAsync(order.Id, skipValidation: true);  // Calling the service method with skipValidation set to true
 
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data!.Id, Is.EqualTo(dto.Id));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Items, Is.EqualTo(dto.Items));
+            Assert.That(result.Table, Is.EqualTo(dto.Table));
+            Assert.That(result.PaymentType, Is.EqualTo(dto.PaymentType));
         });
     }
 
@@ -441,17 +397,16 @@ public class OrderServiceReadTests
     public async Task GetCurrentOrdersByTableLabelAsync_ShouldReturnEmptyList_WhenNoOrdersFound()
     {
         // Arrange
-        _orderRepo.GetCurrentOrdersByTableLabelAsync("A1").Returns(new List<Order>());
+        _orderRepo.GetCurrentOrdersByTableLabelAsync("A1").Returns(new List<Order>());  // Simulate no orders found for table "A1"
 
         // Act
-        var result = await _service.GetCurrentOrdersByTableLabelAsync("A1");
+        var result = await _service.GetCurrentOrdersByTableLabelAsync("A1");  // Call the service method
 
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data, Is.Empty);
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Is.Empty);
         });
     }
 
@@ -465,9 +420,9 @@ public class OrderServiceReadTests
 
         var dto = TestDataFactory.CreateValidOrderDto(id: 1);
 
-        _orderRepo.GetCurrentOrdersByTableLabelAsync("T1").Returns([order]);
-        _validationService.VerifyUserGuestAccess(table.Id).Returns(ServiceResult.Ok());
-        _mapper.Map<List<OrderDto>>(Arg.Any<List<Order>>()).Returns([dto]);
+        _orderRepo.GetCurrentOrdersByTableLabelAsync("T1").Returns(new List<Order> { order });
+        _validationService.VerifyUserGuestAccess(table.Id).Returns(true); // Simulating validation pass
+        _mapper.Map<List<OrderDto>>(Arg.Any<List<Order>>()).Returns(new List<OrderDto> { dto });
 
         // Act
         var result = await _service.GetCurrentOrdersByTableLabelAsync("T1");
@@ -475,35 +430,29 @@ public class OrderServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data, Has.Count.EqualTo(1));
-            Assert.That(result.Data![0].Id, Is.EqualTo(dto.Id));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Has.Count.EqualTo(1));
+            Assert.That(result[0].Id, Is.EqualTo(dto.Id));
         });
     }
 
     [Test]
-    public async Task GetCurrentOrdersByTableLabelAsync_ShouldFail_WhenValidationFails()
+    public void GetCurrentOrdersByTableLabelAsync_ShouldFail_WhenValidationFails()
     {
         // Arrange
         var table = TestDataFactory.CreateValidTable(id: 10, label: "T1");
         var order = TestDataFactory.CreateValidOrder(id: 1, tableId: table.Id);
         order.Table = table;
 
-        _orderRepo.GetCurrentOrdersByTableLabelAsync("T1").Returns([order]);
-        _validationService.VerifyUserGuestAccess(table.Id)
-            .Returns(ServiceResult.Fail("Unauthorized", ErrorType.Unauthorized));
+        _orderRepo.GetCurrentOrdersByTableLabelAsync("T1").Returns(new List<Order> { order });
+        _validationService.VerifyUserGuestAccess(table.Id).Returns(false); // Simulating validation failure
 
-        // Act
-        var result = await _service.GetCurrentOrdersByTableLabelAsync("T1");
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+            await _service.GetCurrentOrdersByTableLabelAsync("T1")
+        );
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Is.EqualTo("Unauthorized"));
-        });
+        Assert.That(ex.Message, Is.EqualTo("Unauthorized"));
     }
 
     [Test]
@@ -515,10 +464,11 @@ public class OrderServiceReadTests
         var order = TestDataFactory.CreateValidOrder(id: 1, tableId: table.Id);
         var dto = TestDataFactory.CreateValidOrderDto(id: 1);
 
-        _currentUser.GetRawToken().Returns(guest.Token);
-        _guestSessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(guest);
-        _orderRepo.GetActiveOrdersByGuestIdAsync(guest.Id).Returns([order]);
-        _mapper.Map<List<OrderDto>>(Arg.Any<List<Order>>()).Returns([dto]);
+        // Setting up mock returns for guest session and order retrieval
+        _currentUser.GetRawToken().Returns(guest.Token); // Simulating the current user has the guest token
+        _guestSessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(guest); // Return the guest session for the token
+        _orderRepo.GetActiveOrdersByGuestIdAsync(guest.Id).Returns(new List<Order> { order }); // Simulating the active orders for the guest
+        _mapper.Map<List<OrderDto>>(Arg.Any<List<Order>>()).Returns(new List<OrderDto> { dto }); // Mapping order to DTO
 
         // Act
         var result = await _service.GetActiveTableOrdersForUserAsync(userSpecific: true);
@@ -526,9 +476,9 @@ public class OrderServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Has.Count.EqualTo(1));
-            Assert.That(result.Data![0].Id, Is.EqualTo(dto.Id));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Has.Count.EqualTo(1));
+            Assert.That(result[0].Id, Is.EqualTo(dto.Id));
         });
     }
 
@@ -541,10 +491,11 @@ public class OrderServiceReadTests
         var order = TestDataFactory.CreateValidOrder(id: 2, tableId: table.Id);
         var dto = TestDataFactory.CreateValidOrderDto(id: 2);
 
-        _currentUser.GetRawToken().Returns(guest.Token);
-        _guestSessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(guest);
-        _orderRepo.GetActiveOrdersByTableIdAsync(table.Id).Returns([order]);
-        _mapper.Map<List<OrderDto>>(Arg.Any<List<Order>>()).Returns([dto]);
+        // Setting up mock returns for guest session and order retrieval
+        _currentUser.GetRawToken().Returns(guest.Token); // Simulating the current user has the guest token
+        _guestSessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns(guest); // Return the guest session for the token
+        _orderRepo.GetActiveOrdersByTableIdAsync(table.Id).Returns(new List<Order> { order }); // Simulating the active orders for the table
+        _mapper.Map<List<OrderDto>>(Arg.Any<List<Order>>()).Returns(new List<OrderDto> { dto }); // Mapping order to DTO
 
         // Act
         var result = await _service.GetActiveTableOrdersForUserAsync(userSpecific: false);
@@ -552,9 +503,9 @@ public class OrderServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Has.Count.EqualTo(1));
-            Assert.That(result.Data![0].Id, Is.EqualTo(dto.Id));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Has.Count.EqualTo(1));
+            Assert.That(result[0].Id, Is.EqualTo(dto.Id));
         });
     }
 
@@ -562,18 +513,13 @@ public class OrderServiceReadTests
     public async Task GetActiveTableOrdersForUserAsync_ShouldFail_WhenNoGuestSessionFound()
     {
         // Arrange
-        _currentUser.GetRawToken().Returns("invalid-token");
-        _guestSessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns((GuestSession?)null);
+        _currentUser.GetRawToken().Returns("invalid-token"); // Simulate that the current user has an invalid token
+        _guestSessionRepo.GetByKeyAsync(Arg.Any<Expression<Func<GuestSession, bool>>>()).Returns((GuestSession?)null); // Simulate that no guest session was found for the given token
 
         // Act
-        var result = await _service.GetActiveTableOrdersForUserAsync();
+        var ex = Assert.ThrowsAsync<NoActiveSessionFoundException>(async () => await _service.GetActiveTableOrdersForUserAsync());
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Is.EqualTo("There is currently no active session found"));
-        });
+        Assert.That(ex.Message, Is.EqualTo("There is currently no active session found"));
     }
 }
