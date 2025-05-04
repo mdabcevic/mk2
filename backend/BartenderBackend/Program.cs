@@ -160,6 +160,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "Swagger"));
 }
 
+app.UseRouting();
 app.UseHttpsRedirection();
 app.UseCors(allowedOrigins);
 app.UseExceptionHandler(_ => { });
