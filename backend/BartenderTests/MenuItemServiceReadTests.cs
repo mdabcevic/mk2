@@ -3,6 +3,7 @@ using Bartender.Data.Models;
 using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.MenuItem;
 using Bartender.Domain.Interfaces;
+using Bartender.Domain.Services;
 using Bartender.Domain.Services.Data;
 using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
@@ -15,25 +16,27 @@ namespace BartenderTests;
 [TestFixture]
 public class MenuItemServiceReadTests
 {
-    private IRepository<MenuItem> _menuRepository;
+    private IMenuItemRepository _menuRepository;
     private IRepository<Place> _placeRepository;
     private IRepository<Product> _productRepository;
     private ILogger<MenuItemService> _logger;
     private ICurrentUserContext _currentUser;
     private IMapper _mapper;
+    IValidationService _validationService;
     private MenuItemService _menuService;
 
     [SetUp]
     public void SetUp()
     {
-        _menuRepository = Substitute.For<IRepository<MenuItem>>();
+        _menuRepository = Substitute.For<IMenuItemRepository>();
         _placeRepository = Substitute.For<IRepository<Place>>();
         _productRepository = Substitute.For<IRepository<Product>>();
         _logger = Substitute.For<ILogger<MenuItemService>>();
         _currentUser = Substitute.For<ICurrentUserContext>();
         _mapper = Substitute.For<IMapper>();
+        _validationService = Substitute.For<IValidationService>();
 
-        _menuService = new MenuItemService(_menuRepository, _placeRepository, _productRepository, _logger, _currentUser, _mapper);
+        _menuService = new MenuItemService(_menuRepository, _placeRepository, _productRepository, _logger, _currentUser, _validationService, _mapper);
     }
 
     //[Test]
@@ -121,9 +124,9 @@ public class MenuItemServiceReadTests
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(false);
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.GetByPlaceIdAsync(placeId));
+        var ex = Assert.ThrowsAsync<PlaceNotFoundException>(() => _menuService.GetByPlaceIdAsync(placeId));
 
-        Assert.That(ex!.Message, Does.Contain($"Place with id {placeId}"));
+        Assert.That(ex!.Message, Does.Contain($"Place with ID {placeId} was not found"));
     }
 
     [Test]
@@ -148,9 +151,9 @@ public class MenuItemServiceReadTests
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(false);
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.GetByPlaceIdGroupedAsync(placeId));
+        var ex = Assert.ThrowsAsync<PlaceNotFoundException>(() => _menuService.GetByPlaceIdGroupedAsync(placeId));
 
-        Assert.That(ex!.Message, Does.Contain($"Place with id {placeId}"));
+        Assert.That(ex!.Message, Does.Contain($"Place with ID {placeId} was not found"));
     }
 
     [Test]
@@ -160,7 +163,7 @@ public class MenuItemServiceReadTests
         var placeId = 1;
 
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
-        _menuRepository.QueryIncluding(Arg.Any<Expression<Func<MenuItem, object>>>(), Arg.Any<Expression<Func<MenuItem, object>>>()!)
+        _menuRepository.GetMenuItemsByPlaceIdAync(Arg.Any<int>(), Arg.Any<bool>())
             .Throws(new Exception("Database unreachable"));
 
         // Act & Assert
