@@ -16,23 +16,25 @@ namespace BartenderTests;
 [TestFixture]
 public class MenuItemServiceMutationTests
 {
-    private IRepository<MenuItem> _menuRepository;
+    private IMenuItemRepository _menuRepository;
     private IRepository<Place> _placeRepository;
     private IRepository<Product> _productRepository;
     private ILogger<MenuItemService> _logger;
     private ICurrentUserContext _currentUser;
     private IMapper _mapper;
+    private IValidationService _validationService;
     private MenuItemService _menuService;
 
     [SetUp]
     public void SetUp()
     {
-        _menuRepository = Substitute.For<IRepository<MenuItem>>();
+        _menuRepository = Substitute.For<IMenuItemRepository>();
         _placeRepository = Substitute.For<IRepository<Place>>();
         _productRepository = Substitute.For<IRepository<Product>>();
         _logger = Substitute.For<ILogger<MenuItemService>>();
         _currentUser = Substitute.For<ICurrentUserContext>();
         _mapper = Substitute.For<IMapper>();
+        _validationService = Substitute.For<IValidationService>();
 
         _menuService = new MenuItemService(
             _menuRepository,
@@ -40,6 +42,7 @@ public class MenuItemServiceMutationTests
             _productRepository,
             _logger,
             _currentUser,
+            _validationService,
             _mapper);
     }
 
