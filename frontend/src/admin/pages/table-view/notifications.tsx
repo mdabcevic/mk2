@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { subscribeToNotifications,Notification } from "../../../utils/notification-store";
 import { getNotificationColor, NotificationType, orderStatusIndex } from "../../../utils/table-color";
 import { placeOrderService } from "./place-orders.service";
+import { authService } from "../../../utils/auth/auth.service";
+import { UserRole } from "../../../utils/constants";
 
 
 export function NotificationScreen({ onClose }:{onClose?: (label: string) => void}) {
@@ -27,7 +29,7 @@ export function NotificationScreen({ onClose }:{onClose?: (label: string) => voi
   };
 
   return (
-    <section id="notifications" className="flex flex-col pb-8 pt-[100px] md:pt-0 border flex-start rounded-[30px] min-h-[400px] items-start mr-4 w-full md:w-[350px] md:max-h-[450px] overflow-hidden">
+    <section id="notifications" className={`flex flex-col pb-8 md:pt-0  flex-start items-start w-full md:w-[350px]  ${authService.userRole() === UserRole.staff ? "pt-[100px] min-h-[700px] ":"md:max-h-[450px] min-h-[400px] border overflow-hidden mr-4  rounded-[30px]"}`}>
       <h3 className="text-lg font-bold mb-2 text-center bg-latte w-full border-b-3"><img className="m-auto" src="/assets/images/icons/notificationBell.svg" alt="notification bell"/></h3>
       <div className="flex flex-col gap-2 max-w-sm p-2 w-full">
       {notifications.map((n) => (
