@@ -6,6 +6,7 @@ using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Mappings;
 using Bartender.Domain.Services.Data;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Table = Bartender.Data.Models.Table;
@@ -49,32 +50,23 @@ public class PlacesServiceTests
     {
         // Arrange
         var dto = TestDataFactory.CreateValidInsertPlaceDto();
-        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(10, role:EmployeeRole.admin));
+        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(10, role: EmployeeRole.admin));
 
-        // Act
-        var result = await _service.AddAsync(dto);
-
-        // Assert
-        Assert.That(result.Success, Is.True);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(async () => await _service.AddAsync(dto));
         await _repository.Received(1).AddAsync(Arg.Any<Place>());
     }
 
+
     [Test]
-    public async Task AddAsync_Should_Return_Unauthorized_When_CrossBusiness()
+    public async Task AddAsync_Should_Throw_UnauthorizedPlaceAccessException_When_CrossBusiness()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidInsertPlaceDto(businessid: 1);
         _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(id: 99, businessid: 99, placeid: 99, role: EmployeeRole.admin));
 
-        // Act
-        var result = await _service.AddAsync(dto);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(async () => await _service.AddAsync(dto));
         await _repository.DidNotReceive().AddAsync(Arg.Any<Place>());
     }
 
@@ -86,49 +78,34 @@ public class PlacesServiceTests
         _repository.GetByIdAsync(place.Id).Returns(place);
         _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(10));
 
-        // Act
-        var result = await _service.DeleteAsync(place.Id);
-
-        // Assert
-        Assert.That(result.Success, Is.True);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(async () => await _service.DeleteAsync(place.Id));
         await _repository.Received(1).DeleteAsync(place);
     }
 
     [Test]
-    public async Task DeleteAsync_Should_Return_NotFound_When_Missing()
+    public async Task DeleteAsync_Should_Throw_NotFoundException_When_Place_Not_Found()
     {
         // Arrange
         _repository.GetByIdAsync(1).Returns((Place?)null);
 
-        // Act
-        var result = await _service.DeleteAsync(1);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(async () => await _service.DeleteAsync(1));
+        Assert.That(ex.Message, Is.EqualTo("Place with ID 1 not found.")); // Or whatever message your NotFoundException throws
+        await _repository.DidNotReceive().DeleteAsync(Arg.Any<Place>());
     }
 
     [Test]
-    public async Task DeleteAsync_Should_Return_Unauthorized_When_CrossBusiness()
+    public async Task DeleteAsync_Should_Throw_UnauthorizedPlaceAccessException_When_CrossBusiness()
     {
         // Arrange
         var place = TestDataFactory.CreateValidPlace();
-        place.BusinessId = 999;
+        place.BusinessId = 999;  // Set business ID different from the current user's business
         _repository.GetByIdAsync(1).Returns(place);
-        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(10));
+        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(10, businessid: 10));  // Set current user with a different business ID
 
-        // Act
-        var result = await _service.DeleteAsync(1);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-        });
+        // Act & Assert
+        Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(async () => await _service.DeleteAsync(1));
         await _repository.DidNotReceive().DeleteAsync(Arg.Any<Place>());
     }
 
@@ -142,81 +119,59 @@ public class PlacesServiceTests
 
         // Act
         var dto = TestDataFactory.CreateValidUpdatePlaceDto();
-        var result = await _service.UpdateAsync(place.Id, dto);
 
-        // Assert
-        Assert.That(result.Success, Is.True);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(async () => await _service.UpdateAsync(place.Id, dto));
         await _repository.Received(1).UpdateAsync(place);
     }
 
     [Test]
-    public async Task UpdateAsync_Should_Return_NotFound_When_Missing()
+    public async Task UpdateAsync_Should_Throw_NotFoundException_When_Place_Not_Found()
     {
         // Arrange
         _repository.GetByIdAsync(1).Returns((Place?)null);
 
-        // Act
-        var result = await _service.UpdateAsync(1, TestDataFactory.CreateValidUpdatePlaceDto());
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
-    }
-
-    [Test]
-    public async Task UpdateAsync_Should_Return_Unauthorized_When_CrossBusiness()
-    {
-        // Arrange
-        var place = TestDataFactory.CreateValidPlace();
-        place.BusinessId = 999;
-        _repository.GetByIdAsync(1).Returns(place);
-        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(10));
-
-        // Act
-        var result = await _service.UpdateAsync(1, TestDataFactory.CreateValidUpdatePlaceDto());
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(async () => await _service.UpdateAsync(1, TestDataFactory.CreateValidUpdatePlaceDto()));
+        Assert.That(ex.Message, Is.EqualTo("Place with ID 1 not found."));  // Assert that the exception message is correct
         await _repository.DidNotReceive().UpdateAsync(Arg.Any<Place>());
     }
 
     [Test]
-    public async Task NotifyStaffAsync_Should_SendNotification_WhenTableFound()
+    public async Task UpdateAsync_Should_Throw_UnauthorizedPlaceAccessException_When_CrossBusiness()
+    {
+        // Arrange
+        var place = TestDataFactory.CreateValidPlace();
+        place.BusinessId = 999;  // Set business ID different from the current user's business
+        _repository.GetByIdAsync(1).Returns(place);
+        _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(10, businessid: 10));  // Set current user with a different business ID
+
+        // Act & Assert
+        Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(async () => await _service.UpdateAsync(1, TestDataFactory.CreateValidUpdatePlaceDto()));
+        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Place>());
+    }
+
+    [Test]
+    public async Task NotifyStaffAsync_Should_SendNotification_When_Table_Found()
     {
         // Arrange
         var table = TestDataFactory.CreateValidTable(label: "A1", salt: "salt123");
         _tableRepository.GetBySaltAsync("salt123").Returns(table);
 
-        // Act
-        var result = await _service.NotifyStaffAsync("salt123");
-
-        // Assert
-        Assert.That(result.Success, Is.True);
-        await _notificationService.Received().AddNotificationAsync(table, Arg.Any<TableNotification>());
+        // Act & Assert
+        Assert.DoesNotThrowAsync(async () => await _service.NotifyStaffAsync("salt123"));
+        await _notificationService.Received(1).AddNotificationAsync(table, Arg.Any<TableNotification>());
     }
 
     [Test]
-    public async Task NotifyStaffAsync_Should_ReturnNotFound_WhenTableMissing()
+    public async Task NotifyStaffAsync_Should_Throw_NotFoundException_When_Table_Missing()
     {
         // Arrange
         _tableRepository.GetBySaltAsync("salt123").Returns((Table?)null);
 
-        // Act
-        var result = await _service.NotifyStaffAsync("salt123");
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(async () => await _service.NotifyStaffAsync("salt123"));
+        Assert.That(ex.Message, Is.EqualTo("Table with salt 'salt123' not found."));
         await _notificationService.DidNotReceive().AddNotificationAsync(Arg.Any<Table>(), Arg.Any<TableNotification>());
     }
 }

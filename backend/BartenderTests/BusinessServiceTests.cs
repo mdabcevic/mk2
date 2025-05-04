@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Business;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
@@ -46,53 +46,65 @@ public class BusinessServiceTests
         var result = await _businessService.GetByIdAsync(1);
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data, Is.TypeOf<BusinessDto>());
-        });
+        Assert.That(result, Is.EqualTo(dto));
         await _repository.Received(1).GetByIdAsync(1, true);
     }
 
     [Test]
-    public async Task GetByIdAsync_ReturnsUnauthorized_WhenBusinessMismatch()
+    public void GetByIdAsync_ThrowsUnauthorized_WhenBusinessMismatch()
     {
         // Arrange
         var business = TestDataFactory.CreateValidBusiness(2);
-        var staff = TestDataFactory.CreateValidStaff(placeid: 99);
+        var staff = TestDataFactory.CreateValidStaff(businessid: 1); // mismatch
 
         _repository.GetByIdAsync(2, true).Returns(business);
         _currentUser.GetCurrentUserAsync().Returns(staff);
 
-        // Act
-        var result = await _businessService.GetByIdAsync(2);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedBusinessAccessException>(
+            () => _businessService.GetByIdAsync(2)
+        );
 
-        Assert.Multiple(() =>
-        {
-            // Assert
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.Data, Is.Null);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
+        Assert.That(ex!.Message, Is.Not.Null);
     }
 
     [Test]
-    public async Task AddAsync_ReturnsValidationError_WhenOIBTooShort()
+    public void GetByIdAsync_ThrowsNotFound_WhenBusinessMissing()
+    {
+        // Arrange
+        var staff = TestDataFactory.CreateValidStaff(businessid: 1);
+        _repository.GetByIdAsync(999, true).Returns((Business?)null);
+        _currentUser.GetCurrentUserAsync().Returns(staff);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<BusinessNotFoundException>(
+            () => _businessService.GetByIdAsync(999)
+        );
+
+        Assert.That(ex!.Message, Does.Contain("Business with ID 999"));
+    }
+
+    [Test]
+    public void GetByIdAsync_ThrowsUnauthorized_WhenNoUser()
+    {
+        // Arrange
+        _currentUser.GetCurrentUserAsync().Returns(Task.FromResult<Staff?>(null));
+
+        // Act & Assert
+        Assert.ThrowsAsync<UnauthorizedBusinessAccessException>(() => _businessService.GetByIdAsync(1));
+    }
+
+    [Test]
+    public void AddAsync_ThrowsValidationError_WhenOIBTooShort()
     {
         // Arrange
         var dto = new UpsertBusinessDto { OIB = "123", Name = "Invalid" };
 
-        // Act
-        var result = await _businessService.AddAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AppValidationException>(() => _businessService.AddAsync(dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Validation));
-        });
-        await _repository.DidNotReceive().AddAsync(Arg.Any<Business>());
+        Assert.That(ex!.Message, Is.EqualTo("OIB must be 11 characters"));
+        _repository.DidNotReceive().AddAsync(Arg.Any<Business>());
     }
 
     [Test]
@@ -100,37 +112,47 @@ public class BusinessServiceTests
     {
         // Arrange
         var dto = new UpsertBusinessDto { OIB = "12345678901", Name = "New Business", Headquarters = "HQ" };
-        var entity = TestDataFactory.CreateValidBusiness(oib: "12345678901", name: "New Business", sub: SubscriptionTier.none);
+        var entity = TestDataFactory.CreateValidBusiness(oib: dto.OIB, name: dto.Name, sub: SubscriptionTier.none);
         _mapper.Map<Business>(dto).Returns(entity);
 
         // Act
-        var result = await _businessService.AddAsync(dto);
+        await _businessService.AddAsync(dto);
 
         // Assert
-        Assert.That(result.Success, Is.True);
         await _repository.Received(1).AddAsync(entity);
+    }
+
+    [Test]
+    public void AddAsync_ThrowsConflict_WhenOIBAlreadyExists()
+    {
+        // Arrange
+        var dto = new UpsertBusinessDto { OIB = "12345678901", Name = "Duplicate Business" };
+        _repository.ExistsAsync(b => b.OIB == dto.OIB).Returns(true); // if you add this logic later
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AppValidationException>(() => _businessService.AddAsync(dto));
+        Assert.That(ex!.Message, Does.Contain("already exists"));
     }
 
     [Test]
     public async Task UpdateSubscriptionAsync_UpdatesTier_WhenAuthorized()
     {
         // Arrange
-        var staff = TestDataFactory.CreateValidStaff();
+        var staff = TestDataFactory.CreateValidStaff(businessid: 999);
         var business = TestDataFactory.CreateValidBusiness(1);
 
         _currentUser.GetCurrentUserAsync().Returns(staff);
         _repository.GetByIdAsync(1).Returns(business);
 
         // Act
-        var result = await _businessService.UpdateSubscriptionAsync(SubscriptionTier.premium);
+        await _businessService.UpdateSubscriptionAsync(SubscriptionTier.premium);
 
         // Assert
-        Assert.That(result.Success, Is.True);
         await _repository.Received(1).UpdateAsync(Arg.Is<Business>(b => b.SubscriptionTier == SubscriptionTier.premium));
     }
 
     [Test]
-    public async Task UpdateSubscriptionAsync_ReturnsError_WhenNoPlaceAssigned()
+    public void UpdateSubscriptionAsync_Throws_WhenNoPlaceAssigned()
     {
         // Arrange
         var staff = TestDataFactory.CreateValidStaff();
@@ -138,18 +160,30 @@ public class BusinessServiceTests
 
         _currentUser.GetCurrentUserAsync().Returns(staff);
 
-        // Act
-        var result = await _businessService.UpdateSubscriptionAsync(SubscriptionTier.premium);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UserPlaceAssignmentException>(
+            () => _businessService.UpdateSubscriptionAsync(SubscriptionTier.premium)
+        );
 
-        Assert.Multiple(() =>
-        {
-            // Assert
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
-        });
-        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Business>());
+        Assert.That(ex!.Message, Does.Contain($"User {staff.Id}"));
+        _repository.DidNotReceive().UpdateAsync(Arg.Any<Business>());
     }
 
+    [Test]
+    public void UpdateSubscriptionAsync_Throws_WhenBusinessNotFound()
+    {
+        // Arrange
+        var staff = TestDataFactory.CreateValidStaff(businessid: 999);
+        _currentUser.GetCurrentUserAsync().Returns(staff);
+        _repository.GetByIdAsync(999).Returns((Business?)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<BusinessNotFoundException>(
+            () => _businessService.UpdateSubscriptionAsync(SubscriptionTier.premium)
+        );
+
+        Assert.That(ex!.Message, Does.Contain("Business with ID 999"));
+    }
 
     [Test]
     public async Task UpdateAsync_UpdatesBusiness_WhenExists()
@@ -157,34 +191,31 @@ public class BusinessServiceTests
         // Arrange
         var dto = new UpsertBusinessDto { OIB = "123", Name = "Business", Headquarters = "Main HQ" };
         var business = TestDataFactory.CreateValidBusiness(1);
+
         _repository.GetByIdAsync(1).Returns(business);
 
         // Act
-        var result = await _businessService.UpdateAsync(1, dto);
+        await _businessService.UpdateAsync(1, dto);
 
         // Assert
-        Assert.That(result.Success, Is.True);
         await _repository.Received(1).UpdateAsync(business);
+        _mapper.Received(1).Map(dto, business);
     }
 
     [Test]
-    public async Task UpdateAsync_ReturnsNotFound_WhenBusinessMissing()
+    public void UpdateAsync_ThrowsNotFound_WhenBusinessMissing()
     {
         // Arrange
         var dto = new UpsertBusinessDto { OIB = "123", Name = "Nonexistent Business", Headquarters = "HQ" };
         _repository.GetByIdAsync(Arg.Any<int>()).Returns((Business?)null);
 
-        // Act
-        var result = await _businessService.UpdateAsync(1, dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<BusinessNotFoundException>(
+            () => _businessService.UpdateAsync(1, dto)
+        );
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
-
-        await _repository.DidNotReceive().UpdateAsync(Arg.Any<Business>());
+        Assert.That(ex!.Message, Does.Contain("Business with ID 1"));
+        _repository.DidNotReceive().UpdateAsync(Arg.Any<Business>());
     }
 
     [Test]
@@ -195,28 +226,24 @@ public class BusinessServiceTests
         _repository.GetByIdAsync(1).Returns(business);
 
         // Act
-        var result = await _businessService.DeleteAsync(1);
+        await _businessService.DeleteAsync(1);
 
         // Assert
-        Assert.That(result.Success, Is.True);
         await _repository.Received(1).DeleteAsync(business);
     }
 
     [Test]
-    public async Task DeleteAsync_ReturnsError_WhenNotFound()
+    public void DeleteAsync_Throws_WhenNotFound()
     {
         // Arrange
         _repository.GetByIdAsync(1).Returns((Business?)null);
 
-        // Act
-        var result = await _businessService.DeleteAsync(1);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<BusinessNotFoundException>(
+            () => _businessService.DeleteAsync(1)
+        );
 
-        Assert.Multiple(() =>
-        {
-            // Assert
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
-        await _repository.DidNotReceive().DeleteAsync(Arg.Any<Business>());
+        Assert.That(ex!.Message, Does.Contain("Business with ID 1"));
+        _repository.DidNotReceive().DeleteAsync(Arg.Any<Business>());
     }
 }

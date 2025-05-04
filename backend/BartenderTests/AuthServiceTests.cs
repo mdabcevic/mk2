@@ -4,7 +4,7 @@ using Bartender.Domain.Services;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.Linq.Expressions;
-using Bartender.Domain.DTO;
+using Bartender.Domain.Utility.Exceptions;
 
 namespace BartenderTests;
 
@@ -37,48 +37,36 @@ public class AuthServiceTests
         var result = await _service.LoginAsync(TestDataFactory.CreateLoginDto("testuser", "testpassword"));
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.EqualTo("test-token"));
-        });
+        Assert.That(result, Is.EqualTo("test-token"));
         _jwtService.Received(1).GenerateStaffToken(staff);
     }
 
     [TestCase("", TestName = "WrongPassword_Empty")]
     [TestCase("wrongpassword", TestName = "WrongPassword")]
-    public async Task LoginAsync_WrongPassword_ReturnsValidationError(string password)
+    public void LoginAsync_WrongPassword_ThrowsValidationException(string password)
     {
         // Arrange
         var staff = TestDataFactory.CreateValidStaff(1, username: "testuser", password: "testpassword");
         _repo.GetByKeyAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns(staff);
         var loginDto = TestDataFactory.CreateLoginDto("testuser", password);
 
-        // Act
-        var result = await _service.LoginAsync(loginDto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AppValidationException>(() => _service.LoginAsync(loginDto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Validation));
-        });
+        Assert.That(ex!.Message, Is.EqualTo("Invalid username or password."));
     }
 
+
     [Test]
-    public async Task LoginAsync_StaffNotFound_ReturnsValidationError()
+    public void LoginAsync_StaffNotFound_ThrowsValidationException()
     {
         // Arrange
         _repo.GetByKeyAsync(Arg.Any<Expression<Func<Staff, bool>>>()).Returns((Staff?)null);
+        var loginDto = TestDataFactory.CreateLoginDto("nonexistent", "irrelevant");
 
-        // Act
-        var result = await _service.LoginAsync(TestDataFactory.CreateLoginDto("nonexistent", "irrelevant"));
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AppValidationException>(() => _service.LoginAsync(loginDto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Validation));
-        });
+        Assert.That(ex!.Message, Is.EqualTo("Invalid username or password."));
     }
 }
