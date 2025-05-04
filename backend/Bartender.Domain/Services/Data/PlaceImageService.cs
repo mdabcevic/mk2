@@ -6,6 +6,7 @@ using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Bartender.Domain.utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 
@@ -17,13 +18,13 @@ public class PlaceImageService(
     ILogger<PlaceImageService> logger
     ) : IPlaceImageService
 {
-    public async Task<ServiceResult<List<ImageGroupedDto>>> GetImagesAsync(int placeId, ImageType? pictureType = null, bool onlyVisible = true)
+    public async Task<List<ImageGroupedDto>> GetImagesAsync(int placeId, ImageType? pictureType = null, bool onlyVisible = true)
     {
         var place = await placeRepository.GetByIdAsync(placeId);
         if (place == null)
         {
             logger.LogWarning("Place with id {PlaceId} not found", placeId);
-            return ServiceResult<List<ImageGroupedDto>>.Fail($"Place with id {placeId} not found", ErrorType.NotFound);
+            throw new PlaceNotFoundException(placeId);
         }
 
         var query = repository.QueryIncluding()
@@ -51,20 +52,17 @@ public class PlaceImageService(
              .ToListAsync();
 
         logger.LogInformation("Fetched {Count} image groups for place {PlaceId}", pictures.Count, placeId);
-        return ServiceResult<List<ImageGroupedDto>>.Ok(pictures);
+        return pictures;
     }
 
-    public async Task<ServiceResult> AddImageAsync(UpsertImageDto newPicture)
+    public async Task AddImageAsync(UpsertImageDto newPicture)
     {
-        var validationResult = await ValidatePlaceAndAccessAsync(newPicture.PlaceId);
-        if (!validationResult.Success)
-            return validationResult;
+        await ValidatePlaceAndAccessAsync(newPicture.PlaceId);
 
         var existingPicture = await CheckForExistingImageAsync(newPicture.PlaceId, newPicture.ImageType, newPicture.Url);
         if (existingPicture != null)
         {
-            logger.LogWarning("Image already exists in category '{ImageType}' for place {PlaceId}", existingPicture.ImageType, newPicture.PlaceId);
-            return ServiceResult.Fail($"Image already exists in category '{existingPicture.ImageType}'", ErrorType.Validation);
+            throw new ConflictException($"Image already exists in category '{existingPicture.ImageType}'");
         }
 
         if (newPicture.ImageType == ImageType.banner)
@@ -72,27 +70,22 @@ public class PlaceImageService(
 
         await repository.AddAsync(mapper.Map<PlaceImage>(newPicture));
         logger.LogInformation("Successfully added image for place {PlaceId}", newPicture.PlaceId);
-        return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult> UpdateImageAsync(int id, UpsertImageDto newPicture)
+    public async Task UpdateImageAsync(int id, UpsertImageDto newPicture)
     {
         var existingPicture = await repository.GetByIdAsync(id);
         if (existingPicture == null)
         {
-            logger.LogWarning("Picture with id {ImageId} not found", id);
-            return ServiceResult.Fail($"Picture with id {id} not found", ErrorType.NotFound);
+            throw new NotFoundException($"Picture with id {id} not found");
         }
-
-        var validationResult = await ValidatePlaceAndAccessAsync(newPicture.PlaceId);
-        if (!validationResult.Success)
-            return validationResult;
+        newPicture.PlaceId = existingPicture.PlaceId;
+        await ValidatePlaceAndAccessAsync(newPicture.PlaceId);
 
         var existingPictureUrl = await CheckForExistingImageAsync(newPicture.PlaceId, newPicture.ImageType, newPicture.Url, id);
         if (existingPictureUrl != null)
         {
-            logger.LogWarning("Image already exists in category '{ImageType}' for place {PlaceId}", newPicture.ImageType, newPicture.PlaceId);
-            return ServiceResult.Fail($"Image already exists in category '{existingPicture.ImageType}'", ErrorType.Validation);
+            throw new ConflictException($"Image already exists in category '{existingPicture.ImageType}'");
         }
 
         if (newPicture.ImageType == ImageType.banner)
@@ -101,41 +94,35 @@ public class PlaceImageService(
         mapper.Map(newPicture, existingPicture);
         await repository.UpdateAsync(existingPicture);
         logger.LogInformation("Successfully updated image with id {ImageId}", id);
-
-        return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult> DeleteImageAsync(int id)
+    public async Task DeleteImageAsync(int id)
     {
         var existingPicture = await repository.GetByIdAsync(id);
         if (existingPicture == null)
         {
-            logger.LogWarning("Picture with id {ImageId} not found", id);
-            return ServiceResult.Fail($"Picture with id {id} not found", ErrorType.NotFound);
+            throw new NotFoundException($"Picture with id {id} not found");
         }
+
+        await ValidatePlaceAndAccessAsync(existingPicture.PlaceId);
 
         await repository.DeleteAsync(existingPicture);
         logger.LogInformation("Successfully deleted image with id {ImageId}", id);
-
-        return ServiceResult.Ok();
     }
 
-    private async Task<ServiceResult> ValidatePlaceAndAccessAsync(int placeId)
+    private async Task ValidatePlaceAndAccessAsync(int placeId)
     {
         var existingPlace = await placeRepository.ExistsAsync(p => p.Id == placeId);
         if (!existingPlace)
         {
             logger.LogWarning("Place with id {PlaceId} not found", placeId);
-            return ServiceResult.Fail($"Place with id {placeId} not found", ErrorType.NotFound);
+            throw new PlaceNotFoundException(placeId);
         }
 
         if (!await validationService.VerifyUserPlaceAccess(placeId))
         {
-            logger.LogWarning("Cross-business access denied for place {PlaceId}", placeId);
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            throw new UnauthorizedPlaceAccessException(placeId);
         }
-
-        return ServiceResult.Ok();
     }
 
     private async Task<PlaceImage?> CheckForExistingImageAsync(int placeId, ImageType imageType, string url, int? id = null)
