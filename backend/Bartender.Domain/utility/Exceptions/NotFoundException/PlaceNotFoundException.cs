@@ -6,7 +6,7 @@ public class PlaceNotFoundException : NotFoundException
     public int PlaceId { get; }
 
     public PlaceNotFoundException(int placeId)
-        : base($"Place was not found.")
+        : base($"Place with ID {placeId} was not found.")
     {
         PlaceId = placeId;
     }
