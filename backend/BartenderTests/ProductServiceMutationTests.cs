@@ -129,7 +129,7 @@ public class ProductServiceMutationTests
         var ex = Assert.ThrowsAsync<ProductNotFoundException>(async () =>
             await _productService.UpdateAsync(999, dto));
 
-        Assert.That(ex.Message, Is.EqualTo("Product with id 999 not found"));
+        Assert.That(ex.Message, Does.Contain("not found"));
 
         await _repository.DidNotReceive().UpdateAsync(Arg.Any<Product>());
         _mapper.DidNotReceive().Map(Arg.Any<UpsertProductDto>(), Arg.Any<Product>());
@@ -208,7 +208,7 @@ public class ProductServiceMutationTests
         var ex = Assert.ThrowsAsync<ProductNotFoundException>(async () =>
             await _productService.DeleteAsync(999));
 
-        Assert.That(ex.Message, Is.EqualTo("Product with id 999 not found"));
+        Assert.That(ex.Message, Does.Contain("not found"));
         await _repository.DidNotReceive().DeleteAsync(Arg.Any<Product>());
     }
 

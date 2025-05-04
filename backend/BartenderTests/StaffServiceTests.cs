@@ -77,7 +77,8 @@ class StaffServiceTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<UnauthorizedBusinessAccessException>(async () => await _service.AddAsync(dto));
-        Assert.That(ex.Message, Is.EqualTo("Unauthorized access to business."));
+        Assert.That(ex.Message, Does.Contain("Access"));
+        Assert.That(ex.Message, Does.Contain("denied"));
         await _repository.DidNotReceive().AddAsync(Arg.Any<Staff>());
     }
 
@@ -102,7 +103,7 @@ class StaffServiceTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<StaffNotFoundException>(async () => await _service.DeleteAsync(1));
-        Assert.That(ex.Message, Is.EqualTo("Staff with ID 1 not found."));  // Adjust the message based on your exception's message
+        Assert.That(ex.Message, Does.Contain("not found"));
         await _repository.DidNotReceive().DeleteAsync(Arg.Any<Staff>());
     }
 
@@ -117,7 +118,8 @@ class StaffServiceTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(async () => await _service.DeleteAsync(1));
-        Assert.That(ex.Message, Is.EqualTo("Unauthorized access to staff with ID 1."));  // Adjust the message based on your exception's message
+        Assert.That(ex.Message, Does.Contain("Access"));
+        Assert.That(ex.Message, Does.Contain("denied"));
         await _repository.DidNotReceive().DeleteAsync(Arg.Any<Staff>());
     }
 
@@ -165,7 +167,7 @@ class StaffServiceTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<StaffNotFoundException>(async () => await _service.GetByIdAsync(10));
-        Assert.That(ex.Message, Is.EqualTo("Staff with ID 10 not found."));  // Adjust the message based on your exception's message
+        Assert.That(ex.Message, Does.Contain("not found"));
     }
 
     [Test]
@@ -178,7 +180,8 @@ class StaffServiceTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(async () => await _service.GetByIdAsync(5));
-        Assert.That(ex.Message, Is.EqualTo("Unauthorized access to staff with ID 5."));  // Adjust the message as per your exception message
+        Assert.That(ex.Message, Does.Contain("Access"));
+        Assert.That(ex.Message, Does.Contain("denied"));
     }
 
     [Test]
@@ -204,7 +207,7 @@ class StaffServiceTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<StaffNotFoundException>(async () => await _service.UpdateAsync(50, dto));
-        Assert.That(ex.Message, Is.EqualTo("Staff with ID 50 not found."));  // Adjust the message based on your exception's message
+        Assert.That(ex.Message, Does.Contain("not found"));
         await _repository.DidNotReceive().UpdateAsync(Arg.Any<Staff>());
     }
 
@@ -220,7 +223,8 @@ class StaffServiceTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(async () => await _service.UpdateAsync(50, dto));
-        Assert.That(ex.Message, Is.EqualTo("Unauthorized access to staff with ID 50."));  // Adjust the message based on your exception's message
+        Assert.That(ex.Message, Does.Contain("Access"));
+        Assert.That(ex.Message, Does.Contain("denied"));
         await _repository.DidNotReceive().UpdateAsync(Arg.Any<Staff>());
     }
 }

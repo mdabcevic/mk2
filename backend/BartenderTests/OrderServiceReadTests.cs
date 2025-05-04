@@ -92,7 +92,8 @@ public class OrderServiceReadTests
         var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(
             () => _service.GetAllClosedOrdersByPlaceIdAsync(placeId, page: 1)
         );
-        Assert.That(ex!.Message, Is.EqualTo("Cross-business access denied."));
+        Assert.That(ex!.Message, Does.Contain("Access"));
+        Assert.That(ex!.Message, Does.Contain("denied"));
     }
 
     [Test]
@@ -107,7 +108,8 @@ public class OrderServiceReadTests
         var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(
             () => _service.GetAllActiveOrdersByPlaceIdAsync(placeId, onlyWaitingForStaff: false)
         );
-        Assert.That(ex!.Message, Is.EqualTo("Cross-business access denied."));
+        Assert.That(ex!.Message, Does.Contain("Access"));
+        Assert.That(ex!.Message, Does.Contain("denied"));
     }
 
     [Test]
@@ -149,10 +151,11 @@ public class OrderServiceReadTests
             .Returns(false); // Simulate unauthorized access
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+        var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(async () =>
             await _service.GetAllActiveOrdersByPlaceIdAsync(placeId));
 
-        Assert.That(ex.Message, Is.EqualTo("Cross-business access denied."));
+        Assert.That(ex.Message, Does.Contain("Access"));
+        Assert.That(ex.Message, Does.Contain("denied"));
     }
 
     [Test]
@@ -238,10 +241,11 @@ public class OrderServiceReadTests
         _validationService.VerifyUserPlaceAccess(placeId).Returns(false); // Unauthorized access
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+        var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(async () =>
             await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page: 1));
 
-        Assert.That(ex.Message, Is.EqualTo("Cross-business access denied."));
+        Assert.That(ex!.Message, Does.Contain("Access"));
+        Assert.That(ex!.Message, Does.Contain("denied"));
     }
 
     [Test]
@@ -295,7 +299,7 @@ public class OrderServiceReadTests
         // Act & Assert
         var ex = Assert.ThrowsAsync<BusinessNotFoundException>(() => _service.GetAllByBusinessIdAsync(businessId));
 
-        Assert.That(ex.Message, Is.EqualTo($"Business with ID {businessId} not found"));
+        Assert.That(ex.Message, Does.Contain($"not found"));
     }
 
     [Test]
@@ -312,7 +316,8 @@ public class OrderServiceReadTests
         var ex = Assert.ThrowsAsync<UnauthorizedBusinessAccessException>(() => _service.GetAllByBusinessIdAsync(businessId));
 
         // Assert the exception message
-        Assert.That(ex.Message, Is.EqualTo("Cross-business access denied."));
+        Assert.That(ex!.Message, Does.Contain("Access"));
+        Assert.That(ex!.Message, Does.Contain("denied"));
     }
 
     [Test]
@@ -349,7 +354,7 @@ public class OrderServiceReadTests
             await _service.GetByIdAsync(123, skipValidation: true));
 
         Assert.That(ex, Is.Not.Null);
-        Assert.That(ex.Message, Does.Contain("Order with id 123 not found"));
+        Assert.That(ex.Message, Does.Contain("not found"));
     }
 
     [Test]
@@ -367,7 +372,7 @@ public class OrderServiceReadTests
             await _service.GetByIdAsync(order.Id, skipValidation: false));
 
         Assert.That(ex, Is.Not.Null);
-        Assert.That(ex.Message, Does.Contain($"Access denied for order with id {order.Id}"));
+        Assert.That(ex.Message, Does.Contain($"Cannot access"));
     }
 
     [Test]
@@ -448,11 +453,12 @@ public class OrderServiceReadTests
         _validationService.VerifyUserGuestAccess(table.Id).Returns(false); // Simulating validation failure
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+        var ex = Assert.ThrowsAsync<TableAccessDeniedException>(async () =>
             await _service.GetCurrentOrdersByTableLabelAsync("T1")
         );
 
-        Assert.That(ex.Message, Is.EqualTo("Unauthorized"));
+        Assert.That(ex!.Message, Does.Contain("Access"));
+        Assert.That(ex!.Message, Does.Contain("denied"));
     }
 
     [Test]

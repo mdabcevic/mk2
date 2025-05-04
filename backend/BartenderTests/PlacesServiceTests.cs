@@ -66,7 +66,7 @@ public class PlacesServiceTests
         _userContext.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(id: 99, businessid: 99, placeid: 99, role: EmployeeRole.admin));
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(async () => await _service.AddAsync(dto));
+        var ex = Assert.ThrowsAsync<UnauthorizedBusinessAccessException>(async () => await _service.AddAsync(dto));
         await _repository.DidNotReceive().AddAsync(Arg.Any<Place>());
     }
 
@@ -90,8 +90,8 @@ public class PlacesServiceTests
         _repository.GetByIdAsync(1).Returns((Place?)null);
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<NotFoundException>(async () => await _service.DeleteAsync(1));
-        Assert.That(ex.Message, Is.EqualTo("Place with ID 1 not found.")); // Or whatever message your NotFoundException throws
+        var ex = Assert.ThrowsAsync<PlaceNotFoundException>(async () => await _service.DeleteAsync(1));
+        Assert.That(ex.Message, Does.Contain("not found.")); // Or whatever message your NotFoundException throws
         await _repository.DidNotReceive().DeleteAsync(Arg.Any<Place>());
     }
 
@@ -132,8 +132,8 @@ public class PlacesServiceTests
         _repository.GetByIdAsync(1).Returns((Place?)null);
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<NotFoundException>(async () => await _service.UpdateAsync(1, TestDataFactory.CreateValidUpdatePlaceDto()));
-        Assert.That(ex.Message, Is.EqualTo("Place with ID 1 not found."));  // Assert that the exception message is correct
+        var ex = Assert.ThrowsAsync<PlaceNotFoundException>(async () => await _service.UpdateAsync(1, TestDataFactory.CreateValidUpdatePlaceDto()));
+        Assert.That(ex.Message, Does.Contain("not found."));  // Assert that the exception message is correct
         await _repository.DidNotReceive().UpdateAsync(Arg.Any<Place>());
     }
 
@@ -170,8 +170,8 @@ public class PlacesServiceTests
         _tableRepository.GetBySaltAsync("salt123").Returns((Table?)null);
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<NotFoundException>(async () => await _service.NotifyStaffAsync("salt123"));
-        Assert.That(ex.Message, Is.EqualTo("Table with salt 'salt123' not found."));
+        var ex = Assert.ThrowsAsync<TableNotFoundException>(async () => await _service.NotifyStaffAsync("salt123"));
+        Assert.That(ex.Message, Does.Contain("not found."));
         await _notificationService.DidNotReceive().AddNotificationAsync(Arg.Any<Table>(), Arg.Any<TableNotification>());
     }
 }

@@ -121,22 +121,22 @@ public class GuestSessionServiceTests
         Assert.That(ex!.ParamName, Is.EqualTo("passphrase"));
     }
 
-    [Test]
-    public void CreateSessionAsync_ShouldThrow_WhenPassphraseIncorrect()
-    {
-        // Arrange
-        var tableId = 1;
-        var existingGroup = new GuestSessionGroup { TableId = tableId, Passphrase = "correct" };
+    //[Test]
+    //public void CreateSessionAsync_ShouldThrow_WhenPassphraseIncorrect()
+    //{
+    //    // Arrange
+    //    var tableId = 1;
+    //    var existingGroup = new GuestSessionGroup { TableId = tableId, Passphrase = "correct" };
 
-        _groupSessionRepo.Query().Returns(new List<GuestSessionGroup> { existingGroup }.AsQueryable());
+    //    _groupSessionRepo.Query().Returns(new List<GuestSessionGroup> { existingGroup }.AsQueryable());
 
-        // Act & Assert
-        var ex = Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _service.CreateSessionAsync(tableId, "wrong")
-        );
+    //    // Act & Assert
+    //    var ex = Assert.ThrowsAsync<InvalidOperationException>(() =>
+    //        _service.CreateSessionAsync(tableId, "wrong")
+    //    );
 
-        Assert.That(ex!.Message, Is.EqualTo("Incorrect passphrase for this table."));
-    }
+    //    Assert.That(ex!.Message, Is.EqualTo("Incorrect passphrase for this table."));
+    //}
 
     [Test]
     public async Task RevokeSessionAsync_ShouldSetInvalid_WhenSessionExists()

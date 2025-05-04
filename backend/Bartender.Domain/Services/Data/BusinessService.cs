@@ -31,12 +31,7 @@ public class BusinessService(
             throw new UnauthorizedBusinessAccessException();
         }
 
-        var business = await repository.GetByIdAsync(id, true);
-
-        if (business is null) { 
-            throw new BusinessNotFoundException(id);
-        }
-
+        var business = await repository.GetByIdAsync(id, true) ?? throw new BusinessNotFoundException(id);
         var dto = mapper.Map<BusinessDto>(business);
         logger.LogInformation("Successfully retrieved business with {Id}", id);
         return dto;
@@ -46,6 +41,9 @@ public class BusinessService(
     {
         if (dto.OIB.Length != 11) //TODO: include actual OIB validation
             throw new AppValidationException("OIB must be 11 characters");
+
+        if (await repository.ExistsAsync(b => b.OIB == dto.OIB))
+            throw new AppValidationException($"Business with OIB '{dto.OIB}' already exists");
 
         var entity = mapper.Map<Business>(dto);
         await repository.AddAsync(entity);

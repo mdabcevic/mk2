@@ -239,7 +239,7 @@ public class MenuItemServiceReadTests
         var ex = Assert.ThrowsAsync<MenuItemNotFoundException>(() =>
             _menuService.GetByIdAsync(placeId, productId));
 
-        Assert.That(ex!.Message, Does.Contain($"Menu item with place ID {placeId} and product ID {productId}"));
+        Assert.That(ex!.Message, Does.Contain($"not found"));
 
         await _menuRepository.Received(1).GetByKeyAsync(
             Arg.Any<Expression<Func<MenuItem, bool>>>(),

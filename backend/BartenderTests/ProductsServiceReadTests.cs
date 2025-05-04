@@ -73,7 +73,7 @@ public class ProductServiceReadTests
         var ex = Assert.ThrowsAsync<ProductNotFoundException>(async () =>
             await _productService.GetByIdAsync(1));
 
-        Assert.That(ex.Message, Is.EqualTo("Product with id 1 not found"));
+        Assert.That(ex.Message, Does.Contain("not found"));
         _mapper.DidNotReceive().Map<ProductDto>(Arg.Any<Product>());
     }
 

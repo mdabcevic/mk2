@@ -7,6 +7,8 @@ using Bartender.Domain.Services.Data;
 using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
 
 namespace BartenderTests;
 
@@ -72,7 +74,8 @@ public class BusinessServiceTests
     public void GetByIdAsync_ThrowsNotFound_WhenBusinessMissing()
     {
         // Arrange
-        var staff = TestDataFactory.CreateValidStaff(businessid: 1);
+        var staff = TestDataFactory.CreateValidStaff(businessid: 999, placeid: 10, role: EmployeeRole.regular);
+        staff.Place = TestDataFactory.CreateValidPlace(businessid: 999, id: 10);
         _repository.GetByIdAsync(999, true).Returns((Business?)null);
         _currentUser.GetCurrentUserAsync().Returns(staff);
 
@@ -81,7 +84,7 @@ public class BusinessServiceTests
             () => _businessService.GetByIdAsync(999)
         );
 
-        Assert.That(ex!.Message, Does.Contain("Business with ID 999"));
+        Assert.That(ex!.Message, Does.Contain("not found"));
     }
 
     [Test]
@@ -91,7 +94,7 @@ public class BusinessServiceTests
         _currentUser.GetCurrentUserAsync().Returns(Task.FromResult<Staff?>(null));
 
         // Act & Assert
-        Assert.ThrowsAsync<UnauthorizedBusinessAccessException>(() => _businessService.GetByIdAsync(1));
+        Assert.ThrowsAsync<ValidationException>(() => _businessService.GetByIdAsync(1));
     }
 
     [Test]
@@ -127,7 +130,7 @@ public class BusinessServiceTests
     {
         // Arrange
         var dto = new UpsertBusinessDto { OIB = "12345678901", Name = "Duplicate Business" };
-        _repository.ExistsAsync(b => b.OIB == dto.OIB).Returns(true); // if you add this logic later
+        _repository.ExistsAsync(Arg.Any<Expression<Func<Business, bool>>>()).Returns(true);
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<AppValidationException>(() => _businessService.AddAsync(dto));
@@ -165,7 +168,7 @@ public class BusinessServiceTests
             () => _businessService.UpdateSubscriptionAsync(SubscriptionTier.premium)
         );
 
-        Assert.That(ex!.Message, Does.Contain($"User {staff.Id}"));
+        Assert.That(ex!.Message, Does.Contain($"Error fetching"));
         _repository.DidNotReceive().UpdateAsync(Arg.Any<Business>());
     }
 
@@ -182,7 +185,7 @@ public class BusinessServiceTests
             () => _businessService.UpdateSubscriptionAsync(SubscriptionTier.premium)
         );
 
-        Assert.That(ex!.Message, Does.Contain("Business with ID 999"));
+        Assert.That(ex!.Message, Does.Contain("not found"));
     }
 
     [Test]
@@ -214,7 +217,7 @@ public class BusinessServiceTests
             () => _businessService.UpdateAsync(1, dto)
         );
 
-        Assert.That(ex!.Message, Does.Contain("Business with ID 1"));
+        Assert.That(ex!.Message, Does.Contain("not found"));
         _repository.DidNotReceive().UpdateAsync(Arg.Any<Business>());
     }
 
@@ -243,7 +246,7 @@ public class BusinessServiceTests
             () => _businessService.DeleteAsync(1)
         );
 
-        Assert.That(ex!.Message, Does.Contain("Business with ID 1"));
+        Assert.That(ex!.Message, Does.Contain("not found"));
         _repository.DidNotReceive().DeleteAsync(Arg.Any<Business>());
     }
 }

@@ -211,7 +211,6 @@ public class MenuItemService(
             throw new ConflictException($"Successfully added {validMenuItems.Count}, failed: {failedMenuItems.Count}", data: failedMenuItems);
 
         return failedMenuItems;
-        
     }
 
     public async Task<List<FailedMenuItemDto>> CopyMenuAsync(int fromPlaceId, int toPlaceId)

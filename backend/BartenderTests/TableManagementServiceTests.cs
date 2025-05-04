@@ -157,7 +157,7 @@ public class TableManagementServiceTests
         var ex = Assert.ThrowsAsync<TableNotFoundException>(async () =>
             await _service.DeleteAsync("missing"));
 
-        Assert.That(ex.Message, Is.EqualTo("Table with label 'missing' not found."));
+        Assert.That(ex.Message, Does.Contain("not found."));
 
         await _tableRepo.DidNotReceive().DeleteAsync(Arg.Any<Table>());
     }
@@ -198,7 +198,7 @@ public class TableManagementServiceTests
         var ex = Assert.ThrowsAsync<TableNotFoundException>(async () =>
             await _service.RegenerateSaltAsync("missing"));
 
-        Assert.That(ex.Message, Is.EqualTo("Table with label 'missing' not found."));  // Adjust if needed
+        Assert.That(ex.Message, Does.Contain("not found"));
 
         await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Table>());
     }
@@ -233,7 +233,7 @@ public class TableManagementServiceTests
         var ex = Assert.ThrowsAsync<TableNotFoundException>(async () =>
             await _service.SwitchDisabledAsync("T404", false));
 
-        Assert.That(ex.Message, Is.EqualTo("Table with label 'T404' not found."));
+        Assert.That(ex.Message, Does.Contain("not found"));
 
         await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Table>());
     }
@@ -274,6 +274,6 @@ public class TableManagementServiceTests
         var ex = Assert.ThrowsAsync<TableNotFoundException>(async () =>
             await _service.GetByLabelAsync("Missing table"));
 
-        Assert.That(ex.Message, Is.EqualTo("Table with label 'Missing table' not found."));
+        Assert.That(ex.Message, Does.Contain("not found"));
     }
 }

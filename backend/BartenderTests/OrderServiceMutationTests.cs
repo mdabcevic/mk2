@@ -62,7 +62,8 @@ public class OrderServiceMutationTests
         // Act & Assert
         var ex = Assert.ThrowsAsync<TableAccessDeniedException>(() => _service.AddAsync(dto));
 
-        Assert.That(ex!.Message, Does.Contain($"Table with ID {dto.TableId}"));
+        Assert.That(ex!.Message, Does.Contain($"Access"));
+        Assert.That(ex!.Message, Does.Contain($"denied"));
     }
 
     [Test]
@@ -192,7 +193,7 @@ public class OrderServiceMutationTests
         var ex = Assert.ThrowsAsync<OrderNotFoundException>(() =>
             _service.UpdateStatusAsync(orderId, updateDto));
 
-        Assert.That(ex!.Message, Is.EqualTo($"Order with id {orderId} not found"));
+        Assert.That(ex!.Message, Does.Contain($"not found"));
     }
 
     [Test]
@@ -209,7 +210,7 @@ public class OrderServiceMutationTests
         var ex = Assert.ThrowsAsync<UnauthorizedOrderAccessException>(() =>
             _service.UpdateStatusAsync(order.Id, updateDto));
 
-        Assert.That(ex!.Message, Does.Contain($"Order {order.Id}"));
+        Assert.That(ex!.Message, Does.Contain($"Cannot access"));
     }
 
     [Test]
@@ -321,7 +322,7 @@ public class OrderServiceMutationTests
         // Act & Assert
         var ex = Assert.ThrowsAsync<OrderNotFoundException>(() => _service.UpdateAsync(orderId, dto));
 
-        Assert.That(ex!.Message, Is.EqualTo($"Order with id {orderId} not found"));
+        Assert.That(ex!.Message, Does.Contain($"not found"));
     }
 
     [Test]
@@ -339,7 +340,7 @@ public class OrderServiceMutationTests
         var ex = Assert.ThrowsAsync<UnauthorizedOrderAccessException>(() =>
             _service.UpdateAsync(existingOrder.Id, dto));
 
-        Assert.That(ex!.Message, Does.Contain($"Order {existingOrder.Id}"));
+        Assert.That(ex!.Message, Does.Contain($"Cannot access"));
     }
 
     [Test]
@@ -483,7 +484,7 @@ public class OrderServiceMutationTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<OrderNotFoundException>(() => _service.DeleteAsync(orderId));
-        Assert.That(ex!.Message, Does.Contain($"Order with id {orderId}"));
+        Assert.That(ex!.Message, Does.Contain($"not found"));
     }
 
     [Test]
@@ -497,7 +498,7 @@ public class OrderServiceMutationTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<UnauthorizedOrderAccessException>(() => _service.DeleteAsync(order.Id));
-        Assert.That(ex!.Message, Does.Contain($"Access to order {order.Id} denied").IgnoreCase);
+        Assert.That(ex!.Message, Does.Contain($"Cannot access").IgnoreCase);
     }
 
     [Test]

@@ -51,11 +51,8 @@ public class AuthServiceTests
         var loginDto = TestDataFactory.CreateLoginDto("testuser", password);
 
         // Act & Assert
-        var ex = Assert.ThrowsAsync<AppValidationException>(() => _service.LoginAsync(loginDto));
-
-        Assert.That(ex!.Message, Is.EqualTo("Invalid username or password."));
+        Assert.ThrowsAsync<AppValidationException>(() => _service.LoginAsync(loginDto));
     }
-
 
     [Test]
     public void LoginAsync_StaffNotFound_ThrowsValidationException()

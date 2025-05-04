@@ -52,7 +52,7 @@ public class OrderService(
             order.GuestSessionId = guest.Id;
         }
 
-        var orderDetails = await GetByIdAsync(order.TableId,true);
+        var orderDetails = await GetByIdAsync(order.TableId,true); //TODO: get by tableid or regular id?
         var messageMenuItems = "";
         orderDetails?.Items.ForEach(i =>
         {
