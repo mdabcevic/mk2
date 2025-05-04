@@ -12,7 +12,7 @@ function CreateTables() {
   const { t } = useTranslation("admin");
   const [tables, setTables] = useState<Table[]>([]);
   const [newTableName, setNewTableName] = useState<string>("");
-  const [newSeats, setNewSeats] = useState<number>();
+  const [newSeats, setNewSeats] = useState<number>(4);
   const [labelMessage, setLabelMessage] = useState<string>("");
   
   const addTable = () => {
@@ -92,7 +92,7 @@ function CreateTables() {
                   value={newSeats}
                   placeholder="Seats"
                   min={1}
-                  onChange={(e) => setNewSeats(parseInt(e.target.value))}
+                  onChange={(e) => {if(e.target.value !== "") setNewSeats(parseInt(e.target.value)); else setNewSeats(0)}}
                   className=" pl-5 py-2 border rounded-[40px] text-sm w-[30%]"
                 />
               </div>
@@ -134,8 +134,8 @@ function CreateTables() {
                   bounds="parent"
                   position={{ x: table?.x ?? 10, y: table?.y ?? 10 }}
                   size={{ width: table?.width ?? 100, height: table.height ?? 100 }}
-                  onDragStop={(e, d) => {updateTable(index, d);}}
-                  onResizeStop={(e, direction, ref, delta, position) =>
+                  onDragStop={(_e, d) => {updateTable(index, d);}}
+                  onResizeStop={(_e, _direction, ref, _delta, position) =>
                     updateTable(index, position, {
                       width: parseInt(ref.style.width),
                       height: parseInt(ref.style.height),

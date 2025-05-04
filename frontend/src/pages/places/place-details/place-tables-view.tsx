@@ -6,8 +6,6 @@ import { getTableColor } from "../../../utils/table-color";
 import { AppPaths } from "../../../utils/routing/routes";
 import { Link, useParams } from "react-router-dom";
 import { authService } from "../../../utils/auth/auth.service";
-import { placeService } from "../../../utils/services/place.service";
-import { IPlaceItem } from "../../../utils/interfaces/place-item";
 import { PlaceMainInfo } from "../../../utils/components/place-main-info";
 import Footer from "../../../containers/footer";
 
@@ -19,8 +17,8 @@ const PlaceTablesViewPublic = () => {
   const { placeId } = useParams();
   const [tables, setTables] = useState<Table[]>([]);
   const [scale, setScale] = useState<number>();
-  const [place, setPlace] = useState<IPlaceItem | null>(null);
-  
+  // const [place, setPlace] = useState<IPlaceItem | null>(null);
+  const { t } = useTranslation("public");
   const fetchTables = async () => {
     const response = authService.userRole() === UserRole.admin || 
                      authService.userRole() === UserRole.manager ? 
@@ -44,11 +42,12 @@ const PlaceTablesViewPublic = () => {
     }
     
   };
-  const getPlaceDetails = async () => {
-      let place = await placeService.getPlaceDetailsById(Number(placeId));
-    };
+  // const getPlaceDetails = async () => {
+  //     let place = await placeService.getPlaceDetailsById(Number(placeId));
+  //     setPlace(place);
+  //   };
   useEffect(() => {
-    getPlaceDetails();
+    // getPlaceDetails();
     fetchTables();
     calculateScale();
     window.addEventListener("resize", calculateScale);
@@ -60,15 +59,15 @@ const PlaceTablesViewPublic = () => {
       className="flex flex-col w-full h-full min-h-screen items-center"
     >
       <div className="max-w-[1500px] w-full mt-30">
-        <Link to={AppPaths.public.placeDetails.replace(":id",placeId!)} className="ml-4 mt-4 mb-4 w-full">Go back</Link>
+        <Link to={AppPaths.public.placeDetails.replace(":id",placeId!)} className="ml-4 mt-4 mb-4 w-full">{t("go_back")}</Link>
       </div>
       <div className="max-w-[1500px] w-full mt-8 px-8">
         <PlaceMainInfo placeid={Number(placeId)}></PlaceMainInfo>
       </div>
       
       <div className="flex flex-row w-full justify-center mt-8">
-        <div className="flex fle-row"><div className="w-[30px] h-[30px] bg-white mr-4"></div><span>Empty</span></div>
-        <div className="flex fle-row"><div className="w-[30px] h-[30px] bg-[#A3A3A3] ml-4 mr-4"></div><span>Occupied</span></div>
+        <div className="flex fle-row"><div className="w-[30px] h-[30px] bg-white mr-4"></div><span>{t("empty")}</span></div>
+        <div className="flex fle-row"><div className="w-[30px] h-[30px] bg-[#A3A3A3] ml-4 mr-4"></div><span>{t("occupied")}</span></div>
       </div>
       {scale && (
         <div

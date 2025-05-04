@@ -1,4 +1,4 @@
-import { Product, MenuItem, UpsertMenuItemDto, MenuItemDto, CategoryGroup, MenuGroupedItemDto, CreateCustomProductReq } from "../../admin/pages/products/product";
+import { Product, MenuItem, UpsertMenuItemDto, MenuItemDto, CategoryGroup, CreateCustomProductReq } from "../../admin/pages/products/product";
 import { ApiMethods } from "./api-methods"
 import api from "./client";
 
@@ -12,12 +12,12 @@ export const productMenuService = {
         return response;
     },
 
-    getAllProducts: async (id: number): Promise<Product[]> => {
+    getAllProducts: async (): Promise<Product[]> => {
         const response = await api.get(ApiMethods.getAllProducts);
         return response;
     },
 
-    getProductCategories: async(id: number): Promise<any> => {
+    getProductCategories: async(): Promise<any> => {
         const response = await api.get(ApiMethods.getProductCategories);
         return response;
     },

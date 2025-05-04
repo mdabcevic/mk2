@@ -2,6 +2,9 @@
     "header":{
         "login":"Login"
     },
+    "go_back":"Back",
+    "passcode_required":"Passcode required",
+    "join_table":"Join table",
     "home_link_text": "Home",
     "aboutus_link_text": "Change language",
     "bars_link_text": "Bars",
@@ -64,6 +67,8 @@
     "inquire_plan": "I would like to inquire about the {{sub}} plan.",
     "view_tables":"View tables",
     "free_tables": "Number of Free tables",
+    "empty":"Empty",
+    "occupied":"Occupied",
     "home": {
         "explore":"Explore cafés that make ordering simple",
         "explore_desc":"See where you can skip the wait, order with a scan, and enjoy a smoother dining experience.",

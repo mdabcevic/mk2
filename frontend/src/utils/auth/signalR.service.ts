@@ -1,6 +1,5 @@
 import * as signalR from "@microsoft/signalr";
 import { authService } from "./auth.service";
-import { showToast, ToastType } from "../components/toast";
 import { notifyListeners } from "../notification-store";
 import { Constants } from "../constants";
 
@@ -17,7 +16,6 @@ export const startConnection = async (placeId:number) => {
       .build();
 
     connection.on("ReceiveNotification", (notf) => {
-      console.log(notf)
       notifyListeners(notf);
     });
     connection.onreconnecting(error => {

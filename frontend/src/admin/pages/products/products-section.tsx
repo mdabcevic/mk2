@@ -25,7 +25,7 @@ const ProductsSection = forwardRef((_, ref) => {
   const { t } = useTranslation("admin");
 
   const fetchCategories = async () => {
-    const cats = await productMenuService.getProductCategories(placeId);
+    const cats = await productMenuService.getProductCategories();
     setCategories(cats);
   };
 
@@ -43,7 +43,7 @@ const ProductsSection = forwardRef((_, ref) => {
   const saveProduct = async (newProduct: CreateCustomProductReq) => {
     await productMenuService.createCustomProduct(newProduct);
     setIsModalOpen(false);
-    const results = await productMenuService.getAllProducts(placeId);
+    const results = await productMenuService.getAllProducts();
     let maxId = 0;
     results.forEach(el => {if(el.id > maxId) maxId = el.id});
     const newMenuItem: MenuItem = {
@@ -53,11 +53,10 @@ const ProductsSection = forwardRef((_, ref) => {
       isAvailable:true
     }
     await productMenuService.saveProductsToPlace([newMenuItem]);
-    console.log(results)
   };
 
   const fetchProducts = async () => {
-    const results = await productMenuService.getAllProducts(placeId);
+    const results = await productMenuService.getAllProducts();
     setProducts(results);
   };
 

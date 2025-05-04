@@ -16,7 +16,6 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filteredMenu, setFilteredMenu] = useState<MenuItemDto[]>([]);
   const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
   const [menu, setMenu] = useState<any>([]);
   const [isAvailable, setIsAvailable] = useState<boolean |null>(true);
   const [isEditMode, setIsEditMode] = useState(true);
@@ -35,7 +34,7 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
     if (!placeId) return;
     const results = await productMenuService.getMenuByPlaceId(placeId.toString(),false);
     setMenu(results);
-    const allProducts = await productMenuService.getAllProducts(placeId);
+    const allProducts = await productMenuService.getAllProducts();
     setAvailableProducts(allProducts);
   };
 
@@ -64,7 +63,6 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
 
   const saveChanges = async () => {
     if (!editableProduct) return;
-    console.log(editableProduct)
     const updatedItem: UpsertMenuItemDto = {
       productId: (editableProduct.productId ?? editableProduct.product?.id)!,
       placeId: placeId,
@@ -99,19 +97,16 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
       ? filteredByAvailability.filter((item:any) => item.product.name.toLowerCase().includes(search))
       : filteredByAvailability;
 
-    const total = Math.ceil(filtered.length / itemsPerPage);
     const paginated = filtered.slice(
       (currentPage - 1) * itemsPerPage,
       currentPage * itemsPerPage
     );
     setFilteredMenu(paginated);
     setTotalItems(filtered.length);
-    setTotalPages(total);
   };
 
   const changeMenuType = (item: DropdownItem) => {
     if (item.id === "available") {
-      console.log("postavljam true")
       setIsAvailable(true);
     } else if (item.id === "unavailable") {
       setIsAvailable(false);
