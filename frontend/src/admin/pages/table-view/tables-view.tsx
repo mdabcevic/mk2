@@ -56,7 +56,7 @@ const TablesView = () => {
     }, []);
     
   const setNewStatus = async (status: TableStatusString) => {
-    const response = await tableService.changeStatus(status,selectedTable?.token!);
+    await tableService.changeStatus(status,selectedTable?.token!);
     setTables((prevTables:any) => {
       return prevTables.map((table:any) =>
         table.label === selectedTable?.label ? { ...table, status } : table
