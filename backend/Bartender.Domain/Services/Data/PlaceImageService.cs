@@ -5,7 +5,7 @@ using Bartender.Domain.DTO.Picture;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using Bartender.Domain.utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 

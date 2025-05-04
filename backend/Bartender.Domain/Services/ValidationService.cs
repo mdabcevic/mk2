@@ -1,7 +1,7 @@
 ﻿using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace Bartender.Domain.Services;

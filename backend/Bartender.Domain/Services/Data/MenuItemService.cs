@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using Bartender.Data.Enums;
 using System.ComponentModel.DataAnnotations;
 using Bartender.Domain.DTO.Place;
-using Bartender.Domain.utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 public class MenuItemService(
@@ -200,14 +200,14 @@ public class MenuItemService(
             }
         }
 
-        if (validMenuItems.Any())
+        if (validMenuItems.Count() > 0)
         {
             await repository.AddMultipleAsync(validMenuItems);
             logger.LogInformation("User {UserId} added {Count} products to the menu.",
                 currentUser.UserId, validMenuItems.Count);
         }
 
-        if (failedMenuItems.Any())
+        if (failedMenuItems.Count() > 0)
             throw new ConflictException($"Successfully added {validMenuItems.Count}, failed: {failedMenuItems.Count}", data: failedMenuItems);
 
         return failedMenuItems;
@@ -262,7 +262,7 @@ public class MenuItemService(
                 validMenuItems.Add(newMenuItem);
             }
 
-            if (validMenuItems.Any())
+            if (validMenuItems.Count() > 0)
             {
                 await repository.AddMultipleAsync(validMenuItems);
                 logger.LogInformation(
@@ -271,7 +271,7 @@ public class MenuItemService(
 
             }
 
-        if (failedMenuItems.Any())
+        if (failedMenuItems.Count() > 0)
             throw new ConflictException($"Successfully copied {validMenuItems.Count}, failed: {failedMenuItems.Count}", data: failedMenuItems);
         
         return failedMenuItems;

@@ -1,7 +1,5 @@
 ﻿
-using Microsoft.Extensions.Logging;
-
-namespace Bartender.Domain.utility.Exceptions;
+namespace Bartender.Domain.Utility.Exceptions;
 
 public class UnauthorizedOrderAccessException : AuthorizationException
 {

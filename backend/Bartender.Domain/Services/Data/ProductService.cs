@@ -6,7 +6,7 @@ using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
-using Bartender.Domain.utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 

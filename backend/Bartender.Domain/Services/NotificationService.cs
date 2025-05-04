@@ -1,7 +1,7 @@
 ﻿using Bartender.Data;
 using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;

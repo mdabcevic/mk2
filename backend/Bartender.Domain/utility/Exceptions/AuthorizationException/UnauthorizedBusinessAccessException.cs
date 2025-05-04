@@ -1,5 +1,5 @@
 ﻿
-namespace Bartender.Domain.utility.Exceptions;
+namespace Bartender.Domain.Utility.Exceptions;
 
 public class UnauthorizedBusinessAccessException : AuthorizationException
 {

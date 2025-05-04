@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO;
 using Bartender.Data;
 using Bartender.Domain.DTO.Place;
-using Bartender.Domain.utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 
