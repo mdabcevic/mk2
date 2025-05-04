@@ -14,15 +14,16 @@ public class StaffController(IStaffService staffService) : ControllerBase
     public async Task<IActionResult> Get(int? id)
     {
         if (id.HasValue)
-            return (await staffService.GetByIdAsync(id.Value)).ToActionResult();
+            return Ok(await staffService.GetByIdAsync(id.Value));
 
-        return (await staffService.GetAllAsync()).ToActionResult();
+        return Ok(await staffService.GetAllAsync());
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] UpsertStaffDto staff)
     {
-        return (await staffService.AddAsync(staff)).ToActionResult();
+        await staffService.AddAsync(staff);
+        return NoContent();
     }
 
     [HttpPut("{id}")]
@@ -31,12 +32,14 @@ public class StaffController(IStaffService staffService) : ControllerBase
         if (staff.Id != id)
             return BadRequest(new { error = "Mismatched ID" });
 
-        return (await staffService.UpdateAsync(id, staff)).ToActionResult();
+        await staffService.UpdateAsync(id, staff);
+        return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        return (await staffService.DeleteAsync(id)).ToActionResult();
+        await staffService.DeleteAsync(id);
+        return NoContent();
     }
 }
