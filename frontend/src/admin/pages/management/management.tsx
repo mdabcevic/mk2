@@ -33,7 +33,7 @@ export default function ManagementView() {
   };
   return (
     <div className="pt-[120px]">
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-end mb-2 mr-10">
         <button
           onClick={handleAddClick}
           className={`px-4 py-2 rounded text-white ${activeTab === "Orders" ? "invisible" : "visible"}`}
@@ -64,8 +64,11 @@ export default function ManagementView() {
         </div>  
       </div>
 
-      <div className="mt-6 w-full max-w-[1500px]">
-        {renderTabContent()}
+      <div className="mt-6 w-full max-w-[1500px] m-auto">
+
+          {renderTabContent()}
+
+        
       </div>
     </div>
   );

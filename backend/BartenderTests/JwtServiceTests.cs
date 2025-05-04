@@ -25,7 +25,6 @@ public class JwtServiceTests
         _service = new JwtService(config);
     }
 
-
     [Test]
     public void GenerateStaffToken_ReturnsValidJwt()
     {
@@ -76,5 +75,4 @@ public class JwtServiceTests
 
         });
     }
-
 }

@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.Linq.Expressions;
@@ -45,44 +45,33 @@ public class TableInteractionServiceTests
     }
 
     [Test]
-    public async Task GetBySaltAsync_ShouldReturnNotFound_IfTableNotExists()
+    public async Task GetBySaltAsync_Should_Throw_NotFoundException_If_Table_Not_Exists()
     {
         // Arrange
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns((Table?)null);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns((Table?)null);  // Simulate table not found
 
-        // Act
-        var result = await _service.GetBySaltAsync("salt");
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(async () => await _service.GetBySaltAsync("salt"));
+        Assert.That(ex.Message, Is.EqualTo("Invalid QR code"));  // Adjust the message based on your exception's message
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.Data, Is.Null);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
+        // Ensure no repository update or session creation occurs
         await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Table>());
         await _guestSession.DidNotReceive().CreateSessionAsync(Arg.Any<int>(), "passphrase");
     }
 
     [Test]
-    public async Task GetBySaltAsync_ReturnsUnauthorized_IfGuestScansDisabledTable()
+    public async Task GetBySaltAsync_Should_Throw_UnauthorizedAccessException_If_Guest_Scans_Disabled_Table()
     {
         // Arrange
-        var table = TestDataFactory.CreateValidTable(id: 1, salt: "salt", disabled: true);
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
-        _userContext.IsGuest.Returns(true);
+        var table = TestDataFactory.CreateValidTable(id: 1, salt: "salt", disabled: true);  // Create a disabled table
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);  // Simulate table retrieval
+        _userContext.IsGuest.Returns(true);  // Simulate the current user as a guest
 
-        // Act
-        var result = await _service.GetBySaltAsync("salt");
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedAccessException>(async () => await _service.GetBySaltAsync("salt"));
+        Assert.That(ex.Message, Is.EqualTo("QR for this table is currently unavailable. Waiter is coming."));  // Adjust the message based on your exception's message
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Data, Is.Null);
-        });
-
+        // Ensure no repository update or session creation occurs
         await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Table>());
         await _guestSession.DidNotReceive().CreateSessionAsync(Arg.Any<int>(), "passphrase");
     }
@@ -93,7 +82,7 @@ public class TableInteractionServiceTests
         // Arrange
         var table = TestDataFactory.CreateValidTable(id: 1, salt: "salt", status: TableStatus.empty, disabled: true);
         _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
-        _userContext.IsGuest.Returns(false);
+        _userContext.IsGuest.Returns(false);  // Simulate the current user as staff (not a guest)
 
         // Act
         var result = await _service.GetBySaltAsync("salt");
@@ -101,15 +90,17 @@ public class TableInteractionServiceTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data, Is.TypeOf<TableScanDto>());
-            Assert.That(table.Status, Is.EqualTo(TableStatus.occupied));
+            Assert.That(result, Is.Not.Null);  // Ensure result is not null
+            Assert.That(result, Is.InstanceOf<TableScanDto>());  // Ensure result is of type TableScanDto
+            Assert.That(result.Label, Is.EqualTo(table.Label));  // Check the table label
+            //Assert.That(result.IsSessionEstablished, Is.True);
+            Assert.That(table.Status, Is.EqualTo(TableStatus.occupied));  // Check that the table status is updated to 'occupied'
         });
 
-        await _tableRepo.Received().UpdateAsync(table);
+        await _tableRepo.Received(1).UpdateAsync(table);
         await _guestSession.DidNotReceive().CreateSessionAsync(Arg.Any<int>(), "passphrase");
     }
+
 
     //[Test]
     //public async Task GetBySaltAsync_ReturnsConflict_IfActiveSessionExistsFromAnotherUser()
@@ -205,55 +196,50 @@ public class TableInteractionServiceTests
     //}
 
     [Test]
-    public async Task GetBySaltAsync_ShouldCreateSession_WhenAllValid()
+    public async Task GetBySaltAsync_Should_Create_Session_When_All_Valid()
     {
         // Arrange
         var table = new Table { Id = 1, QrSalt = "salt123", Status = TableStatus.empty };
-        _userContext.IsGuest.Returns(true);
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
-        _guestSession.CreateSessionAsync(table.Id, "passphrase generated").Returns("generated.token");
+        _userContext.IsGuest.Returns(true);  // Simulate that the current user is a guest
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);  // Simulate retrieving the table by QR salt
+        _guestSession.CreateSessionAsync(table.Id, Arg.Any<string>()).Returns("generated.token");  // Simulate session creation and return a token
 
         // Act
-        var result = await _service.GetBySaltAsync("salt123");
+        var result = await _service.GetBySaltAsync("salt123");  // Call the service method
 
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data, Is.TypeOf<TableScanDto>());
-            Assert.That(result.Data!.IsSessionEstablished, Is.EqualTo(true));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Is.InstanceOf<TableScanDto>());
+            Assert.That(result.IsSessionEstablished, Is.True);
             Assert.That(table.Status, Is.EqualTo(TableStatus.occupied));
         });
 
         await _tableRepo.Received(1).UpdateAsync(table);
+        await _guestSession.Received(1).CreateSessionAsync(table.Id, Arg.Any<string>());
     }
-
 
     [Test]
     public async Task ChangeStatusAsync_GuestCanFreeTableWithValidSession()
     {
         // Arrange
-        var table = TestDataFactory.CreateValidTable(id: 1, label: "1", salt: "qrsalt");
+        var table = TestDataFactory.CreateValidTable(id: 1, label: "1", salt: "qrsalt", status: TableStatus.occupied);
         var session = TestDataFactory.CreateValidGuestSession(table, token: "guest-token");
         var token = "guest-token";
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
-        _userContext.IsGuest.Returns(true);
-        _userContext.GetRawToken().Returns(token);
-        _guestSession.GetByTokenAsync(table.Id, token).Returns(session);
-        _tableSession.HasActiveSessionAsync(table.Id, token).Returns(true);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);  // Simulate getting the table
+        _userContext.IsGuest.Returns(true);  // Simulate that the current user is a guest
+        _userContext.GetRawToken().Returns(token);  // Simulate the guest's token
+        _guestSession.GetByTokenAsync(table.Id, token).Returns(session);  // Simulate retrieving the session for the guest
+        _tableSession.HasActiveSessionAsync(table.Id, token).Returns(true);  // Simulate that the session is active
 
         // Act
-        var result = await _service.ChangeStatusAsync("qrsalt", TableStatus.empty);
+        await _service.ChangeStatusAsync("qrsalt", TableStatus.empty);  // Change the table status to 'empty'
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(table.Status, Is.EqualTo(TableStatus.empty));
-        });
-        await _tableRepo.Received().UpdateAsync(table);
+        Assert.That(table.Status, Is.EqualTo(TableStatus.empty));
+        await _tableRepo.Received(1).UpdateAsync(table);
     }
 
     //[Test]
@@ -291,126 +277,96 @@ public class TableInteractionServiceTests
     //}
 
     [Test]
-    public async Task ChangeStatusAsync_GuestFreesAlreadyEmptyTableShouldSucceed()
+    public async Task ChangeStatusAsync_GuestFreesAlreadyEmptyTable_Should_Succeed()
     {
         // Arrange
-        var table = TestDataFactory.CreateValidTable(id: 1, label: "1", salt: "qrsalt", status: TableStatus.empty);
+        var table = TestDataFactory.CreateValidTable(id: 1, label: "1", salt: "qrsalt", status: TableStatus.empty);  // Table is already empty
         var token = "guest-token";
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
-        _userContext.IsGuest.Returns(true);
-        _userContext.GetRawToken().Returns(token);
-        _tableSession.HasActiveSessionAsync(table.Id, token).Returns(true);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);  // Simulate retrieving the table by QR salt
+        _userContext.IsGuest.Returns(true);  // Simulate that the current user is a guest
+        _userContext.GetRawToken().Returns(token);  // Simulate the guest's token
+        _tableSession.HasActiveSessionAsync(table.Id, token).Returns(true);  // Simulate that the session is active
 
         // Act
-        var result = await _service.ChangeStatusAsync("1", TableStatus.empty);
+        await _service.ChangeStatusAsync("qrsalt", TableStatus.empty);  // Attempt to change the table status to 'empty' again
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            
-            Assert.That(result.Success, Is.True);
-            Assert.That(table.Status, Is.EqualTo(TableStatus.empty));
-        });
-        await _tableRepo.DidNotReceive().UpdateAsync(table); // nothing changed, table already empty
+        Assert.That(table.Status, Is.EqualTo(TableStatus.empty));  // Ensure the table status remains 'empty'
+        await _tableRepo.DidNotReceive().UpdateAsync(table);
     }
-
 
     [Test]
     public async Task ChangeStatusAsync_GuestFailsWhenTryingToSetNonEmptyStatus()
     {
         // Arrange
-        var table = TestDataFactory.CreateValidTable(id: 1, label: "1");
+        var table = TestDataFactory.CreateValidTable(id: 1, label: "1", status: TableStatus.empty);  // Table is initially empty
         var token = "guest-token";
         var session = TestDataFactory.CreateValidGuestSession(table, token: token);
 
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
-        _userContext.IsGuest.Returns(true);
-        _userContext.GetRawToken().Returns(token);
-        _guestSession.GetByTokenAsync(table.Id, token).Returns(session);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);  // Simulate getting the table
+        _userContext.IsGuest.Returns(true);  // Simulate the current user is a guest
+        _userContext.GetRawToken().Returns(token);  // Simulate the guest's token
+        _guestSession.GetByTokenAsync(table.Id, token).Returns(session);  // Simulate retrieving the guest session
 
-        // Act
-        var result = await _service.ChangeStatusAsync("1", TableStatus.reserved);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AuthorizationException>(async () => await _service.ChangeStatusAsync("1", TableStatus.reserved));  // Expect an exception
+        Assert.That(ex.Message, Does.Contain("Unauthorized"));  // Adjust the message based on your exception
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-        });
-
+        // Ensure that no updates or session deletions occur
         await _tableRepo.DidNotReceive().UpdateAsync(table);
         await _guestSession.DidNotReceive().DeleteSessionAsync(session.Id);
     }
-
 
     [Test]
     public async Task ChangeStatusAsync_StaffCanChangeStatusIfAuthorized()
     {
         // Arrange
         var table = TestDataFactory.CreateValidTable(id: 1, placeid: 1, label: "1", status: TableStatus.empty);
-        var user = TestDataFactory.CreateValidStaff(placeid: 1, role: EmployeeRole.regular);
+        var user = TestDataFactory.CreateValidStaff(placeid: 1, role: EmployeeRole.regular);  // Staff with correct placeId and role
 
-        _userContext.IsGuest.Returns(false);
-        _userContext.GetCurrentUserAsync().Returns(user);
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
+        _userContext.IsGuest.Returns(false);  // Simulate the current user is not a guest
+        _userContext.GetCurrentUserAsync().Returns(user);  // Simulate getting the current staff user
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);  // Simulate retrieving the table by ID
 
         // Act
-        var result = await _service.ChangeStatusAsync("1", TableStatus.reserved);
+        await _service.ChangeStatusAsync("1", TableStatus.reserved);  // Change table status to 'reserved'
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(table.Status, Is.EqualTo(TableStatus.reserved));
-        });
-
-        await _tableRepo.Received().UpdateAsync(table);
+        Assert.That(table.Status, Is.EqualTo(TableStatus.reserved));  // Ensure the table's status is updated to 'reserved'
+        await _tableRepo.Received(1).UpdateAsync(table);  // Verify that UpdateAsync was called to update the table's status
     }
-
 
     [Test]
     public async Task ChangeStatusAsync_StaffFailsWhenFromOtherPlace()
     {
         // Arrange
-        var table = TestDataFactory.CreateValidTable(id: 100, placeid: 99, label: "1", status: TableStatus.occupied);
-        var user = TestDataFactory.CreateValidStaff(placeid: 50, role: EmployeeRole.regular);
+        var table = TestDataFactory.CreateValidTable(id: 100, placeid: 99, label: "1", status: TableStatus.occupied);  // Table from a different place
+        var user = TestDataFactory.CreateValidStaff(placeid: 50, role: EmployeeRole.regular);  // Staff from a different place
 
-        _userContext.IsGuest.Returns(false);
-        _userContext.GetCurrentUserAsync().Returns(user);
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);
+        _userContext.IsGuest.Returns(false);  // Simulate the current user is not a guest
+        _userContext.GetCurrentUserAsync().Returns(user);  // Simulate getting the current staff user
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns(table);  // Simulate retrieving the table by QR salt
 
-        // Act
-        var result = await _service.ChangeStatusAsync("1", TableStatus.empty);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(table.Status, Is.EqualTo(TableStatus.occupied)); // should remain unchanged
-        });
-
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedBusinessAccessException>(async () => await _service.ChangeStatusAsync("1", TableStatus.empty));  // Expect an exception
+        Assert.That(ex.Message, Does.Contain($"Access"));
+        Assert.That(ex.Message, Does.Contain($"denied"));
+        Assert.That(table.Status, Is.EqualTo(TableStatus.occupied));  // The table's status should remain 'occupied'
         await _tableRepo.DidNotReceive().UpdateAsync(table);
     }
 
     [Test]
-    public async Task ChangeStatusAsync_ShouldReturnNotFound_WhenTableDoesNotExist()
+    public async Task ChangeStatusAsync_Should_Throw_TableNotFoundException_When_Table_Does_Not_Exist()
     {
         // Arrange
-        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>())
-            .Returns((Table?)null);
+        _tableRepo.GetByKeyAsync(Arg.Any<Expression<Func<Table, bool>>>()).Returns((Table?)null);  // Simulate table not found
 
-        // Act
-        var result = await _service.ChangeStatusAsync("missing-token", TableStatus.empty);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<TableNotFoundException>(async () => await _service.ChangeStatusAsync("missing-token", TableStatus.empty));  // Expect TableNotFoundException
+        Assert.That(ex.Message, Does.Contain("not found"));  // Adjust the message based on your exception's message
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
-
+        // Ensure no update is performed on the repository
         await _tableRepo.DidNotReceive().UpdateAsync(Arg.Any<Table>());
     }
 

@@ -120,7 +120,7 @@ function CreateTables() {
           <div className={`relative`} style={{width:Constants.create_tables_container_width, height:Constants.create_tables_container_height}} id="place-ground">
             <div
               ref={containerRef}
-              className="w-full h-full border border-gray-300 bg-gray-50"
+              className="w-full h-full border border-gray-300 "
               style={{
                 backgroundImage: `url(../${Constants.template_image})`,
                 backgroundSize: "contain",

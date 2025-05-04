@@ -2,12 +2,9 @@
 using Bartender.Data.Models;
 using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.MenuItem;
-using Bartender.Domain.DTO.Place;
-using Bartender.Domain.DTO.Product;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Repositories;
 using Bartender.Domain.Services.Data;
-using Microsoft.EntityFrameworkCore;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -117,97 +114,72 @@ public class MenuItemServiceReadTests
     //}
 
     [Test]
-    public async Task GetByPlaceIdAsync_PlaceDoesNotExist_ReturnsNotFound()
+    public void GetByPlaceIdAsync_PlaceDoesNotExist_ThrowsNotFoundException()
     {
         // Arrange
         var placeId = 999;
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(false);
 
-        // Act
-        var result = await _menuService.GetByPlaceIdAsync(placeId);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.GetByPlaceIdAsync(placeId));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Does.Contain("Place with id"));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Place with id {placeId}"));
     }
 
     [Test]
-    public async Task GetByPlaceIdAsync_UnexpectedError_ReturnsUnknownError()
+    public void GetByPlaceIdAsync_UnexpectedError_ThrowsException()
     {
         // Arrange
         var placeId = 1;
-        _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Throws(new Exception("DB Failure"));
+        _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>())
+            .Throws(new Exception("DB Failure"));
 
-        // Act
-        var result = await _menuService.GetByPlaceIdAsync(placeId);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<Exception>(() => _menuService.GetByPlaceIdAsync(placeId));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
-        });
+        Assert.That(ex!.Message, Does.Contain("DB Failure"));
     }
 
     [Test]
-    public async Task GetByPlaceIdGroupedAsync_PlaceNotFound_ReturnsNotFoundError()
+    public void GetByPlaceIdGroupedAsync_PlaceNotFound_ThrowsNotFoundException()
     {
         // Arrange
         var placeId = 99;
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(false);
 
-        // Act
-        var result = await _menuService.GetByPlaceIdGroupedAsync(placeId);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.GetByPlaceIdGroupedAsync(placeId));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Does.Contain("Place with id"));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Place with id {placeId}"));
     }
 
     [Test]
-    public async Task GetByPlaceIdGroupedAsync_UnexpectedError_ReturnsUnknownError()
+    public void GetByPlaceIdGroupedAsync_UnexpectedError_ThrowsException()
     {
         // Arrange
         var placeId = 1;
 
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
-        _menuRepository.QueryIncluding(Arg.Any<Expression<Func<MenuItem, object>>>(), Arg.Any<Expression<Func<MenuItem, object>>>())
+        _menuRepository.QueryIncluding(Arg.Any<Expression<Func<MenuItem, object>>>(), Arg.Any<Expression<Func<MenuItem, object>>>()!)
             .Throws(new Exception("Database unreachable"));
 
-        // Act
-        var result = await _menuService.GetByPlaceIdGroupedAsync(placeId);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
-            Assert.That(result.Error, Does.Contain("unexpected"));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<Exception>(() => _menuService.GetByPlaceIdGroupedAsync(placeId));
+        Assert.That(ex!.Message, Does.Contain("Database unreachable"));
     }
 
     [Test]
     public async Task GetByIdAsync_ValidIds_ReturnsExpectedMenuItem()
     {
-        // AAA - Arrange
+        // Arrange
         var placeId = 1;
         var productId = 5;
 
-        // Arrange - domain model
         var menuItem = TestDataFactory.CreateValidMenuItem(1, placeId, productId, name: "Cappuccino");
-        menuItem.Product!.Volume = "M"; // override volume
+        menuItem.Product!.Volume = "M";
         menuItem.Place = TestDataFactory.CreateValidPlace(placeId, businessid: 3);
-        menuItem.Place.Business.Name = "Some Biz"; // override business name if needed
+        menuItem.Place.Business.Name = "Some Biz";
 
-        // Arrange - expected DTO
         var placeDto = TestDataFactory.CreatePlaceDtoFromPlace(menuItem.Place!);
         var baseProductDto = TestDataFactory.CreateProductBaseDtoFromProduct(menuItem.Product!);
         var expectedMenuItemDto = TestDataFactory.CreateMenuItemDto(
@@ -223,34 +195,34 @@ public class MenuItemServiceReadTests
             Arg.Any<Expression<Func<MenuItem, bool>>>(),
             true,
             Arg.Any<Expression<Func<MenuItem, object>>>(),
-            Arg.Any<Expression<Func<MenuItem, object>>>())
-            .Returns(menuItem);
+            Arg.Any<Expression<Func<MenuItem, object>>>()
+        ).Returns(menuItem);
 
         _mapper.Map<MenuItemDto>(menuItem).Returns(expectedMenuItemDto);
 
-        // AAA - Act
+        // Act
         var result = await _menuService.GetByIdAsync(placeId, productId);
 
-        // AAA - Assert
+        // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Not.Null);
-            Assert.That(result.Data!.Product.Name, Is.EqualTo("Cappuccino"));
-            Assert.That(result.Data.Product.Category, Is.Not.Null);
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.Product.Name, Is.EqualTo("Cappuccino"));
+            Assert.That(result.Product.Category, Is.Not.Null);
         });
 
         await _menuRepository.Received(1).GetByKeyAsync(
             Arg.Any<Expression<Func<MenuItem, bool>>>(),
             true,
             Arg.Any<Expression<Func<MenuItem, object>>>(),
-            Arg.Any<Expression<Func<MenuItem, object>>>());
+            Arg.Any<Expression<Func<MenuItem, object>>>()
+        );
 
         _mapper.Received(1).Map<MenuItemDto>(menuItem);
     }
 
     [Test]
-    public async Task GetByIdAsync_MenuItemNotFound_ReturnsNotFound()
+    public async Task GetByIdAsync_MenuItemNotFound_ThrowsMenuItemNotFoundException()
     {
         // Arrange
         var placeId = 1;
@@ -263,17 +235,38 @@ public class MenuItemServiceReadTests
             Arg.Any<Expression<Func<MenuItem, object>>>())
             .Returns((MenuItem?)null);
 
-        // Act
-        var result = await _menuService.GetByIdAsync(placeId, productId);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<MenuItemNotFoundException>(() =>
+            _menuService.GetByIdAsync(placeId, productId));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.Data, Is.Null);
-            Assert.That(result.Error, Does.Contain("not found"));
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
+        Assert.That(ex!.Message, Does.Contain($"not found"));
+
+        await _menuRepository.Received(1).GetByKeyAsync(
+            Arg.Any<Expression<Func<MenuItem, bool>>>(),
+            true,
+            Arg.Any<Expression<Func<MenuItem, object>>>(),
+            Arg.Any<Expression<Func<MenuItem, object>>>());
+    }
+
+    [Test]
+    public async Task GetByIdAsync_UnexpectedError_ThrowsException()
+    {
+        // Arrange
+        var placeId = 1;
+        var productId = 5;
+
+        _menuRepository.GetByKeyAsync(
+            Arg.Any<Expression<Func<MenuItem, bool>>>(),
+            true,
+            Arg.Any<Expression<Func<MenuItem, object>>>(),
+            Arg.Any<Expression<Func<MenuItem, object>>>())
+            .Throws(new Exception("Database failure"));
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<Exception>(() =>
+            _menuService.GetByIdAsync(placeId, productId));
+
+        Assert.That(ex!.Message, Does.Contain("Database failure"));
 
         await _menuRepository.Received(1).GetByKeyAsync(
             Arg.Any<Expression<Func<MenuItem, bool>>>(),

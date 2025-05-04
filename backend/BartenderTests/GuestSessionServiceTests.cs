@@ -110,18 +110,32 @@ public class GuestSessionServiceTests
         Assert.That(result, Is.EqualTo(session));
     }
 
+    [Test]
+    public void CreateSessionAsync_ShouldThrow_WhenPassphraseMissing()
+    {
+        // Arrange
+        var tableId = 1;
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ArgumentNullException>(() => _service.CreateSessionAsync(tableId, null!));
+        Assert.That(ex!.ParamName, Is.EqualTo("passphrase"));
+    }
+
     //[Test]
-    //public async Task CreateSessionAsync_ShouldCreateNewGroup_IfNoneExists()
+    //public void CreateSessionAsync_ShouldThrow_WhenPassphraseIncorrect()
     //{
-    //    var passphrase = "welcome";
-    //    _groupSessionRepo.Query().Returns(new List<GuestSessionGroup>().AsQueryable());
-    //    _jwtService.GenerateGuestToken(1, Arg.Any<Guid>(), Arg.Any<DateTime>(), passphrase).Returns("mock.token");
+    //    // Arrange
+    //    var tableId = 1;
+    //    var existingGroup = new GuestSessionGroup { TableId = tableId, Passphrase = "correct" };
 
-    //    var token = await _service.CreateSessionAsync(1, passphrase);
+    //    _groupSessionRepo.Query().Returns(new List<GuestSessionGroup> { existingGroup }.AsQueryable());
 
-    //    Assert.That(token, Is.EqualTo("mock.token"));
-    //    await _groupSessionRepo.Received(1).AddAsync(Arg.Any<GuestSessionGroup>());
-    //    await _sessionRepo.Received(1).AddAsync(Arg.Any<GuestSession>());
+    //    // Act & Assert
+    //    var ex = Assert.ThrowsAsync<InvalidOperationException>(() =>
+    //        _service.CreateSessionAsync(tableId, "wrong")
+    //    );
+
+    //    Assert.That(ex!.Message, Is.EqualTo("Incorrect passphrase for this table."));
     //}
 
     [Test]

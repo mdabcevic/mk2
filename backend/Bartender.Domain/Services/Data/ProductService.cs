@@ -99,10 +99,7 @@ public class ProductService(
     {
         var user = await currentUser.GetCurrentUserAsync();
 
-        var updateProduct = await repository.GetByIdAsync(id);
-        if (updateProduct == null)
-            throw new ProductNotFoundException(id);
-
+        var updateProduct = await repository.GetByIdAsync(id) ?? throw new ProductNotFoundException(id);
         if (product.BusinessId != updateProduct.BusinessId && user!.Role != EmployeeRole.admin)
             product.BusinessId = updateProduct.BusinessId;
 
@@ -123,10 +120,7 @@ public class ProductService(
 
     public async Task DeleteAsync(int id)
     {
-        var product = await repository.GetByIdAsync(id);
-        if (product == null)
-            throw new ProductNotFoundException(id);
-
+        var product = await repository.GetByIdAsync(id) ?? throw new ProductNotFoundException(id);
         var user = await currentUser.GetCurrentUserAsync();
         if (user!.Role != EmployeeRole.admin && product.BusinessId != user!.Place!.BusinessId)
         {

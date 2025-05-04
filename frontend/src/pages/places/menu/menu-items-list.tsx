@@ -49,7 +49,7 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
                             className="p-0 rounded ml-5 relative left-1 top-1 cursor-pointer"
                             onClick={() => {cartStorage.addItem(item); showToast(`${item.product.name} ${t("added")}`,ToastType.info)}}
                           >
-                            <img src="/assets/images/plus.svg" width={"35px"} />
+                            <img className="relative right-0 " src="/assets/images/plus.svg" width={"35px"} />
                           </button>
                         </div>
                       )
