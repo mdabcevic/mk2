@@ -15,13 +15,13 @@ public class ValidationService(
     IRepository<Business> businessRepository,
     ILogger<ValidationService> logger) : IValidationService
 {
-    public async Task<ServiceResult> VerifyUserGuestAccess(int orderTableId)
+    public async Task VerifyUserGuestAccess(int orderTableId)
     {
         if (currentUser.IsGuest && !await tableSessionService.HasActiveSessionAsync(orderTableId, currentUser.GetRawToken()))
         {
-            logger.LogWarning("Guest access denied for TableId: {TableId}, Token: {Token}", orderTableId, currentUser.GetRawToken());
-            return ServiceResult.Fail("You don't have access to manage orders for this table", ErrorType.Unauthorized);
+            throw new TableAccessDeniedException(orderTableId, currentUser?.GetRawToken());
         }
+
         else if (!currentUser.IsGuest)
         {
             var user = await currentUser.GetCurrentUserAsync();
@@ -32,11 +32,9 @@ public class ValidationService(
 
             if (!await VerifyUserPlaceAccess(table.PlaceId, user))
             {
-                logger.LogWarning("Staff access denied. UserId: {UserId}, Username: {Username}, TablePlaceId: {PlaceId}", user.Id, user.Username, table.PlaceId);
-                return ServiceResult.Fail("You don't have access to manage orders for this table", ErrorType.Unauthorized);
+                throw new TableAccessDeniedException(table.Id, user?.Id);
             }
         }
-        return ServiceResult.Ok();
     }
 
     public async Task<bool> VerifyUserPlaceAccess(int targetPlaceId, Staff? user = null)
@@ -72,36 +70,28 @@ public class ValidationService(
         return businessId == user.Place.BusinessId;
     }
      // TODO - throw exceptions instead of returning ServiceResult
-    public async Task<ServiceResult> EnsurePlaceExistsAsync(int placeId)
+    public async Task EnsurePlaceExistsAsync(int placeId)
     {
         var exists = await placeRepository.ExistsAsync(p => p.Id == placeId);
         if (!exists)
-            logger.LogWarning("Place not found. PlaceId: {PlaceId}", placeId);
-
-        return exists
-            ? ServiceResult.Ok()
-            : ServiceResult.Fail($"Place with id {placeId} not found", ErrorType.NotFound);
+            throw new PlaceNotFoundException(placeId);
     }
 
-    public async Task<ServiceResult> EnsureBusinessExistsAsync(int businessId)
+    public async Task EnsureBusinessExistsAsync(int businessId)
     {
         var exists = await businessRepository.ExistsAsync(b => b.Id == businessId);
         if (!exists)
-            logger.LogWarning("Business not found. BusinessId: {BusinessId}", businessId);
-
-        return exists
-            ? ServiceResult.Ok()
-            : ServiceResult.Fail($"Business with id {businessId} not found", ErrorType.NotFound);
+        {
+            throw new BusinessNotFoundException(businessId);
+        }
     }
 
-    public async Task<ServiceResult> EnsureTableExistsAsync(int tableId)
+    public async Task EnsureTableExistsAsync(int tableId)
     {
         var exists = await tableRepository.ExistsAsync(b => b.Id == tableId);
         if (!exists)
-            logger.LogWarning("Table not found. TableId: {TableId}", tableId);
-
-        return exists
-            ? ServiceResult.Ok()
-            : ServiceResult.Fail($"Table with id {tableId} not found", ErrorType.NotFound);
+        {
+            throw new TableNotFoundException(tableId);
+        }
     }
 }
