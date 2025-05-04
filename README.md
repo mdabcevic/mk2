@@ -16,16 +16,11 @@ It helps owners manage businesses, places, staff, and – most importantly – *
 2. [Tech Stack](#tech-stack)  
 3. [Architecture](#architecture)  
 4. [Getting Started](#getting-started)  
-5. [Usage Examples](#usage-examples)  
-6. [Project Structure](#project-structure)  
-7. [API Reference](#api-reference)  
-8. [Database Schema](#database-schema)  
-9. [Testing & Quality](#testing--quality)  
-10. [Deployment](#deployment)  
-11. [Roadmap](#roadmap)  
-12. [Contributing](#contributing)  
-13. [License](#license)  
-14. [Contact & Acknowledgements](#contact--acknowledgements)
+5. [Project Structure](#project-structure)  
+6. [API Reference](#api-reference)  
+7. [Database Schema](#database-schema)  
+8. [Testing & Quality](#testing--quality)  
+9. [Roadmap](#roadmap)  
 
 ---
 
@@ -81,3 +76,69 @@ psql -f db/seed.sql
 
 # launch API
 dotnet run --project Bartender.API
+
+# open a second terminal
+cd frontend
+
+# --- prerequisites ---
+# Node 20 LTS or newer (tested on 22.13.1)
+node -v   # make sure it’s ≥20.x
+
+# --- install deps ---
+npm install
+
+# --- start Vite dev server ---
+npm run dev     # default http://localhost:5173
+```
+
+### Project Structure
+```
+mk2/
+├── backend/ # .NET solution folder
+│ ├── Bartender.API/ # Controllers, Exception Handlers, Program.cs
+│ ├── Bartender.Domain/ # Core services, DTOs
+│ ├── Bartender.Data/ # EF Core models, migrations
+│ └── tests/ # NUnit
+├── frontend/
+├── db/ # Seed scripts, backups
+├── documentation/ # Architecture diagrams, ADRs, ERD
+├── docker-compose.yml # Postgres + backend + Redis + frontend for local dev
+└── .github/ # Workflows
+```
+
+### API Reference
+Swagger UI is available at https://localhost:7281/swagger when the backend is running locally.
+Scalar UI available at https://localhost:7281/scalar when the backend is running locally.
+OpenAPI JSON spec is auto-generated at https://localhost:7281/openapi/v1.json.
+
+### Database Schema
+The application uses PostgreSQL with a code-first schema managed by EF Core.
+Frequently updated ER Diagram lives in documentation/DevUtils/database-schema.dbml
+Migrations are stored in backend/Bartender.Data/Migrations.
+Seed data is applied via db/seed.sql.
+
+```
+# Add a new migration
+dotnet ef migrations add AddSomethingImportant -p Bartender.Data -s Bartender.API
+
+# Apply migrations
+dotnet ef database update
+```
+
+### CI/CD and Testing
+The app uses NUnit and NSubstitute for test coverage and service mocking.
+CI/CD consists of few pipelines.
+These include: build, running tests, generating coverage, creating images, pushing images to repo, running the compose stack, healthchecks, OWASP Zap, SonarQube Analysis, running Migrations and seeding test data (if test env) and lastly, deploy to Azure as 2x container applications.
+
+### Roadmap
+- Guest session system (QR, JWT, table lockout)
+- Place setup (employees, products, menu)
+- Staff & place-based authorization policies
+- Guest interaction - scan, enter session, order, request bill, call staff
+- Main overview screen - notifications, manager interactions, UI updates via SignalR
+- Redis Cache notifications
+- Save tables based on place blueprint
+
+- Admin dashboard analytics & filters
+- Stripe payments & digital checkout
+- Better mobile support
