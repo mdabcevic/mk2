@@ -15,7 +15,7 @@ public class BusinessController(IBusinessService businessService) : ControllerBa
     public async Task<IActionResult> GetById(int id)
     {
         var result = await businessService.GetByIdAsync(id);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [HttpGet]
@@ -23,30 +23,30 @@ public class BusinessController(IBusinessService businessService) : ControllerBa
     public async Task<IActionResult> GetAll()
     {
         var result = await businessService.GetAllAsync();
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] UpsertBusinessDto dto)
     {
-        var result = await businessService.AddAsync(dto);
-        return result.ToActionResult();
+        await businessService.AddAsync(dto);
+        return NoContent();
     }
 
     [HttpPut("{id}")]
     [Authorize(Roles = "manager,owner")]
     public async Task<IActionResult> Update(int id, [FromBody] UpsertBusinessDto dto)
     {
-        var result = await businessService.UpdateAsync(id, dto);
-        return result.ToActionResult();
+        await businessService.UpdateAsync(id, dto);
+        return NoContent();
     }
 
     [HttpPatch("subscription")]
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> UpdateSubscription([FromBody] SubscriptionTier tier)
     {
-        var result = await businessService.UpdateSubscriptionAsync(tier);
-        return result.ToActionResult();
+        await businessService.UpdateSubscriptionAsync(tier);
+        return NoContent();
     }
 
     //[HttpDelete("{id}")]

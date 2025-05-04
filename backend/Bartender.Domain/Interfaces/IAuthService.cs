@@ -1,10 +1,9 @@
 ﻿
-using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Staff;
 
 namespace Bartender.Domain.Interfaces;
 
 public interface IAuthService
 {
-    Task<ServiceResult<string>> LoginAsync(LoginStaffDto loginDto);
+    Task<string> LoginAsync(LoginStaffDto loginDto);
 }

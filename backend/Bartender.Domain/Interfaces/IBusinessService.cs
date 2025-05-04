@@ -6,10 +6,10 @@ namespace Bartender.Domain.Interfaces;
 
 public interface IBusinessService
 {
-    Task<ServiceResult<BusinessDto>> GetByIdAsync(int id);
-    Task<ServiceResult<List<BusinessDto>>> GetAllAsync();
-    Task<ServiceResult> AddAsync(UpsertBusinessDto dto);
-    Task<ServiceResult> UpdateAsync(int id, UpsertBusinessDto dto);
-    Task<ServiceResult> UpdateSubscriptionAsync(SubscriptionTier tier);
-    Task<ServiceResult> DeleteAsync(int id);
+    Task<BusinessDto> GetByIdAsync(int id);
+    Task<List<BusinessDto>> GetAllAsync();
+    Task AddAsync(UpsertBusinessDto dto);
+    Task UpdateAsync(int id, UpsertBusinessDto dto);
+    Task UpdateSubscriptionAsync(SubscriptionTier tier);
+    Task DeleteAsync(int id);
 }

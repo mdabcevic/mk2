@@ -13,7 +13,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var result = await orderService.GetByIdAsync(id,false);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [Authorize(Roles = "admin, owner, manager, regular")]
@@ -21,14 +21,14 @@ public class OrderController(IOrderService orderService) : ControllerBase
     public async Task<IActionResult> GetCurrentOrdersByTable(string tableLabel)
     {
         var result = await orderService.GetCurrentOrdersByTableLabelAsync(tableLabel);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [HttpGet("my-orders")]
     public async Task<IActionResult> GetGuestOrders([FromQuery] bool userSpecific = true)
     {
         var result = await orderService.GetActiveTableOrdersForUserAsync(userSpecific);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [Authorize(Roles = "admin, owner, manager")]
@@ -36,7 +36,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
     public async Task<IActionResult> GetAllByPlace(int placeId, [FromQuery] int page = 1)
     {
         var result = await orderService.GetAllClosedOrdersByPlaceIdAsync(placeId, page);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [Authorize(Roles = "admin, owner, manager, regular")]
@@ -44,10 +44,13 @@ public class OrderController(IOrderService orderService) : ControllerBase
     public async Task<IActionResult> GetAllActiveByPlace(int placeId, [FromQuery] bool onlyWaitingForStaff = false, [FromQuery] int page = 1, [FromQuery] bool grouped = false)
     {
         if (grouped)
-            return (await orderService.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page, onlyWaitingForStaff)).ToActionResult();
+        {
+            var groupedResult = await orderService.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page, onlyWaitingForStaff);
+            return Ok(groupedResult);
+        }
 
         var result = await orderService.GetAllActiveOrdersByPlaceIdAsync(placeId, onlyWaitingForStaff);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [Authorize(Roles = "admin, owner")]
@@ -55,29 +58,29 @@ public class OrderController(IOrderService orderService) : ControllerBase
     public async Task<IActionResult> GetAllByBusiness(int businessId)
     {
         var result = await orderService.GetAllByBusinessIdAsync(businessId);
-        return result.ToActionResult();
+        return Ok(result);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] UpsertOrderDto order)
     {
-        var result = await orderService.AddAsync(order);
-        return result.ToActionResult();
+        await orderService.AddAsync(order);
+        return NoContent();
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpsertOrderDto order)
     {
-        var result = await orderService.UpdateAsync(id, order);
-        return result.ToActionResult();
+        await orderService.UpdateAsync(id, order);
+        return NoContent();
     }
 
 
     [HttpPut("status/{id}")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto orderStatus)
     {
-        var result = await orderService.UpdateStatusAsync(id, orderStatus);
-        return result.ToActionResult();
+        await orderService.UpdateStatusAsync(id, orderStatus);
+        return NoContent();
     }
 
     /// <summary>
@@ -88,6 +91,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        return (await orderService.DeleteAsync(id)).ToActionResult();
+        await orderService.DeleteAsync(id);
+        return NoContent();
     }
 }
