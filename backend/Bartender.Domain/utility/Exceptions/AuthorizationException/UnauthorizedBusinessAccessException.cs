@@ -5,7 +5,7 @@ public class UnauthorizedBusinessAccessException : AuthorizationException
 {
 
     public UnauthorizedBusinessAccessException()
-        : base($"Failure fetching business with requested id.")
+        : base($"Access to business denied")
     {
     }
 

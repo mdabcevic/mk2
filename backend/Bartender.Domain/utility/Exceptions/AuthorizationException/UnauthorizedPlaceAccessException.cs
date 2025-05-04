@@ -5,11 +5,11 @@ public class UnauthorizedPlaceAccessException : AuthorizationException
 {
     public int? PlaceId;
     public UnauthorizedPlaceAccessException()
-        : base($"Failure fetching place with requested id.")
+        : base($"Access to place denied")
     {
     }
     public UnauthorizedPlaceAccessException(int placeId)
-        : base($"Failure fetching place with requested id.")
+        : base($"Access to place denied")
     {
         PlaceId = placeId;
     }
