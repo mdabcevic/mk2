@@ -3,6 +3,9 @@
         "login":"Prijava",
         "coffee_shop":"Kafići"
     },
+    "go_back":"Nazad",
+    "passcode_required":"Potreban kod",
+    "join_table":"Pridruži se stolu",
     "home_link_text": "Početna",
     "aboutus_link_text": "Promijeni jezik",
     "bars_link_text": "Kafići",
@@ -65,7 +68,8 @@
     "inquire_plan": "Želio bih se informirati o {{sub}} planu.",
     "view_tables":"Popunjenost objekta",
     "free_tables": "Broj slobodnih stolova",
-
+    "empty":"Prazno",
+    "occupied":"Zauzeto",
     "home": {
         "explore":"Istraži kafiće u kojima je naručivanje jednostavno.",
         "explore_desc":"Vidi gdje možeš preskočiti čekanje, naručiti skeniranjem i uživati u ugodnijem iskustvu objedovanja.",

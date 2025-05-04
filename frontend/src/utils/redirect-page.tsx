@@ -3,7 +3,6 @@ import { authService } from "./auth/auth.service";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRef } from "react";
-import { AppPaths } from "./routing/routes";
 
 function RedirectPage(){
 
@@ -21,7 +20,7 @@ function RedirectPage(){
             return;
         }
         const response = await authService.getGuestToken(salt!);
-        console.log(response);
+
         if (!response.isSessionEstablished) {
             setPassCodeRequired(true);
         }
@@ -43,9 +42,8 @@ function RedirectPage(){
                 authService.setGuestToken(response.guestToken,placeId!);
         }
         catch(error:any){
-            console.log(error.response)
             setPassCodeRequired(true);
-                setMessage(t("invalid_passcode_message"))
+            setMessage(t("invalid_passcode_message"))
         }
     }
     useEffect(() => {
@@ -59,7 +57,7 @@ function RedirectPage(){
         <div className="flex flex-col items-center text-center text-black space-y-4">
             {passCodeRequired ? (
                 <>
-                    <label className="text-lg font-semibold">Passcode required</label>
+                    <label className="text-lg font-semibold">{t("passcode_required")}</label>
                     <input
                         type="text"
                         className="max-w-[200px] p-2 border bg-white rounded-lg"
@@ -70,7 +68,7 @@ function RedirectPage(){
                         onClick={(e) => joinTable(e)}
                         className=" px-15 py-2 rounded-[40px] text-white bg-mocha-600"
                     >
-                        JOIN TABLE
+                        {t("join_table").toUpperCase()}
                     </button>
                     <p className="text-red-500">{message}</p>
                 </>
