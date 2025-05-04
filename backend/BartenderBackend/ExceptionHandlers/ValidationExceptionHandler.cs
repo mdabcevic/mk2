@@ -13,12 +13,12 @@ public class ValidationExceptionHandler(ILogger<ValidationExceptionHandler> logg
         if (exception is not (AppValidationException or ValidationException or ArgumentNullException or InvalidOperationException))
             return false;
 
-        var message = exception is AppValidationException appEx ? appEx.GetLogMessage() : exception.Message ?? exception.GetType().Name;
+        var logMessage = exception is AppValidationException appEx ? appEx.GetLogMessage() : exception.Message ?? exception.GetType().Name;
         var data = exception is AppValidationException ? exception.Data["AdditionalData"] : null;
 
-        logger.LogError(exception, message);
+        logger.LogError(exception, logMessage);
         httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-        var response = new ErrorResponse(message, StatusCodes.Status404NotFound, data);
+        var response = new ErrorResponse(exception.Message ?? exception.GetType().Name, StatusCodes.Status400BadRequest, data);
 
         await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
 
