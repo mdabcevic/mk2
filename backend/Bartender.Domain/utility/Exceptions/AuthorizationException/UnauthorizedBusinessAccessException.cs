@@ -3,15 +3,17 @@ namespace Bartender.Domain.utility.Exceptions;
 
 public class UnauthorizedBusinessAccessException : AuthorizationException
 {
-
-    public UnauthorizedBusinessAccessException()
+    public int? BusinessId { get; }
+    public UnauthorizedBusinessAccessException(int? businessId = null)
         : base($"Access to business denied")
     {
+        BusinessId = businessId;
     }
 
     public override string GetLogMessage()
     {
-        return $"Cross-entity request detected";
-        //return $"Cross-entity request detected. User {username} ({userId}) tried to access business with id {BusinessId}";
+        return BusinessId.HasValue ?
+            $"Unauthorized attempt to access business with ID {BusinessId}" :
+            $"Cross-entity request detected";
     }
 }

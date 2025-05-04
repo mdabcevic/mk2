@@ -208,7 +208,7 @@ public class MenuItemService(
         }
 
         if (failedMenuItems.Any())
-            throw new ConflictException($"Successfully added {validMenuItems.Count}, failed: {failedMenuItems.Count}", failedMenuItems);
+            throw new ConflictException($"Successfully added {validMenuItems.Count}, failed: {failedMenuItems.Count}", data: failedMenuItems);
 
         return failedMenuItems;
         
@@ -272,7 +272,7 @@ public class MenuItemService(
             }
 
         if (failedMenuItems.Any())
-            throw new ConflictException($"Successfully copied {validMenuItems.Count}, failed: {failedMenuItems.Count}", failedMenuItems);
+            throw new ConflictException($"Successfully copied {validMenuItems.Count}, failed: {failedMenuItems.Count}", data: failedMenuItems);
         
         return failedMenuItems;
 

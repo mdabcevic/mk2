@@ -28,9 +28,8 @@ public class ProductService(
 
         if (!VerifyProductAccess(user!, product.BusinessId, false))
         {
-            throw new AuthorizationException(
-                message: "Access to product denied",
-                logMessage: $"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to access product from Business {product.BusinessId}.");
+            throw new AuthorizationException("Access to product denied")
+                .WithLogMessage($"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to access product from Business {product.BusinessId}.");
         }
 
         var dto = mapper.Map<ProductDto>(product);
@@ -157,9 +156,8 @@ public class ProductService(
 
         if (!VerifyProductAccess(user!, product.BusinessId, true))
         {
-            throw new AuthorizationException(
-                message: "Access to product denied",
-                logMessage: $"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to update product from Business {product.BusinessId}.");
+            throw new AuthorizationException("Access to product denied")
+                .WithLogMessage($"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to update product from Business {product.BusinessId}.");
         }
 
         await ValidateProductAsync(product,id);  
@@ -179,9 +177,8 @@ public class ProductService(
         var user = await currentUser.GetCurrentUserAsync();
         if (user!.Role != EmployeeRole.admin && product.BusinessId != user!.Place!.BusinessId)
         {
-            throw new AuthorizationException(
-                message: "Access to product denied",
-                logMessage: $"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to delete product from Business {product.BusinessId}.");
+            throw new AuthorizationException("Access to product denied")
+                .WithLogMessage($"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to delete product from Business {product.BusinessId}.");
         }
 
         await repository.DeleteAsync(product);

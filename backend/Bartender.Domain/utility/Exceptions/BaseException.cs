@@ -3,6 +3,7 @@ namespace Bartender.Domain.utility.Exceptions;
 
 public class BaseException : Exception
 {
+    public string? LogMessage { get; private set; }
     protected BaseException(string message, object? additionalData = null)
         : base(message)
     {
@@ -12,5 +13,11 @@ public class BaseException : Exception
         }
     }
 
-    public virtual string GetLogMessage() => Message ?? GetType().Name;
+    public BaseException WithLogMessage(string logMessage)
+    {
+        LogMessage = logMessage;
+        return this;
+    }
+
+    public virtual string GetLogMessage() => LogMessage ?? Message ?? GetType().Name;
 }

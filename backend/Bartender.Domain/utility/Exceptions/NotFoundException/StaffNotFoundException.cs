@@ -1,10 +1,10 @@
 ﻿namespace Bartender.Domain.utility.Exceptions;
 
-public class StaffNotFound : NotFoundException
+public class StaffNotFoundException : NotFoundException
 {
     public int StaffId { get; }
 
-    public StaffNotFound(int staffId)
+    public StaffNotFoundException(int staffId)
         : base($"Staff was not found.")
     {
         StaffId = staffId;

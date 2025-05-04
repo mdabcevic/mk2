@@ -6,35 +6,23 @@ public class TableAccessDeniedException : AuthorizationException
     public int? UserId { get; }
     public string? Token { get; }
     public string? TableLabel { get; }
-    public TableAccessDeniedException(int tableId)
+
+    public TableAccessDeniedException(int tableId, string? token = null, int? userId = null)
         : base($"Access to this table denied")
     {
         TableId = tableId;
+        Token = token;
+        UserId = userId;
     }
-
-    public TableAccessDeniedException(string? tableLabel)
+    public TableAccessDeniedException(string tableLabel)
         : base($"Access to this table denied")
     {
         TableLabel = tableLabel;
     }
-    public TableAccessDeniedException(int tableId, string? token)
-        : base($"Access to this table denied")
-    {
-        TableId = tableId;
-        Token = token; 
-    }
-
-    public TableAccessDeniedException(int tableId, int? userId)
-        : base($"Access to this table denied")
-    {
-        TableId = tableId;
-        UserId = userId;
-    }
 
     public override string GetLogMessage()
     {
-        return !string.IsNullOrEmpty(Token) ?
-            $"Access denied for TableId: {TableId}, Token: {Token}" :
+        return !string.IsNullOrEmpty(Token) ? $"Access denied for TableId: {TableId}, Token: {Token}" :
             UserId.HasValue ? $"Access denied for TableId: {TableId}, UserId: {UserId}" :
             !string.IsNullOrEmpty(TableLabel) ? $"Access denied for Table with Label: {TableLabel}" :
             $"Access denied for TableId: {TableId}";

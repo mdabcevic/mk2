@@ -4,11 +4,8 @@ namespace Bartender.Domain.utility.Exceptions;
 public class UnauthorizedPlaceAccessException : AuthorizationException
 {
     public int? PlaceId;
-    public UnauthorizedPlaceAccessException()
-        : base($"Access to place denied")
-    {
-    }
-    public UnauthorizedPlaceAccessException(int placeId)
+
+    public UnauthorizedPlaceAccessException(int? placeId = null)
         : base($"Access to place denied")
     {
         PlaceId = placeId;

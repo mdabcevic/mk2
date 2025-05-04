@@ -27,7 +27,7 @@ public class OrderService(
     {
         var verifyAccess = await validationService.VerifyUserGuestAccess(order.TableId);
         if (!verifyAccess)
-            throw new TableAccessDeniedException(order.TableId);
+            throw new TableAccessDeniedException(tableId: order.TableId);
 
         // validate order requirements
         await ValidateOrderAsync(order);
@@ -91,9 +91,8 @@ public class OrderService(
             }
             else
             {
-                throw new AuthorizationException(
-                    message: $"Order status cannot be changed to {newStatus.Status}",
-                    logMessage: $"Guest cannot update OrderId {id} from {existingOrder.Status} to {newStatus.Status}");
+                throw new AuthorizationException($"Order status cannot be changed to {newStatus.Status}")
+                    .WithLogMessage("$\"Guest cannot update OrderId {id} from {existingOrder.Status} to {newStatus.Status}\"");
             }
         }
         else
@@ -257,7 +256,7 @@ public class OrderService(
         var verifyAccess = await validationService.VerifyUserGuestAccess(orders[0].Table.Id);
         if (!verifyAccess)
         {
-            throw new TableAccessDeniedException(tableLabel);
+            throw new TableAccessDeniedException(tableLabel: tableLabel);
         }
 
         var dtos = mapper.Map<List<OrderDto>>(orders);

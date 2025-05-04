@@ -31,9 +31,8 @@ public class TableInteractionService(
         var table = await repository.GetByKeyAsync(t => t.QrSalt == salt);
         if (table is null)
         {
-            throw new NotFoundException(
-                message: "Invalid QR code",
-                logMessage: $"QR lookup failed: Stale or invalid Token was used: {salt}");
+            throw new NotFoundException("Invalid QR code")
+                .WithLogMessage($"lookup failed: Stale or invalid Token was used: {salt}");
         }
 
         return currentUser.IsGuest
@@ -90,9 +89,8 @@ public class TableInteractionService(
 
             if (activeSession != null)
             {
-                throw new ConflictException(
-                    message: "You already have an active session on another table. Mark it as complete before next attempt.",
-                    logMessage: $"Guest tried to join Table {table.Id} while already active on Table {activeSession.TableId}.");
+                throw new ConflictException("You already have an active session on another table. Mark it as complete before next attempt.")
+                    .WithLogMessage($"Guest tried to join Table {table.Id} while already active on Table {activeSession.TableId}.");
             }
         }
 

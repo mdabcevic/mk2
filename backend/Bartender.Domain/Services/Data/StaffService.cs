@@ -34,7 +34,7 @@ public class StaffService(
     {
         var staff = await repository.GetByIdAsync(id);
         if (staff == null)
-            throw new StaffNotFound(id);
+            throw new StaffNotFoundException(id);
 
         if (!await IsSameBusinessAsync(staff.PlaceId))
             throw new UnauthorizedPlaceAccessException(id);
@@ -60,7 +60,7 @@ public class StaffService(
     {
         var staff = await repository.GetByIdAsync(id, includeNavigations);
         if (staff is null)
-            throw new StaffNotFound(id);
+            throw new StaffNotFoundException(id);
 
         if (!await IsSameBusinessAsync(staff.PlaceId))
             throw new UnauthorizedPlaceAccessException(id);
@@ -73,7 +73,7 @@ public class StaffService(
     {
         var employee = await repository.GetByIdAsync(id);
         if (employee == null)
-            throw new StaffNotFound(id);
+            throw new StaffNotFoundException(id);
 
         if (!await IsSameBusinessAsync(dto.PlaceId))
             throw new UnauthorizedPlaceAccessException(id);
