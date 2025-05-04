@@ -22,6 +22,16 @@ public class AuthorizationExceptionHandler(ILogger<AuthorizationExceptionHandler
 
             return true;
         }
+        else if (exception is UnauthorizedAccessException)
+        {
+            logger.LogError(exception, exception.Message ?? exception.GetType().Name);
+            var response = new ErrorResponse(exception.Message ?? exception.GetType().Name, StatusCodes.Status401Unauthorized);
+
+            httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await httpContext.Response.WriteAsJsonAsync(new { response }, cancellationToken);
+
+            return true;
+        }
 
         return false;
     }

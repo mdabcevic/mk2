@@ -22,7 +22,7 @@ public class ValidationExceptionHandler(ILogger<ValidationExceptionHandler> logg
             
             return true;
         }
-        else if (exception is ValidationException)
+        else if (exception is ValidationException || exception is ArgumentNullException || exception is InvalidOperationException)
         {
             logger.LogError(exception, exception.Message ?? exception.GetType().Name);
             var response = new ErrorResponse(exception.Message ?? exception.GetType().Name, StatusCodes.Status400BadRequest);
