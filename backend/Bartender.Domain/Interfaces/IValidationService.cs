@@ -5,7 +5,7 @@ namespace Bartender.Domain.Interfaces;
 
 public interface IValidationService
 {
-    Task VerifyUserGuestAccess(int orderTableId);
+    Task<bool> VerifyUserGuestAccess(int orderTableId);
     Task<bool> VerifyUserPlaceAccess(int targetPlaceId, Staff? user = null);
     Task<bool> VerifyUserBusinessAccess(int businessId);
     Task EnsurePlaceExistsAsync(int placeId);

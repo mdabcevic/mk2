@@ -5,20 +5,27 @@ public class TableAccessDeniedException : AuthorizationException
     public int TableId { get; }
     public int? UserId { get; }
     public string? Token { get; }
+    public string? TableLabel { get; }
     public TableAccessDeniedException(int tableId)
-        : base($"You don't have access to manage orders for this table.")
+        : base($"Access to this table denied")
     {
         TableId = tableId;
     }
+
+    public TableAccessDeniedException(string? tableLabel)
+        : base($"Access to this table denied")
+    {
+        TableLabel = tableLabel;
+    }
     public TableAccessDeniedException(int tableId, string? token)
-        : base($"You don't have access to manage orders for this table.")
+        : base($"Access to this table denied")
     {
         TableId = tableId;
         Token = token; 
     }
 
     public TableAccessDeniedException(int tableId, int? userId)
-        : base($"You don't have access to manage orders for this table.")
+        : base($"Access to this table denied")
     {
         TableId = tableId;
         UserId = userId;
@@ -29,6 +36,7 @@ public class TableAccessDeniedException : AuthorizationException
         return !string.IsNullOrEmpty(Token) ?
             $"Access denied for TableId: {TableId}, Token: {Token}" :
             UserId.HasValue ? $"Access denied for TableId: {TableId}, UserId: {UserId}" :
+            !string.IsNullOrEmpty(TableLabel) ? $"Access denied for Table with Label: {TableLabel}" :
             $"Access denied for TableId: {TableId}";
 
     }

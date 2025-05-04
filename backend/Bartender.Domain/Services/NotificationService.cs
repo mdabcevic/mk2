@@ -42,7 +42,7 @@ public class NotificationService(
     {
         var validUser = await validationService.VerifyUserGuestAccess(tableId);
 
-        if (!validUser.Success)
+        if (!validUser)
         {
             logger.LogWarning("Unauthorized attempt to read notifications for table {TableId}", tableId);
             return ServiceResult<List<TableNotification>>.Fail("Cannot access notifications for this table.", ErrorType.Unauthorized);
@@ -61,7 +61,7 @@ public class NotificationService(
     {
         var validUser = await validationService.VerifyUserGuestAccess(tableId);
 
-        if (!validUser.Success)
+        if (!validUser)
         {
             logger.LogWarning("Unauthorized attempt to update notification {NotificationId} on table {TableId}", notificationId, tableId);
             return ServiceResult.Fail("Cannot update notification.", ErrorType.Unauthorized);
@@ -88,7 +88,7 @@ public class NotificationService(
     {
         var validUser = await validationService.VerifyUserGuestAccess(tableId);
 
-        if (!validUser.Success)
+        if (!validUser)
         {
             logger.LogWarning("Unauthorized attempt to clear notifications for table {TableId}", tableId);
             return ServiceResult.Fail("Cannot delete notifications for this table.", ErrorType.Unauthorized);

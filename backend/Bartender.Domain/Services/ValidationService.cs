@@ -15,7 +15,34 @@ public class ValidationService(
     IRepository<Business> businessRepository,
     ILogger<ValidationService> logger) : IValidationService
 {
-    public async Task VerifyUserGuestAccess(int orderTableId)
+    public async Task<bool> VerifyUserGuestAccess(int orderTableId)
+    {
+        if (currentUser == null) { 
+            return false;
+        }
+
+        if (currentUser.IsGuest && await tableSessionService.HasActiveSessionAsync(orderTableId, currentUser.GetRawToken()))
+        {
+            return true;
+        }
+
+        else if (!currentUser.IsGuest)
+        {
+            var user = await currentUser.GetCurrentUserAsync();
+            var table = await tableRepository.GetByIdAsync(orderTableId);
+
+            if (table == null)
+                return false;
+
+            if (await VerifyUserPlaceAccess(table.PlaceId, user))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*public async Task VerifyUserGuestAccess(int orderTableId)
     {
         if (currentUser.IsGuest && !await tableSessionService.HasActiveSessionAsync(orderTableId, currentUser.GetRawToken()))
         {
@@ -35,7 +62,7 @@ public class ValidationService(
                 throw new TableAccessDeniedException(table.Id, user?.Id);
             }
         }
-    }
+    }*/
 
     public async Task<bool> VerifyUserPlaceAccess(int targetPlaceId, Staff? user = null)
     {

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO;
 using Bartender.Data;
 using Bartender.Domain.DTO.Place;
+using Bartender.Domain.utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 
@@ -22,16 +23,14 @@ public class OrderService(
     IMapper mapper
     ) : IOrderService
 {
-    public async Task<ServiceResult> AddAsync(UpsertOrderDto order)
+    public async Task AddAsync(UpsertOrderDto order)
     {
-        var validUser = await validationService.VerifyUserGuestAccess(order.TableId);
-        if (!validUser.Success)
-            return validUser;
+        var verifyAccess = await validationService.VerifyUserGuestAccess(order.TableId);
+        if (!verifyAccess)
+            throw new TableAccessDeniedException(order.TableId);
 
         // validate order requirements
-        var validationResult = await ValidateOrderAsync(order);
-        if (!validationResult.Success)
-            return validationResult;
+        await ValidateOrderAsync(order);
 
         // combine duplicate items (same MenuItemId) by summing their quantities and add price to each item
         List<ProductPerOrder> newOrderItems = await ProcessOrderItemsAsync(order);
@@ -47,14 +46,14 @@ public class OrderService(
         {
             var guest = await guestSessionRepo.GetByKeyAsync(g => g.Token == currentUser.GetRawToken());
             if (guest == null)
-                return ServiceResult.Fail("There is currently no active session found", ErrorType.NotFound);
+                throw new NoActiveSessionFoundException();
 
             order.GuestSessionId = guest.Id;
         }
 
         var orderDetails = await GetByIdAsync(order.TableId,true);
         var messageMenuItems = "";
-        orderDetails.Data?.Items.ForEach(i =>
+        orderDetails?.Items.ForEach(i =>
         {
             messageMenuItems += $"{i.Count} x {i.MenuItem},";
         });
@@ -63,19 +62,18 @@ public class OrderService(
 
         await notificationService.AddNotificationAsync(newOrder.Table,
             NotificationFactory.ForOrder(newOrder.Table, newOrder.Id, $"Table {newOrder.Table.Label}: {messageMenuItems}", NotificationType.OrderCreated));
-        return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult> UpdateStatusAsync(int id, UpdateOrderStatusDto newStatus)
+    public async Task UpdateStatusAsync(int id, UpdateOrderStatusDto newStatus)
     {
         var existingOrder = await repository.GetByIdAsync(id, true);
 
         if (existingOrder == null)
-            return ServiceResult.Fail($"Order with id {id} not found", ErrorType.NotFound);  
+            throw new OrderNotFoundException(id); 
 
-        var validUser = await validationService.VerifyUserGuestAccess(existingOrder.TableId);
-        if (!validUser.Success)
-            return validUser;
+        var verifyAccess = await validationService.VerifyUserGuestAccess(existingOrder.TableId);
+        if (!verifyAccess)
+            throw new UnauthorizedOrderAccessException(id);
 
         TableNotification notification;
 
@@ -93,8 +91,9 @@ public class OrderService(
             }
             else
             {
-                logger.LogWarning("Guest cannot update OrderId {OrderId} from {CurrentStatus} to {NewStatus}", id, existingOrder.Status, newStatus.Status);
-                return ServiceResult.Fail($"Order status cannot be changed to {newStatus.Status}", ErrorType.NotFound);
+                throw new AuthorizationException(
+                    message: $"Order status cannot be changed to {newStatus.Status}",
+                    logMessage: $"Guest cannot update OrderId {id} from {existingOrder.Status} to {newStatus.Status}");
             }
         }
         else
@@ -109,33 +108,34 @@ public class OrderService(
         existingOrder.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
         await repository.UpdateAsync(existingOrder);
 
-        await notificationService.AddNotificationAsync(existingOrder.Table, notification);
-        return ServiceResult.Ok();      
+        await notificationService.AddNotificationAsync(existingOrder.Table, notification);   
     }
 
-    public async Task<ServiceResult> UpdateAsync(int id, UpsertOrderDto order)
+    public async Task UpdateAsync(int id, UpsertOrderDto order)
     {
         var existingOrder = await repository.GetByIdAsync(id, true);
         if (existingOrder == null)
         {
-            return ServiceResult.Fail($"Order with id {id} not found", ErrorType.NotFound);
+            throw new OrderNotFoundException(id);
         }
 
-        var validUser = await validationService.VerifyUserGuestAccess(order.TableId);
-        if (!validUser.Success)
-            return validUser;
+        var verifyAccess = await validationService.VerifyUserGuestAccess(existingOrder.TableId);
+        if (!verifyAccess)
+            throw new UnauthorizedOrderAccessException(id);
+
+        var user = await currentUser.GetCurrentUserAsync();
+        
+        var hasHigherAccess = user?.Role == EmployeeRole.owner || user?.Role == EmployeeRole.admin || user?.Role == EmployeeRole.manager;
 
         // if the order is closed or the guest is trying to modify an already approved order, return an error.
-        if (existingOrder.Status == OrderStatus.closed || currentUser.IsGuest && existingOrder.Status != OrderStatus.cancelled)
+        if ((existingOrder.Status == OrderStatus.closed && !hasHigherAccess) || 
+            (currentUser.IsGuest && existingOrder.Status != OrderStatus.cancelled))
         {
-            logger.LogWarning($"Update failed: Attempt to modify a closed or finalized order with id {id}");
-            return ServiceResult.Fail("Order cannot be changed anymore", ErrorType.Validation);
+            throw new AuthorizationException("Access to change order denied");
         }
 
         // validate order requirements
-        var validationResult = await ValidateOrderAsync(order);
-        if (!validationResult.Success)
-            return validationResult;
+        await ValidateOrderAsync(order);
 
         List<ProductPerOrder> newOrderItems = await ProcessOrderItemsAsync(order);
 
@@ -149,8 +149,6 @@ public class OrderService(
         await notificationService.AddNotificationAsync(existingOrder.Table,
             NotificationFactory.ForOrder(existingOrder.Table, existingOrder.Id, 
                         $"Contents of order {existingOrder.Id} have changed. Order status: {existingOrder.Status}.", NotificationType.OrderContentUpdated));
-
-        return ServiceResult.Ok();
     }
 
     /// <summary>
@@ -158,54 +156,47 @@ public class OrderService(
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    public async Task<ServiceResult> DeleteAsync(int id)
+    public async Task DeleteAsync(int id)
     {
         var order = await repository.GetByIdAsync(id);
         if (order == null)
-            return ServiceResult.Fail($"Order with ID {id} not found", ErrorType.NotFound);
+            throw new OrderNotFoundException(id);
 
-        var validUser = await validationService.VerifyUserGuestAccess(order.TableId);
-        if (!validUser.Success)
-            return validUser;
+        var verifyAccess = await validationService.VerifyUserGuestAccess(order.TableId);
+        if (!verifyAccess)
+            throw new UnauthorizedOrderAccessException(id);
 
         if (order.Status != OrderStatus.cancelled)
-            return ServiceResult.Fail($"Only cancelled orders can be removed", ErrorType.NotFound);
+            throw new AppValidationException("Only cancelled orders can be removed");
 
         await repository.DeleteAsync(order);
-        return ServiceResult.Ok();
     }
 
-    public async Task<ServiceResult<ListResponse<OrderDto>>> GetAllClosedOrdersByPlaceIdAsync(int placeId,int page)
+    public async Task<ListResponse<OrderDto>> GetAllClosedOrdersByPlaceIdAsync(int placeId,int page)
     {
-        var validationResult = await ValidatePlaceAccessAsync(placeId);
-        if (!validationResult.Success)
-            return ServiceResult<ListResponse<OrderDto>>.Fail(validationResult.Error!, validationResult.errorType!.Value);
+        await ValidatePlaceAccessAsync(placeId);
 
         var (orders,total) = await repository.GetAllByPlaceIdAsync(placeId,page);
 
         var dto = mapper.Map<List<OrderDto>>(orders);
         var response = new ListResponse<OrderDto> { Items = dto, Total = total };
-        return ServiceResult<ListResponse<OrderDto>>.Ok(response);
+        return response;
     }
 
-    public async Task<ServiceResult<List<OrderDto>>> GetAllActiveOrdersByPlaceIdAsync(int placeId, bool onlyWaitingForStaff = false)
+    public async Task<List<OrderDto>> GetAllActiveOrdersByPlaceIdAsync(int placeId, bool onlyWaitingForStaff = false)
     {
-        var validationResult = await ValidatePlaceAccessAsync(placeId);
-        if (!validationResult.Success)
-            return ServiceResult<List<OrderDto>>.Fail(validationResult.Error!, validationResult.errorType!.Value);
+        await ValidatePlaceAccessAsync(placeId);
 
         var orders = onlyWaitingForStaff ? await repository.GetPendingByPlaceIdAsync(placeId) :
                     await repository.GetActiveByPlaceIdAsync(placeId);
 
         var dto = mapper.Map<List<OrderDto>>(orders);
-        return ServiceResult<List<OrderDto>>.Ok(dto);
+        return dto;
     }
 
-    public async Task<ServiceResult<ListResponse<GroupedOrderStatusDto>>> GetAllActiveOrdersByPlaceIdGroupedAsync(int placeId,int page, bool onlyWaitingForStaff = false)
+    public async Task<ListResponse<GroupedOrderStatusDto>> GetAllActiveOrdersByPlaceIdGroupedAsync(int placeId,int page, bool onlyWaitingForStaff = false)
     {
-        var validationResult = await ValidatePlaceAccessAsync(placeId);
-        if (!validationResult.Success)
-            return ServiceResult<ListResponse<GroupedOrderStatusDto>>.Fail(validationResult.Error!, validationResult.errorType!.Value);
+        await ValidatePlaceAccessAsync(placeId);
 
         var (groupedOrders,total) = onlyWaitingForStaff ? await repository.GetPendingByPlaceIdGroupedAsync(placeId,page) :
                     await repository.GetActiveByPlaceIdGroupedAsync(placeId, page);
@@ -217,17 +208,15 @@ public class OrderService(
         }).ToList();
 
         var response = new ListResponse<GroupedOrderStatusDto> { Items = result, Total = total };
-        return ServiceResult<ListResponse<GroupedOrderStatusDto>>.Ok(response);
+        return response;
     }
 
-    public async Task<ServiceResult<List<BusinessOrdersDto>>> GetAllByBusinessIdAsync(int businessId)
+    public async Task<List<BusinessOrdersDto>> GetAllByBusinessIdAsync(int businessId)
     {
-        var businessValidationResult = await validationService.EnsureBusinessExistsAsync(businessId);
-        if (!businessValidationResult.Success)
-            return ServiceResult<List<BusinessOrdersDto>>.Fail(businessValidationResult.Error!, businessValidationResult.errorType!.Value);
+        await validationService.EnsureBusinessExistsAsync(businessId);
 
         if (!await validationService.VerifyUserBusinessAccess(businessId))
-            return ServiceResult<List<BusinessOrdersDto>>.Fail("Cross-business access denied.", ErrorType.Unauthorized);
+            throw new UnauthorizedBusinessAccessException();
 
         var orders = await repository.GetAllOrdersByBusinessIdAsync(businessId);
 
@@ -237,69 +226,72 @@ public class OrderService(
             Orders = mapper.Map<List<OrderDto>>(g.Value)
         }).ToList();
 
-        return ServiceResult<List<BusinessOrdersDto>>.Ok(result);
+        return result;
     }
 
     //TODO: troubleshoot validation...
-    public async Task<ServiceResult<OrderDto?>> GetByIdAsync(int id, bool skipValidation)
+    public async Task<OrderDto?> GetByIdAsync(int id, bool skipValidation)
     {
         var order = await repository.getOrderById(id); //TODO: should fetching be done after validation?
 
         if (order == null)
-            return ServiceResult<OrderDto?>.Fail($"Order with id {id} not found", ErrorType.NotFound);
+            throw new OrderNotFoundException(id);
 
         if (!skipValidation)
         {
-            var verifyUser = await validationService.VerifyUserGuestAccess(order.TableId);
-            if (!verifyUser.Success)
-                return ServiceResult<OrderDto?>.Fail(verifyUser.Error!, verifyUser.errorType!.Value);
+            var verifyAccess = await validationService.VerifyUserGuestAccess(order.TableId);
+            if (!verifyAccess)
+                throw new UnauthorizedOrderAccessException(order.Id);
         }
         var dto = mapper.Map<OrderDto>(order);
 
-        return ServiceResult<OrderDto?>.Ok(dto);
+        return dto;
     }
 
-    public async Task<ServiceResult<List<OrderDto>>> GetCurrentOrdersByTableLabelAsync(string tableLabel) //staff only?
+    public async Task<List<OrderDto>> GetCurrentOrdersByTableLabelAsync(string tableLabel) //staff only?
     {
         var orders = await repository.GetCurrentOrdersByTableLabelAsync(tableLabel); //TODO: should fetching be done after validation?
         if(!orders.Any())
-            return ServiceResult<List<OrderDto>>.Ok(new List<OrderDto>());
-        var verifyUser = await validationService.VerifyUserGuestAccess(orders[0].Table.Id);
-        if (!verifyUser.Success)
-            return ServiceResult<List<OrderDto>>.Fail(verifyUser.Error!, verifyUser.errorType!.Value);
+            return new List<OrderDto>();
+
+        var verifyAccess = await validationService.VerifyUserGuestAccess(orders[0].Table.Id);
+        if (!verifyAccess)
+        {
+            throw new TableAccessDeniedException(tableLabel);
+        }
 
         var dtos = mapper.Map<List<OrderDto>>(orders);
-        return ServiceResult<List<OrderDto>>.Ok(dtos);
+        return dtos;
     }
 
 
-    public async Task<ServiceResult<List<OrderDto>>> GetActiveTableOrdersForUserAsync(bool userSpecific = true)
+    public async Task<List<OrderDto>> GetActiveTableOrdersForUserAsync(bool userSpecific = true)
     {
         var guest = await guestSessionRepo.GetByKeyAsync(g => g.Token == currentUser.GetRawToken());
         if (guest == null)
-            return ServiceResult<List<OrderDto>>.Fail("There is currently no active session found", ErrorType.NotFound);
+            throw new NoActiveSessionFoundException();
 
         var order = userSpecific ? await repository.GetActiveOrdersByGuestIdAsync(guest.Id) :      
             await repository.GetActiveOrdersByTableIdAsync(guest.TableId);
 
         var dto = mapper.Map<List<OrderDto>>(order);
 
-        return ServiceResult< List<OrderDto>>.Ok(dto);
+        return dto;
     }
 
-    private async Task<ServiceResult> ValidateOrderAsync(UpsertOrderDto order)
+    private async Task ValidateOrderAsync(UpsertOrderDto order)
     {
         var table = await tableRepository.GetByIdAsync(order.TableId);
         var menuItems = await GetOrderItemsAsync(order);
 
         if (!order.Items.Any())
-            return ServiceResult.Fail("Cannot create an order with no items", ErrorType.Validation);
+            throw new AppValidationException("Cannot create an order with no items");
 
         if (table == null)
-            return ServiceResult.Fail($"Table not found", ErrorType.NotFound);
+            throw new TableNotFoundException(order.TableId);
 
         if (table.Status != TableStatus.occupied)
-            return ServiceResult.Fail("Cannot create an order on an unoccupied table", ErrorType.Unauthorized);
+            throw new AuthorizationException("Cannot create an order on an unoccupied table");
 
         var missingItems = order.Items
             .Where(oi => !menuItems.Any(mi => mi.Id == oi.MenuItemId))
@@ -307,7 +299,7 @@ public class OrderService(
             .ToList();
 
         if (missingItems.Any())
-            return ServiceResult.Fail($"One or more menu items do not exist or are not available: {string.Join(", ", missingItems)}",ErrorType.NotFound);
+            throw new NotFoundException($"One or more menu items do not exist or are not available: {string.Join(", ", missingItems)}");
 
         var unavailableItems = menuItems
             .Where(mi => !mi.IsAvailable || mi.PlaceId != table.PlaceId)
@@ -317,9 +309,7 @@ public class OrderService(
             .ToList();
 
         if (unavailableItems.Any())
-            return ServiceResult.Fail($"These items are currently unavailable: {string.Join(", ", unavailableItems)}", ErrorType.Validation);
-
-        return ServiceResult.Ok();
+            throw new AppValidationException($"These items are currently unavailable: {string.Join(", ", unavailableItems)}");
     }
 
     private async Task<List<MenuItem>> GetOrderItemsAsync(UpsertOrderDto order)
@@ -355,15 +345,11 @@ public class OrderService(
         return items.Sum(item => item.Price * item.Count * (1 - item.Discount / 100m));
     }
 
-    private async Task<ServiceResult> ValidatePlaceAccessAsync(int placeId)
+    private async Task ValidatePlaceAccessAsync(int placeId)
     {
-        var placeValidationResult = await validationService.EnsurePlaceExistsAsync(placeId);
-        if (!placeValidationResult.Success)
-            return placeValidationResult;
+        await validationService.EnsurePlaceExistsAsync(placeId);
 
         if (!await validationService.VerifyUserPlaceAccess(placeId))
-            return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
-
-        return ServiceResult.Ok();
+            throw new UnauthorizedPlaceAccessException();
     }
 }
