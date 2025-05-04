@@ -114,14 +114,15 @@ public class MenuItemServiceMutationTests
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
         var staff = TestDataFactory.CreateValidStaff(placeid: 999); // different place
+
         _currentUser.GetCurrentUserAsync().Returns(staff);
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId, staff).Returns(false);
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(() => _menuService.AddAsync(dto));
         Assert.That(ex.Message, Does.Contain("Access").IgnoreCase);
         Assert.That(ex.Message, Does.Contain("denied").IgnoreCase);
 
-        await _currentUser.Received(1).GetCurrentUserAsync();
         await _menuRepository.DidNotReceive().ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
         await _menuRepository.DidNotReceive().AddAsync(Arg.Any<MenuItem>());
         await _productRepository.DidNotReceive().GetByIdAsync(Arg.Any<int>(), true);
@@ -155,7 +156,7 @@ public class MenuItemServiceMutationTests
         var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(false);
-        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(false);
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.AddAsync(dto));

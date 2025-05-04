@@ -163,7 +163,7 @@ public class MenuItemServiceReadTests
         var placeId = 1;
 
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
-        _menuRepository.GetMenuItemsByPlaceIdAync(Arg.Any<int>(), Arg.Any<bool>())
+        _menuRepository.GetMenuItemsByPlaceIdGroupedAsync(Arg.Any<int>(), Arg.Any<bool>())
             .Throws(new Exception("Database unreachable"));
 
         // Act & Assert
