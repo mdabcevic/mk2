@@ -30,7 +30,13 @@ public class ProductService(
 
             if (!VerifyProductAccess(user!, product.BusinessId, false))
             {
-                logger.LogWarning($"Access denied: User {user.Id} (Business: {user.Place!.BusinessId}) attempted to access product from Business {product.BusinessId}.");
+                logger.LogWarning(
+                    "Access denied: User {UserId} (Business: {UserBusinessId}) attempted to access product from Business {ProductBusinessId}.",
+                    user!.Id,
+                    user.Place!.BusinessId,
+                    product.BusinessId
+                );
+
                 return ServiceResult<ProductDto?>.Fail($"Cross-business access denied.", ErrorType.NotFound);
             }
 
@@ -176,7 +182,8 @@ public class ProductService(
             var newProduct = mapper.Map<Product>(product);
 
             await repository.AddAsync(newProduct);
-            logger.LogInformation($"Product created: {product.Name} {product.Volume}, BusinessId: {product.BusinessId}");
+            logger.LogInformation(
+                "Product created: {ProductName} {ProductVolume}, BusinessId: {BusinessId}", product.Name, product.Volume, product.BusinessId);
             return ServiceResult.Ok();
         }
         catch (Exception ex) {
@@ -200,7 +207,8 @@ public class ProductService(
 
             if (!VerifyProductAccess(user!, product.BusinessId, true))
             {
-                logger.LogWarning($"Access denied: User {user.Id} (Business: {user.Place!.BusinessId}) attempted to update product from Business {product.BusinessId}.");
+                logger.LogWarning("Access denied: User {UserId} (Business: {UserBusinessId}) attempted to update product from Business {ProductBusinessId}.",
+                    user!.Id, user.Place!.BusinessId, product.BusinessId);
                 return ServiceResult.Fail("Cross-business access denied.", ErrorType.Unauthorized);
             }
 
@@ -213,7 +221,7 @@ public class ProductService(
             mapper.Map(product, updateProduct);
 
             await repository.UpdateAsync(updateProduct);
-            logger.LogInformation($"Product updated with ID: {id}");
+            logger.LogInformation("Product updated with ID: {ProductId}", id);
             return ServiceResult.Ok();
         }
         catch (Exception ex)
@@ -234,12 +242,13 @@ public class ProductService(
             var user = await currentUser.GetCurrentUserAsync();
             if (user!.Role != EmployeeRole.admin && product.BusinessId != user!.Place!.BusinessId)
             {
-                logger.LogWarning($"Access denied: User {user.Id} (Business: {user.Place!.BusinessId}) attempted to delete product from Business {product.BusinessId}.");
+                logger.LogWarning("Access denied: User {UserId} (Business: {UserBusinessId}) attempted to delete product from Business {ProductBusinessId}.",
+                    user.Id, user.Place!.BusinessId, product.BusinessId);
                 return ServiceResult.Fail("Product can only be deleted by owning business or administrators.", ErrorType.Unknown);
             }
 
             await repository.DeleteAsync(product);
-            logger.LogInformation($"Product deleted with ID: {id}");
+            logger.LogInformation("Product deleted with ID: {ProductId}", id);
             return ServiceResult.Ok();
         }
         catch (Exception ex)
@@ -283,7 +292,7 @@ public class ProductService(
         return ServiceResult.Ok();
     }
 
-    private bool VerifyProductAccess(Staff user, int? businessId, bool upsert)
+    private static bool VerifyProductAccess(Staff user, int? businessId, bool upsert)
     {
         if (user.Role == EmployeeRole.admin)
             return true;

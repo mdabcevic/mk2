@@ -53,7 +53,7 @@ public class MenuItemService(
             .Select(g => new GroupedCategoryMenuDto
             {
                 Category = g.Key,
-                Items = g.OrderBy(mi => mi.Product != null ? mi.Product.Name : "")
+                Items = [.. g.OrderBy(mi => mi.Product != null ? mi.Product.Name : "")
                 .Select(mi => new MenuItemBaseDto
                 {
                     Id = mi.Id,
@@ -61,8 +61,7 @@ public class MenuItemService(
                     Price = mi.Price,
                     Description = mi.Description,
                     IsAvailable = mi.IsAvailable,
-                })
-                .ToList()
+                })]
             })
             .Where(g => g.Items.Any())
             .ToList();
@@ -157,7 +156,8 @@ public class MenuItemService(
 
         var newMenuItem = mapper.Map<MenuItem>(menuItem);
         await repository.AddAsync(newMenuItem);
-        logger.LogInformation($"User {currentUser.UserId} added product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
+        logger.LogInformation("User {UserId} added product {ProductId} in menu for place {PlaceId}",
+            currentUser.UserId, menuItem.ProductId, menuItem.PlaceId);
     }
 
     public async Task<List<FailedMenuItemDto>> AddMultipleAsync(List<UpsertMenuItemDto> menuItems)
@@ -204,7 +204,8 @@ public class MenuItemService(
         if (validMenuItems.Any())
         {
             await repository.AddMultipleAsync(validMenuItems);
-            logger.LogInformation($"User {currentUser.UserId} added {validMenuItems.Count} products to the menu.");
+            logger.LogInformation("User {UserId} added {Count} products to the menu.",
+                currentUser.UserId, validMenuItems.Count);
         }
 
         if (failedMenuItems.Any())
@@ -265,7 +266,9 @@ public class MenuItemService(
             if (validMenuItems.Any())
             {
                 await repository.AddMultipleAsync(validMenuItems);
-                logger.LogInformation($"User {currentUser.UserId} copied {validMenuItems.Count} menu items from place {fromPlaceId} to place {toPlaceId}");
+                logger.LogInformation(
+                    "User {UserId} copied {ItemCount} menu items from place {FromPlaceId} to place {ToPlaceId}.",
+                    currentUser.UserId, validMenuItems.Count, fromPlaceId, toPlaceId);
 
             }
 
@@ -291,7 +294,8 @@ public class MenuItemService(
         mapper.Map(menuItem, existingItem);
 
         await repository.UpdateAsync(existingItem);
-        logger.LogInformation($"User {currentUser.UserId} updated product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
+        logger.LogInformation("User {UserId} updated product {ProductId} in menu for place {PlaceId}.",
+                currentUser.UserId, menuItem.ProductId, menuItem.PlaceId);
     }
 
     public async Task UpdateItemAvailabilityAsync(int placeId, int productId, bool isAvailable)
@@ -323,7 +327,8 @@ public class MenuItemService(
 
         await repository.DeleteAsync(menuItem);
 
-        logger.LogInformation($"User {currentUser.UserId} deleted product {menuItem.ProductId} in menu for place {menuItem.PlaceId}");
+        logger.LogInformation("User {UserId} deleted product {ProductId} in menu for place {PlaceId}",
+            currentUser.UserId, menuItem.ProductId, menuItem.PlaceId);
     }
 
 
@@ -396,4 +401,3 @@ public class MenuItemService(
         return place1BusinessId == place2BusinessId;
     }
 }
-
