@@ -166,7 +166,7 @@ app.UseExceptionHandler(_ => { });
 app.UseAuthentication(); // <--- MUST come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
-app.MapHub<PlaceHub>("/hubs/place");
+app.MapHub<PlaceHub>("/hubs/place").RequireCors(allowedOrigins);
 
 app.MapGet("/health", () => Results.Ok("Application is healthy."))
    .WithName("HealthCheck")
