@@ -137,6 +137,8 @@ public class OrderServiceMutationTests
         _orderRepo.CreateOrderWithItemsAsync(Arg.Any<Order>(), Arg.Any<List<ProductPerOrder>>())
             .Returns(newOrder);
 
+        _orderRepo.getOrderById(newOrder.Id).Returns(newOrder);
+
         _mapper.Map<OrderDto>(Arg.Any<Order>())
             .Returns(TestDataFactory.CreateValidOrderDto(id: 1, tableLabel: table.Label));
 
@@ -158,6 +160,7 @@ public class OrderServiceMutationTests
             TotalPrice = 5m
         };
 
+        var newOrder = new Order { Id = 1, Table = table };
         _validationService.VerifyUserGuestAccess(dto.TableId).Returns(true);
         _tableRepo.GetByIdAsync(dto.TableId).Returns(table);
         _menuItemRepo.GetFilteredAsync(
@@ -169,7 +172,9 @@ public class OrderServiceMutationTests
 
         _mapper.Map<Order>(dto).Returns(new Order { Table = table });
         _orderRepo.CreateOrderWithItemsAsync(Arg.Any<Order>(), Arg.Any<List<ProductPerOrder>>())
-            .Returns(new Order { Id = 1, Table = table });
+            .Returns(newOrder);
+
+        _orderRepo.getOrderById(newOrder.Id).Returns(newOrder);
 
         _mapper.Map<OrderDto>(Arg.Any<Order>())
             .Returns(TestDataFactory.CreateValidOrderDto(id: 1, tableLabel: table.Label));
