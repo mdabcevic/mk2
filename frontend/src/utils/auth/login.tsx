@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { authService } from "./auth.service";
 import { AppPaths } from "../routing/routes";
+import { Button } from "../components/button";
 
 const LoginPage = () => {
   const { t } = useTranslation("public");
@@ -18,7 +19,7 @@ const LoginPage = () => {
     <div
       className="min-h-[80vh] flex items-center justify-center px-4"
       style={{
-        background: "linear-gradient(0deg, rgba(255,237,213,1) 15%, rgb(240,240,240) 59%)",
+        background: "",
       }}
     >
       <div className="w-full max-w-sm bg-white p-6 rounded-2xl shadow-md">
@@ -54,12 +55,7 @@ const LoginPage = () => {
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-[#f49241] text-white font-semibold py-2 rounded-lg hover:bg-[#e07c25] transition"
-          >
-            {t("login")}
-          </button>
+          <Button textValue={t("login")} type="brown" size="large" onClick={() => login} className="w-full" />
         </form>
 
 

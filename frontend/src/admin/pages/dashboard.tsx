@@ -27,13 +27,13 @@ function Dashboard() {
       </div>
       <div className="flex flex-wrap items-center justify-center gap-8 mt-[200px] font-bold text-white text-lg tracking-widest ">
         <div className="flex-1 min-w-[200px] max-w-[250px] bg-mocha-300  rounded-lg text-center">
-          <Link to={AppPaths.admin.products} className="py-6 px-12 inline-block">{t("emplyoee_login")}</Link>
+          <Link to={AppPaths.admin.management} className="py-6 px-12 inline-block ">emplyoee</Link>
         </div>
         <div className="flex-1 min-w-[200px] max-w-[250px] bg-mocha-300 rounded-lg text-center">
           <Link to={AppPaths.admin.tables} className="py-6 px-12 inline-block">{t("tables")}</Link>
         </div>
         <div className="flex-1 min-w-[200px] max-w-[250px] bg-mocha-300 rounded-lg text-center">
-          <Link to={AppPaths.admin.products} className="py-6 px-12 inline-block">{t("products")}</Link>
+          <Link to={AppPaths.admin.management} className="py-6 px-12 inline-block">{t("management")}</Link>
         </div>
       </div>
 

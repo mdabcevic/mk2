@@ -26,7 +26,7 @@ const Toast = ({ message, type = ToastType.info, onClose }: ToastProps) => {
 
   return (
     <div
-      className={`fixed top-15 right-5 z-[10000] px-4 py-2 rounded shadow text-white min-w-[200px] transition-opacity duration-500 ${
+      className={`fixed top-25 right-5 z-[10000] px-4 py-2 rounded shadow text-white min-w-[200px] transition-opacity duration-500 ${
         type === ToastType.success
           ? "bg-green-500"
           : type === ToastType.error

@@ -150,7 +150,7 @@ const TablesView = () => {
                 backgroundColor: ((table?.requestType ?? -1) >=0) ? getBgColorByNotificationStatus(table.requestType!): getTableColor(table.status)  ,
                 borderRadius: `${Math.min(table.width, table.height) / 2}px`,             
               }}
-              onClick={() => {console.log("klik"); setSelectedTable(table); fetchOrdersByTable(table.label); }}
+              onClick={() => {setSelectedTable(table); fetchOrdersByTable(table.label); }}
             >
               {table.label}
               {selectedTable?.label === table.label && manageTables &&  (

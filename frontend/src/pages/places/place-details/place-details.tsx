@@ -18,7 +18,7 @@ const PlaceDetails = () => {
   const { t } = useTranslation("public");
   const [place, setPlace] = useState<IPlaceItem | null>(null);
   const userRole = authService.userRole();
-
+  
 
   useEffect(() => {
     getPlaceDetails();
@@ -42,7 +42,7 @@ const PlaceDetails = () => {
         <section className="px-4 flex flex-col">
           <ImageSlider images={place?.images!.find(i => i.imageType == ImageType.gallery)?.urls!}/>
           <div className="flex flex-col items-center mt-8 w-full">
-            <p className="text-black font-bold">{t("free_tables")}:{place?.freeTablesCount}</p>
+            <p className="text-black font-bold">{t("free_tables")}: {place?.freeTablesCount}</p>
             <button className="w-full px-5 py-3 rounded-[16px] max-w-[350px] mt-3 bg-mocha-600 text-white">
               <Link to={AppPaths.public.placeTables.replace(":placeId", id!.toString())} className="w-full block text-center">
                 {t("view_tables").toUpperCase()}
