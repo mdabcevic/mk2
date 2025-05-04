@@ -1,9 +1,5 @@
 # Bartender MK2
 
-![License](https://img.shields.io/github/license/your-org/bartender-mk2)
-![Build](https://img.shields.io/github/actions/workflow/status/your-org/bartender-mk2/ci.yml?label=build)
-![Coverage](https://img.shields.io/codecov/c/github/your-org/bartender-mk2)
-
 Bartender MK2 is a **modern, modular hospitality platform** for cafés, bars, and restaurants.  
 It helps owners manage businesses, places, staff, and – most importantly – **turn every table into a smart, QR‑powered touch‑point** for guests.
 
