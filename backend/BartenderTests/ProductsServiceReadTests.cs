@@ -5,6 +5,7 @@ using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Product;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -36,12 +37,11 @@ public class ProductServiceReadTests
     public async Task GetByIdAsync_ReturnsProduct_WhenExists()
     {
         // Arrange
-        var product = TestDataFactory.CreateValidProduct();
-        var productDto = TestDataFactory.CreateValidProductDto();
+        var product = TestDataFactory.CreateValidProduct();  // domain model
+        var productDto = TestDataFactory.CreateValidProductDto();  // expected DTO
 
         var staff = TestDataFactory.CreateValidStaff(businessid: 1);
         _currentUser.GetCurrentUserAsync().Returns(staff);
-
         _repository.GetByIdAsync(1, true).Returns(product);
         _mapper.Map<ProductDto>(product).Returns(productDto);
 
@@ -51,60 +51,47 @@ public class ProductServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
             Assert.That(result, Is.Not.Null);
-        });
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Data!.Id, Is.EqualTo(1));
-            Assert.That(result.Data!.Name, Is.EqualTo("Espresso"));
-            Assert.That(result.Data!.Volume, Is.EqualTo("ŠAL"));
-            Assert.That(result.Data!.Category!.Id, Is.EqualTo(2));
-            Assert.That(result.Data!.Category.Name, Is.EqualTo("Coffee"));
+            Assert.That(result.Id, Is.EqualTo(1));
+            Assert.That(result.Name, Is.EqualTo("Espresso"));
+            Assert.That(result.Volume, Is.EqualTo("ŠAL"));
+            Assert.That(result.Category, Is.Not.Null);
+            Assert.That(result.Category!.Id, Is.EqualTo(2));
+            Assert.That(result.Category.Name, Is.EqualTo("Coffee"));
         });
     }
 
     [Test]
-    public async Task GetByIdAsync_ReturnsNotFound_WhenProductDoesNotExist()
+    public void GetByIdAsync_ShouldThrow_WhenProductDoesNotExist()
     {
         // Arrange
         var staff = TestDataFactory.CreateValidStaff(businessid: 1);
         _currentUser.GetCurrentUserAsync().Returns(staff);
         _repository.GetByIdAsync(1, true).Returns((Product?)null);
 
-        // Act
-        var result = await _productService.GetByIdAsync(1);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ProductNotFoundException>(async () =>
+            await _productService.GetByIdAsync(1));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Does.Contain("Product with id 1 not found"));
-        });
+        Assert.That(ex.Message, Is.EqualTo("Product with id 1 not found"));
         _mapper.DidNotReceive().Map<ProductDto>(Arg.Any<Product>());
-
     }
 
     [Test]
-    public async Task GetByIdAsync_ReturnsNotFound_WhenAccessingOtherBusinessProduct()
+    public void GetByIdAsync_ShouldThrow_WhenAccessingOtherBusinessProduct()
     {
         // Arrange
-        var product = TestDataFactory.CreateValidProduct(businessId: 99); // Different business
-        var staff = TestDataFactory.CreateValidStaff(businessid: 1);
+        var product = TestDataFactory.CreateValidProduct(businessId: 99); // Product from a different business
+        var staff = TestDataFactory.CreateValidStaff(businessid: 1);      // User from business 1
+
         _currentUser.GetCurrentUserAsync().Returns(staff);
         _repository.GetByIdAsync(1, true).Returns(product);
 
-        // Act
-        var result = await _productService.GetByIdAsync(1);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<AuthorizationException>(async () =>
+            await _productService.GetByIdAsync(1));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Is.EqualTo("Cross-business access denied."));
-        });
+        Assert.That(ex.Message, Is.EqualTo("Access to product denied"));
         _mapper.DidNotReceive().Map<ProductDto>(Arg.Any<Product>());
     }
 
@@ -116,24 +103,22 @@ public class ProductServiceReadTests
         _currentUser.GetCurrentUserAsync().Returns(staff);
 
         var products = new List<Product>
-        {
-            TestDataFactory.CreateValidProduct(1, businessId: 1, name: "Product 1", volume: "0.2L"),
-            TestDataFactory.CreateValidProduct(2, name: "Product 2", volume: "0.3L")
-        };
+    {
+        TestDataFactory.CreateValidProduct(1, businessId: 1, name: "Product 1", volume: "0.2L"),
+        TestDataFactory.CreateValidProduct(2, name: "Product 2", volume: "0.3L") // shared product
+    };
 
         var productDtos = new List<ProductDto>
-        {
-            TestDataFactory.CreateValidProductDto(1, name: "Product 1", volume: "0.2L"),
-            TestDataFactory.CreateValidProductDto(2, name: "Product 2", volume: "0.3L")
-        };
+    {
+        TestDataFactory.CreateValidProductDto(1, name: "Product 1", volume: "0.2L"),
+        TestDataFactory.CreateValidProductDto(2, name: "Product 2", volume: "0.3L")
+    };
 
         _repository.GetFilteredAsync(
             includeNavigations: true,
             filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
-            orderByDescending: false,
-            Arg.Any<Expression<Func<Product, object>>[]>()
-            )
-            .Returns(products);
+            orderBy: Arg.Any<Expression<Func<Product, object>>>()
+        ).Returns(products);
 
         _mapper.Map<List<ProductDto>>(products).Returns(productDtos);
 
@@ -143,10 +128,13 @@ public class ProductServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Has.Count.EqualTo(2));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Has.Count.EqualTo(2));
+            Assert.That(result[0].Name, Is.EqualTo("Product 1"));
+            Assert.That(result[1].Name, Is.EqualTo("Product 2"));
         });
-        _mapper.Received(1).Map<List<ProductDto>>(Arg.Any<List<Product>>());
+
+        _mapper.Received(1).Map<List<ProductDto>>(products);
     }
 
     [Test]
@@ -157,16 +145,15 @@ public class ProductServiceReadTests
         _currentUser.GetCurrentUserAsync().Returns(admin);
 
         var exclusiveProduct = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "Exclusive");
+        var exclusiveDto = TestDataFactory.CreateValidProductDto(1, name: "Exclusive");
 
         _repository.GetFilteredAsync(
-            true,
-            Arg.Any<Expression<Func<Product, bool>>>(),
-            false,
-            Arg.Any<Expression<Func<Product, object>>[]>()
+            includeNavigations: true,
+            filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
+            orderBy: Arg.Any<Expression<Func<Product, object>>>()
         ).Returns([exclusiveProduct]);
 
-        _mapper.Map<List<ProductDto>>(Arg.Any<List<Product>>())
-            .Returns([TestDataFactory.CreateValidProductDto(1, name: "Exclusive")]);
+        _mapper.Map<List<ProductDto>>(Arg.Any<List<Product>>()).Returns([exclusiveDto]);
 
         // Act
         var result = await _productService.GetAllAsync(exclusive: true);
@@ -174,10 +161,12 @@ public class ProductServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Has.Count.EqualTo(1));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Has.Count.EqualTo(1));
+            Assert.That(result[0].Name, Is.EqualTo("Exclusive"));
         });
-        Assert.That(result.Data![0].Name, Is.EqualTo("Exclusive"));
+
+        _mapper.Received(1).Map<List<ProductDto>>(Arg.Any<List<Product>>());
     }
 
     [Test]
@@ -188,16 +177,16 @@ public class ProductServiceReadTests
         _currentUser.GetCurrentUserAsync().Returns(staff);
 
         var businessProduct = TestDataFactory.CreateValidProduct(1, businessId: 1, name: "BizProd");
+        var businessProductDto = TestDataFactory.CreateValidProductDto(1, name: "BizProd");
 
         _repository.GetFilteredAsync(
-            true,
-            Arg.Any<Expression<Func<Product, bool>>>(),
-            false,
-            Arg.Any<Expression<Func<Product, object>>[]>()
+            includeNavigations: true,
+            filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
+            orderBy: Arg.Any<Expression<Func<Product, object>>>()
         ).Returns([businessProduct]);
 
         _mapper.Map<List<ProductDto>>(Arg.Any<List<Product>>())
-            .Returns([TestDataFactory.CreateValidProductDto(1, name: "BizProd")]);
+            .Returns([businessProductDto]);
 
         // Act
         var result = await _productService.GetAllAsync(exclusive: true);
@@ -205,10 +194,12 @@ public class ProductServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Has.Count.EqualTo(1));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Has.Count.EqualTo(1));
+            Assert.That(result[0].Name, Is.EqualTo("BizProd"));
         });
-        Assert.That(result.Data![0].Name, Is.EqualTo("BizProd"));
+
+        _mapper.Received(1).Map<List<ProductDto>>(Arg.Any<List<Product>>());
     }
 
     [Test]
@@ -219,16 +210,16 @@ public class ProductServiceReadTests
         _currentUser.GetCurrentUserAsync().Returns(staff);
 
         var sharedProduct = TestDataFactory.CreateValidProduct(2, name: "SharedOnly");
+        var sharedProductDto = TestDataFactory.CreateValidProductDto(2, name: "SharedOnly");
 
         _repository.GetFilteredAsync(
-            true,
-            Arg.Any<Expression<Func<Product, bool>>>(),
-            false,
-            Arg.Any<Expression<Func<Product, object>>[]>()
+            includeNavigations: true,
+            filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
+            orderBy: Arg.Any<Expression<Func<Product, object>>>()
         ).Returns([sharedProduct]);
 
         _mapper.Map<List<ProductDto>>(Arg.Any<List<Product>>())
-            .Returns([TestDataFactory.CreateValidProductDto(2, name: "SharedOnly")]);
+            .Returns([sharedProductDto]);
 
         // Act
         var result = await _productService.GetAllAsync(exclusive: false);
@@ -236,10 +227,12 @@ public class ProductServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Has.Count.EqualTo(1));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Has.Count.EqualTo(1));
+            Assert.That(result[0].Name, Is.EqualTo("SharedOnly"));
         });
-        Assert.That(result.Data![0].Name, Is.EqualTo("SharedOnly"));
+
+        _mapper.Received(1).Map<List<ProductDto>>(Arg.Any<List<Product>>());
     }
 
     [Test]
@@ -250,11 +243,11 @@ public class ProductServiceReadTests
         _currentUser.GetCurrentUserAsync().Returns(staff);
 
         var emptyList = new List<Product>();
+
         _repository.GetFilteredAsync(
             includeNavigations: true,
             filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
-            orderByDescending: false,
-            Arg.Any<Expression<Func<Product, object>>[]>()
+            orderBy: Arg.Any<Expression<Func<Product, object>>>()
         ).Returns(emptyList);
 
         _mapper.Map<List<ProductDto>>(emptyList).Returns(new List<ProductDto>());
@@ -263,17 +256,14 @@ public class ProductServiceReadTests
         var result = await _productService.GetAllAsync();
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Empty);
-        });
+        Assert.That(result, Is.Empty);
+
         await _repository.Received(1).GetFilteredAsync(
             includeNavigations: true,
             filterBy: Arg.Any<Expression<Func<Product, bool>>>(),
-            orderByDescending: false,
-            Arg.Any<Expression<Func<Product, object>>[]>()
+            orderBy: Arg.Any<Expression<Func<Product, object>>>()
         );
+
         _mapper.Received(1).Map<List<ProductDto>>(emptyList);
     }
 
@@ -302,29 +292,27 @@ public class ProductServiceReadTests
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Has.Count.EqualTo(2));
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Has.Count.EqualTo(2));
+            Assert.That(result[0].Name, Is.EqualTo("Hot Drinks"));
+            Assert.That(result[1].Name, Is.EqualTo("Cold Drinks"));
         });
+
         await _categoryRepository.Received(1).GetAllAsync();
         _mapper.Received(1).Map<List<ProductCategoryDto>>(categories);
     }
 
     [Test]
-    public async Task GetProductCategoriesAsync_ReturnsFailure_WhenExceptionThrown()
+    public void GetProductCategoriesAsync_ShouldThrow_WhenExceptionThrown()
     {
         // Arrange
         _categoryRepository.GetAllAsync().Throws(new Exception("DB error"));
 
-        // Act
-        var result = await _productService.GetProductCategoriesAsync();
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<Exception>(async () =>
+            await _productService.GetProductCategoriesAsync());
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
-            Assert.That(result.Error, Does.Contain("unexpected error"));
-        });
+        Assert.That(ex.Message, Is.EqualTo("DB error"));
     }
 
     //[Test]
@@ -514,4 +502,3 @@ public class ProductServiceReadTests
     //}
 
 }
-

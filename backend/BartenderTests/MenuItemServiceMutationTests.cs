@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.MenuItem;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
+using Bartender.Domain.Utility.Exceptions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 
 namespace BartenderTests;
@@ -57,112 +58,27 @@ public class MenuItemServiceMutationTests
         _mapper.Map<MenuItem>(dto).Returns(new MenuItem { Id = 99 });
 
         // Act
-        var result = await _menuService.AddAsync(dto);
+        await _menuService.AddAsync(dto);
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Error, Is.Null);
-        });
-
+        Assert.DoesNotThrowAsync(() => _menuService.AddAsync(dto));
         await _menuRepository.Received(1).AddAsync(Arg.Any<MenuItem>());
+        _mapper.Received(1).Map<MenuItem>(dto);
     }
 
     [Test]
-    public async Task AddAsync_InvalidPrice_ReturnsValidationError()
+    public async Task AddAsync_InvalidPrice_ThrowsValidationException()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertMenuItemDto(price: -5);
-        _menuRepository.ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(false);
+        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns(TestDataFactory.CreateValidProduct(dto.ProductId));
-        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
 
-        // Act
-        var result = await _menuService.AddAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ValidationException>(() => _menuService.AddAsync(dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Validation));
-            Assert.That(result.Error, Does.Contain("greater than zero"));
-        });
-        await _placeRepository.Received(1).ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>());
-        //await _productRepository.Received(1).GetByIdAsync(Arg.Any<int>());
-        await _menuRepository.DidNotReceive().AddAsync(Arg.Any<MenuItem>());
-        await _menuRepository.DidNotReceive().ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
-    }
-
-    [Test]
-    public async Task AddAsync_ExistingMenuItem_ReturnsConflictError()
-    {
-        // Arrange
-        var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
-        _menuRepository.ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(true);
-        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
-        _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
-        _productRepository.GetByIdAsync(dto.ProductId, true).Returns(TestDataFactory.CreateValidProduct());
-
-        // Act
-        var result = await _menuService.AddAsync(dto);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Conflict));
-            Assert.That(result.Error, Does.Contain("already exists"));
-        });
-        await _menuRepository.Received(1).ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
-        await _menuRepository.DidNotReceive().AddAsync(Arg.Any<MenuItem>());
-    }
-
-    [Test]
-    public async Task AddAsync_UnauthorizedUser_ReturnsUnauthorizedError()
-    {
-        // Arrange
-        var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
-        var staff = TestDataFactory.CreateValidStaff(placeid: 999); // different place
-        _currentUser.GetCurrentUserAsync().Returns(staff);
-
-        // Act
-        var result = await _menuService.AddAsync(dto);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Does.Contain("Cross-business access"));
-        });
-        await _currentUser.Received(1).GetCurrentUserAsync();
-        await _menuRepository.DidNotReceive().ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
-        await _menuRepository.DidNotReceive().AddAsync(Arg.Any<MenuItem>());
-        await _productRepository.DidNotReceive().GetByIdAsync(Arg.Any<int>(), true);
-        await _placeRepository.DidNotReceive().ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>());
-    }
-
-    [Test]
-    public async Task AddAsync_ProductDoesNotExist_ReturnsNotFound()
-    {
-        // Arrange
-        var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
-        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
-        _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
-        _productRepository.GetByIdAsync(dto.ProductId, true).Returns((Product?)null);
-
-        // Act
-        var result = await _menuService.AddAsync(dto);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Does.Contain("Product with id"));
-        });
+        Assert.That(ex!.Message, Does.Contain("greater than zero"));
 
         await _placeRepository.Received(1).ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>());
         await _productRepository.Received(1).GetByIdAsync(dto.ProductId, true);
@@ -171,23 +87,73 @@ public class MenuItemServiceMutationTests
     }
 
     [Test]
-    public async Task AddAsync_PlaceDoesNotExist_ReturnsNotFound()
+    public async Task AddAsync_ExistingMenuItem_ThrowsConflictException()
+    {
+        // Arrange
+        var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
+        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
+        _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
+        _productRepository.GetByIdAsync(dto.ProductId, true).Returns(TestDataFactory.CreateValidProduct());
+        _menuRepository.ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(true); // duplicate
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ConflictException>(() => _menuService.AddAsync(dto));
+        Assert.That((ex).Message, Does.Contain("already exists"));
+
+        await _menuRepository.Received(1).ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
+        await _menuRepository.DidNotReceive().AddAsync(Arg.Any<MenuItem>());
+    }
+
+    [Test]
+    public async Task AddAsync_UnauthorizedUser_ThrowsUnauthorizedPlaceAccessException()
+    {
+        // Arrange
+        var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
+        var staff = TestDataFactory.CreateValidStaff(placeid: 999); // different place
+        _currentUser.GetCurrentUserAsync().Returns(staff);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(() => _menuService.AddAsync(dto));
+        Assert.That(ex.Message, Does.Contain("Cross-business access").IgnoreCase);
+
+        await _currentUser.Received(1).GetCurrentUserAsync();
+        await _menuRepository.DidNotReceive().ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
+        await _menuRepository.DidNotReceive().AddAsync(Arg.Any<MenuItem>());
+        await _productRepository.DidNotReceive().GetByIdAsync(Arg.Any<int>(), true);
+        await _placeRepository.DidNotReceive().ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>());
+    }
+
+    [Test]
+    public async Task AddAsync_ProductDoesNotExist_ThrowsNotFoundException()
+    {
+        // Arrange
+        var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
+        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
+        _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
+        _productRepository.GetByIdAsync(dto.ProductId, true).Returns((Product?)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.AddAsync(dto));
+        Assert.That(ex.Message, Does.Contain($"Product with id {dto.ProductId}"));
+
+        await _placeRepository.Received(1).ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>());
+        await _productRepository.Received(1).GetByIdAsync(dto.ProductId, true);
+        await _menuRepository.DidNotReceive().AddAsync(Arg.Any<MenuItem>());
+        await _menuRepository.DidNotReceive().ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
+    }
+
+    [Test]
+    public async Task AddAsync_PlaceDoesNotExist_ThrowsNotFoundException()
     {
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(false);
 
-        // Act
-        var result = await _menuService.AddAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.AddAsync(dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Does.Contain("Place with id"));
-        });
+        Assert.That(ex.Message, Does.Contain($"Place with id {dto.PlaceId}"));
 
         await _placeRepository.Received(1).ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>());
         await _productRepository.DidNotReceive().GetByIdAsync(Arg.Any<int>(), true);
@@ -196,129 +162,126 @@ public class MenuItemServiceMutationTests
     }
 
     [Test]
-    public async Task AddMultipleAsync_AllValidItems_ReturnsOk()
+    public async Task AddMultipleAsync_AllValidItems_ReturnsEmptyFailureList()
     {
         // Arrange
         var menuItems = new List<UpsertMenuItemDto>
-    {
-        new() { PlaceId = 1, ProductId = 1, Price = 2.0m, Description = "Strong", IsAvailable = true },
-        new() { PlaceId = 1, ProductId = 2, Price = 2.5m, Description = "Mild", IsAvailable = true }
-    };
-
+        {
+            TestDataFactory.CreateValidUpsertMenuItemDto(placeId: 1, productId: 1, price: 2.0m),
+            TestDataFactory.CreateValidUpsertMenuItemDto(placeId: 1, productId: 2, price: 2.5m)
+        };
         var currentUser = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
         _currentUser.GetCurrentUserAsync().Returns(currentUser);
 
         _menuRepository.ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(false);
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
-        _productRepository.GetByIdAsync(Arg.Any<int>(), true).Returns(ci =>
-            TestDataFactory.CreateValidProduct(ci.Arg<int>()));
+        _productRepository.GetByIdAsync(Arg.Any<int>(), true)
+            .Returns(ci => TestDataFactory.CreateValidProduct(ci.Arg<int>()));
 
         _mapper.Map<MenuItem>(Arg.Any<UpsertMenuItemDto>()).Returns(ci =>
-            new MenuItem { PlaceId = ci.Arg<UpsertMenuItemDto>().PlaceId, ProductId = ci.Arg<UpsertMenuItemDto>().ProductId });
+            new MenuItem
+            {
+                PlaceId = ci.Arg<UpsertMenuItemDto>().PlaceId,
+                ProductId = ci.Arg<UpsertMenuItemDto>().ProductId
+            });
 
         // Act
         var result = await _menuService.AddMultipleAsync(menuItems);
 
         // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Data, Is.Empty);
-        });
-
-        await _menuRepository.Received(1).AddMultipleAsync(Arg.Any<List<MenuItem>>());
+        Assert.That(result, Is.Empty);
+        await _menuRepository.Received(1).AddMultipleAsync(Arg.Is<List<MenuItem>>(list => list.Count == 2));
+        _mapper.Received(menuItems.Count).Map<MenuItem>(Arg.Any<UpsertMenuItemDto>());
     }
 
     [Test]
-    public async Task AddMultipleAsync_AllInvalidItems_ReturnsFailWithAllErrors()
+    public async Task AddMultipleAsync_AllInvalidItems_ThrowsConflictExceptionWithAllFailures()
     {
         // Arrange
         var menuItems = new List<UpsertMenuItemDto>
-    {
-        new() { PlaceId = 1, ProductId = 1, Price = 2.0m },
-        new() { PlaceId = 1, ProductId = 2, Price = 2.0m }
-    };
+        {
+            TestDataFactory.CreateValidUpsertMenuItemDto(placeId: 1, productId: 1, price: 2.0m),
+            TestDataFactory.CreateValidUpsertMenuItemDto(placeId: 1, productId: 2, price: 2.5m)
+        };
 
         var currentUser = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
         _currentUser.GetCurrentUserAsync().Returns(currentUser);
 
         _menuRepository.ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(true); // simulate duplicates
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
-        _productRepository.GetByIdAsync(Arg.Any<int>(), true).Returns(ci =>
-            TestDataFactory.CreateValidProduct(ci.Arg<int>()));
+        _productRepository.GetByIdAsync(Arg.Any<int>(), true)
+            .Returns(ci => TestDataFactory.CreateValidProduct(ci.Arg<int>()));
 
-        // Act
-        var result = await _menuService.AddMultipleAsync(menuItems);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ConflictException>(() => _menuService.AddMultipleAsync(menuItems));
 
-        // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Conflict));
-            Assert.That(result.Data, Has.Count.EqualTo(2));
+            Assert.That(ex!.Message, Does.Contain("Successfully added 0").IgnoreCase);
+            Assert.That(ex.Data["data"], Is.AssignableTo<List<FailedMenuItemDto>>());
+            Assert.That((List<FailedMenuItemDto>)ex.Data["data"], Has.Count.EqualTo(2));
         });
 
         await _menuRepository.DidNotReceive().AddMultipleAsync(Arg.Any<List<MenuItem>>());
     }
 
-    //[Test]
-    //public async Task AddMultipleAsync_SomeInvalidItems_ReturnsPartialSuccess()
-    //{
-    //    // Arrange
-    //    var menuItems = new List<UpsertMenuItemDto>
-    //{
-    //    new() { PlaceId = 1, ProductId = 1, Price = 2.0m }, // valid
-    //    new() { PlaceId = 1, ProductId = 2, Price = 2.0m }  // duplicate
-    //};
+    [Test]
+    public async Task AddMultipleAsync_SomeInvalidItems_ThrowsConflictExceptionWithPartialFailures()
+    {
+        // Arrange
+        var menuItems = new List<UpsertMenuItemDto>
+        {
+            TestDataFactory.CreateValidUpsertMenuItemDto(placeId: 1, productId: 1, price: 2.0m),
+            TestDataFactory.CreateValidUpsertMenuItemDto(placeId: 1, productId: 2, price: 2.5m)
+        };
+        var currentUser = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
+        _currentUser.GetCurrentUserAsync().Returns(currentUser);
 
-    //    var currentUser = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
-    //    _currentUser.GetCurrentUserAsync().Returns(currentUser);
+        _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
+        _productRepository.GetByIdAsync(Arg.Any<int>(), true)
+            .Returns(ci => TestDataFactory.CreateValidProduct(ci.Arg<int>()));
 
-    //    _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
-    //    _productRepository.GetByIdAsync(Arg.Any<int>(), true)
-    //        .Returns(ci => TestDataFactory.CreateValidProduct(ci.Arg<int>()));
+        // Simulate: first one is valid, second is duplicate
+        // Match the second item (duplicate)
+        _menuRepository.ExistsAsync(Arg.Is<Expression<Func<MenuItem, bool>>>(expr =>
+            expr.Compile().Invoke(new MenuItem { PlaceId = 1, ProductId = 2 })
+        )).Returns(true);
 
-    //    _menuRepository.ExistsAsync(Arg.Do<Expression<Func<MenuItem, bool>>>(expr =>
-    //    {
-    //        // Simulate first one is not duplicate, second is
-    //        var invoked = expr.Compile();
-    //        var menuItem = new MenuItem { PlaceId = 1, ProductId = 2 };
-    //        return invoked(menuItem);
-    //    })).Returns(true); // causes second to be considered duplicate
+        // Match the first item (valid)
+        _menuRepository.ExistsAsync(Arg.Is<Expression<Func<MenuItem, bool>>>(expr =>
+            expr.Compile().Invoke(new MenuItem { PlaceId = 1, ProductId = 1 })
+        )).Returns(false);
 
-    //    _menuRepository.ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>())
-    //        .Returns(ci => {
-    //            var productId = Expression.Lambda<Func<MenuItem, bool>>(ci.Arg<Expression<Func<MenuItem, bool>>>().Body, ci.Arg<Expression<Func<MenuItem, bool>>>().Parameters[0])
-    //                .Compile().Invoke(new MenuItem { ProductId = 2 });
-    //            return productId;
-    //        });
+        _mapper.Map<MenuItem>(Arg.Any<UpsertMenuItemDto>())
+            .Returns(ci => new MenuItem
+            {
+                PlaceId = ci.Arg<UpsertMenuItemDto>().PlaceId,
+                ProductId = ci.Arg<UpsertMenuItemDto>().ProductId
+            });
 
-    //    _mapper.Map<MenuItem>(Arg.Any<UpsertMenuItemDto>()).Returns(ci =>
-    //        new MenuItem { PlaceId = ci.Arg<UpsertMenuItemDto>().PlaceId, ProductId = ci.Arg<UpsertMenuItemDto>().ProductId });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ConflictException>(() => _menuService.AddMultipleAsync(menuItems));
 
-    //    // Act
-    //    var result = await _menuService.AddMultipleAsync(menuItems);
+        Assert.Multiple(() =>
+        {
+            Assert.That(ex!.Message, Does.Contain("Successfully added 1"));
+            Assert.That(ex.Data["data"], Is.AssignableTo<List<FailedMenuItemDto>>());
+            var failures = (List<FailedMenuItemDto>)ex.Data["data"];
+            Assert.That(failures.Count, Is.EqualTo(1));
+            Assert.That(failures[0].MenuItem.ProductId, Is.EqualTo(2));
+        });
 
-    //    // Assert
-    //    Assert.Multiple(() =>
-    //    {
-    //        Assert.That(result.Success, Is.False);
-    //        Assert.That(result.errorType, Is.EqualTo(ErrorType.Conflict));
-    //        Assert.That(result.Data, Has.Count.EqualTo(1));
-    //        Assert.That(result.Data![0].MenuItem.ProductId, Is.EqualTo(2));
-    //        Assert.That(result.Error, Does.Contain("Successfully added 1"));
-    //    });
-
-    //    await _menuRepository.Received(1).AddMultipleAsync(Arg.Is<List<MenuItem>>(l => l.Count == 1));
-    //}
+        await _menuRepository.Received(1)
+            .AddMultipleAsync(Arg.Is<List<MenuItem>>(list => list.Count == 1 && list.Any(m => m.ProductId == 1)));
+    }
 
     [Test]
-    public async Task AddMultipleAsync_ValidItems_AddThrows_ReturnsUnknownError()
+    public async Task AddMultipleAsync_ValidItems_AddThrows_ThrowsConflictExceptionWithGenericFailure()
     {
         // Arrange
         var menuItems = new List<UpsertMenuItemDto>
     {
-        new() { PlaceId = 1, ProductId = 1, Price = 2.0m }
+        TestDataFactory.CreateValidUpsertMenuItemDto(placeId: 1, productId: 1, price: 2.0m)
     };
 
         var currentUser = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
@@ -326,7 +289,6 @@ public class MenuItemServiceMutationTests
 
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(Arg.Any<int>(), true).Returns(TestDataFactory.CreateValidProduct());
-
         _menuRepository.ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(false);
 
         _mapper.Map<MenuItem>(Arg.Any<UpsertMenuItemDto>())
@@ -339,22 +301,39 @@ public class MenuItemServiceMutationTests
         _menuRepository.When(r => r.AddMultipleAsync(Arg.Any<List<MenuItem>>()))
             .Do(x => throw new Exception("DB error"));
 
-        // Act
-        var result = await _menuService.AddMultipleAsync(menuItems);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ConflictException>(() => _menuService.AddMultipleAsync(menuItems));
 
-        // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
-            Assert.That(result.Error, Does.Contain("unexpected"));
+            Assert.That(ex!.Message, Does.Contain("Successfully added 0"));
+            Assert.That(ex.Data["data"], Is.AssignableTo<List<FailedMenuItemDto>>());
+            var failures = (List<FailedMenuItemDto>)ex.Data["data"];
+            Assert.That(failures.Count, Is.EqualTo(1));
+            Assert.That(failures[0].ErrorMessage, Is.EqualTo("An unexpected error occurred."));
         });
 
         await _menuRepository.Received(1).AddMultipleAsync(Arg.Any<List<MenuItem>>());
     }
 
     [Test]
-    public async Task CopyMenuAsync_SourcePlaceNotFound_ReturnsNotFound()
+    public async Task AddMultipleAsync_EmptyInputList_ReturnsImmediately()
+    {
+        // Arrange
+        var menuItems = new List<UpsertMenuItemDto>();
+        var currentUser = TestDataFactory.CreateValidStaff();
+        _currentUser.GetCurrentUserAsync().Returns(currentUser);
+
+        // Act
+        var result = await _menuService.AddMultipleAsync(menuItems);
+
+        // Assert
+        Assert.That(result, Is.Empty);
+        await _menuRepository.DidNotReceive().AddMultipleAsync(Arg.Any<List<MenuItem>>());
+    }
+
+    [Test]
+    public async Task CopyMenuAsync_SourcePlaceNotFound_ThrowsNotFoundException()
     {
         // Arrange
         var fromPlaceId = 100;
@@ -362,23 +341,16 @@ public class MenuItemServiceMutationTests
 
         _placeRepository.ExistsAsync(p => p.Id == fromPlaceId).Returns(false);
 
-        // Act
-        var result = await _menuService.CopyMenuAsync(fromPlaceId, toPlaceId);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Does.Contain($"Place with id {fromPlaceId} not found"));
-        });
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.CopyMenuAsync(fromPlaceId, toPlaceId));
+        Assert.That(ex!.Message, Does.Contain($"Place with id {fromPlaceId}"));
 
         await _placeRepository.Received(1).ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>());
         await _menuRepository.DidNotReceive().AddMultipleAsync(Arg.Any<List<MenuItem>>());
     }
 
     [Test]
-    public async Task CopyMenuAsync_TargetPlaceNotFound_ReturnsNotFound()
+    public async Task CopyMenuAsync_TargetPlaceNotFound_ThrowsNotFoundException()
     {
         // Arrange
         var fromPlaceId = 1;
@@ -386,68 +358,91 @@ public class MenuItemServiceMutationTests
         var fromPlace = TestDataFactory.CreateValidPlace(fromPlaceId);
         var toPlace = TestDataFactory.CreateValidPlace(toPlaceId);
 
-        _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>())
-            .Returns(callInfo =>
-    {
-        var predicate = callInfo.Arg<Expression<Func<Place, bool>>>();
-        var compiled = predicate.Compile();
-
-        if (compiled(fromPlace)) return true;
-        if (compiled(toPlace)) return false;
-
-        return false;
-    });
-
-        // Act
-        var result = await _menuService.CopyMenuAsync(fromPlaceId, toPlaceId);
-
-        // Assert
-        Assert.Multiple(() =>
+        _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(callInfo =>
         {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Does.Contain($"Place with id {toPlaceId} not found"));
+            var predicate = callInfo.Arg<Expression<Func<Place, bool>>>();
+            var compiled = predicate.Compile();
+
+            if (compiled(fromPlace)) return true;
+            if (compiled(toPlace)) return false;
+
+            return false;
         });
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.CopyMenuAsync(fromPlaceId, toPlaceId));
+
+        Assert.That(ex!.Message, Does.Contain($"Place with id {toPlaceId}"));
 
         await _placeRepository.Received(2).ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>());
         await _menuRepository.DidNotReceive().AddMultipleAsync(Arg.Any<List<MenuItem>>());
     }
 
     [Test]
-    public async Task CopyMenuAsync_FromPlaceNotFound_ReturnsNotFoundError()
+    public async Task CopyMenuAsync_FromPlaceNotFound_ThrowsNotFoundException()
     {
         // Arrange
-        _placeRepository.ExistsAsync(p => p.Id == 1).Returns(false);
+        var fromPlaceId = 1;
+        var toPlaceId = 2;
+        _placeRepository.ExistsAsync(p => p.Id == fromPlaceId).Returns(false);
 
-        // Act
-        var result = await _menuService.CopyMenuAsync(1, 2);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.CopyMenuAsync(fromPlaceId, toPlaceId));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Place with id {fromPlaceId}"));
+
+        await _placeRepository.Received(1).ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>());
+        await _menuRepository.DidNotReceive().AddMultipleAsync(Arg.Any<List<MenuItem>>());
     }
 
+    //[Test]
+    //public async Task CopyMenuAsync_SuccessfullyCopiesItems()
+    //{
+    //    // Arrange
+    //    var fromPlaceId = 1;
+    //    var toPlaceId = 2;
+
+    //    var staff = TestDataFactory.CreateValidStaff(placeid: toPlaceId, role: EmployeeRole.admin);
+    //    _currentUser.GetCurrentUserAsync().Returns(staff);
+
+    //    // Simulate existence of both places
+    //    _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
+
+    //    // Source menu items
+    //    var sourceMenuItems = new List<MenuItem>
+    //{
+    //    TestDataFactory.CreateValidMenuItem(id: 1, placeId: fromPlaceId, productId: 1),
+    //    TestDataFactory.CreateValidMenuItem(id: 2, placeId: fromPlaceId, productId: 2)
+    //};
+
+    //    // Simulate .Query() returning source items
+    //    _menuRepository.Query().Returns(sourceMenuItems.AsQueryable());
+
+    //    // Act
+    //    await _menuService.CopyMenuAsync(fromPlaceId, toPlaceId);
+
+    //    // Assert: ensure new items are copied with correct PlaceId and ProductId
+    //    await _menuRepository.Received(1).AddMultipleAsync(
+    //        Arg.Is<List<MenuItem>>(list =>
+    //            list.Count == 2 &&
+    //            list.All(i => i.PlaceId == toPlaceId) &&
+    //            list.Select(i => i.ProductId).OrderBy(x => x).SequenceEqual(new[] { 1, 2 })
+    //        )
+    //    );
+    //}
+
     [Test]
-    public async Task CopyMenuAsync_UnexpectedException_ReturnsUnknownError()
+    public void CopyMenuAsync_UnexpectedException_ThrowsUnknownError()
     {
         // Arrange
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(role: EmployeeRole.admin));
         _menuRepository.Query().Throws(new ApplicationException("Unexpected DB failure"));
 
-        // Act
-        var result = await _menuService.CopyMenuAsync(1, 2);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ApplicationException>(() => _menuService.CopyMenuAsync(1, 2));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
-            Assert.That(result.Error, Does.Contain("unexpected").IgnoreCase);
-        });
+        Assert.That(ex!.Message, Does.Contain("Unexpected DB failure").IgnoreCase);
     }
 
     [Test]
@@ -464,15 +459,8 @@ public class MenuItemServiceMutationTests
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns(existingMenuItem.Product);
 
-        // Act
-        var result = await _menuService.UpdateAsync(dto);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.errorType, Is.Null);
-        });
+        // Act & Assert
+        Assert.DoesNotThrowAsync(() => _menuService.UpdateAsync(dto));
 
         await _menuRepository.Received(1).GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
         await _menuRepository.Received(1).UpdateAsync(existingMenuItem);
@@ -494,15 +482,8 @@ public class MenuItemServiceMutationTests
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns(existingMenuItem.Product);
 
-        // Act
-        var result = await _menuService.UpdateAsync(dto);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Error, Is.Null);
-        });
+        // Act & Assert
+        Assert.DoesNotThrowAsync(() => _menuService.UpdateAsync(dto));
 
         await _menuRepository.Received(1).GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
         await _menuRepository.Received(1).UpdateAsync(existingMenuItem);
@@ -510,68 +491,61 @@ public class MenuItemServiceMutationTests
     }
 
     [Test]
-    public async Task UpdateAsync_MenuItemNotFound_ReturnsNotFound()
+    public async Task UpdateAsync_MenuItemNotFound_ThrowsMenuItemNotFoundException()
     {
+        // Arrange
         var dto = TestDataFactory.CreateUpsertMenuItemDto();
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: dto.PlaceId));
-        _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>())
-            .Returns((MenuItem?)null);
+        _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns((MenuItem?)null);
 
-        var result = await _menuService.UpdateAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<MenuItemNotFoundException>(() => _menuService.UpdateAsync(dto));
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Menu item with place ID {dto.PlaceId} and product ID {dto.ProductId}"));
 
         await _menuRepository.Received(1).GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
         await _menuRepository.DidNotReceive().UpdateAsync(Arg.Any<MenuItem>());
     }
 
     [Test]
-    public async Task UpdateAsync_UnauthorizedAccess_ReturnsUnauthorized()
+    public async Task UpdateAsync_UnauthorizedAccess_ThrowsUnauthorizedPlaceAccessException()
     {
+        // Arrange
         var dto = TestDataFactory.CreateUpsertMenuItemDto();
-        var otherPlaceId = dto.PlaceId + 1;
-        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: otherPlaceId)); // Different place
+        var otherPlaceId = dto.PlaceId + 1; // Simulate cross-place access
+        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: otherPlaceId));
 
-        var result = await _menuService.UpdateAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(() => _menuService.UpdateAsync(dto));
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-        });
+        Assert.That(ex!.Message, Does.Contain("Cross-business access").IgnoreCase);
 
         await _menuRepository.DidNotReceive().GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
         await _menuRepository.DidNotReceive().UpdateAsync(Arg.Any<MenuItem>());
     }
 
     [Test]
-    public async Task UpdateAsync_InvalidPrice_ThrowsValidation()
+    public async Task UpdateAsync_InvalidPrice_ThrowsValidationException()
     {
+        // Arrange
         var dto = TestDataFactory.CreateUpsertMenuItemDto(price: -5);
         var item = TestDataFactory.CreateValidMenuItem(1, dto.PlaceId, dto.ProductId);
+
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: dto.PlaceId));
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(item);
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns(item.Product);
 
-        var result = await _menuService.UpdateAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ValidationException>(() => _menuService.UpdateAsync(dto));
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Validation));
-            Assert.That(result.Error, Does.Contain("Price must be greater than zero"));
-        });
+        Assert.That(ex!.Message, Does.Contain("Price must be greater than zero"));
 
         await _menuRepository.DidNotReceive().UpdateAsync(Arg.Any<MenuItem>());
     }
 
     [Test]
-    public async Task UpdateAsync_ProductNotFound_ReturnsNotFound()
+    public async Task UpdateAsync_ProductNotFound_ThrowsNotFoundException()
     {
         // Arrange
         var dto = TestDataFactory.CreateUpsertMenuItemDto();
@@ -582,23 +556,17 @@ public class MenuItemServiceMutationTests
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns((Product?)null); // Simulate missing product
 
-        // Act
-        var result = await _menuService.UpdateAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.UpdateAsync(dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Does.Contain("Product with id"));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Product with id {dto.ProductId}"));
 
         await _productRepository.Received(1).GetByIdAsync(dto.ProductId, true);
         await _menuRepository.DidNotReceive().UpdateAsync(Arg.Any<MenuItem>());
     }
 
     [Test]
-    public async Task UpdateAsync_SharedProductCrossBusiness_ReturnsUnauthorized()
+    public async Task UpdateAsync_SharedProductCrossBusiness_ThrowsUnauthorizedAccessException()
     {
         // Arrange
         var dto = TestDataFactory.CreateUpsertMenuItemDto();
@@ -611,16 +579,10 @@ public class MenuItemServiceMutationTests
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns(product);
 
-        // Act
-        var result = await _menuService.UpdateAsync(dto);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedAccessException>(() => _menuService.UpdateAsync(dto));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-            Assert.That(result.Error, Does.Contain("Access to product"));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Access to product with id {dto.ProductId} denied"));
 
         await _menuRepository.DidNotReceive().UpdateAsync(Arg.Any<MenuItem>());
     }
@@ -637,43 +599,34 @@ public class MenuItemServiceMutationTests
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: placeId));
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(menuItem);
 
-        // Act
-        var result = await _menuService.UpdateItemAvailabilityAsync(placeId, productId, newAvailability);
+        // Act & Assert
+        Assert.DoesNotThrowAsync(() => _menuService.UpdateItemAvailabilityAsync(placeId, productId, newAvailability));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(menuItem.IsAvailable, Is.EqualTo(newAvailability));
-        });
+        Assert.That(menuItem.IsAvailable, Is.EqualTo(newAvailability));
         await _menuRepository.Received(1).UpdateAsync(menuItem);
     }
 
     [Test]
-    public async Task UpdateItemAvailabilityAsync_CrossBusinessAccessDenied_ReturnsUnauthorized()
+    public async Task UpdateItemAvailabilityAsync_CrossBusinessAccessDenied_ThrowsUnauthorizedPlaceAccessException()
     {
         // Arrange
         var placeId = 1;
         var productId = 2;
-        var user = TestDataFactory.CreateValidStaff(placeid: 99); // different place
+        var user = TestDataFactory.CreateValidStaff(placeid: 99); // different place (unauthorized)
         _currentUser.GetCurrentUserAsync().Returns(user);
 
-        // Act
-        var result = await _menuService.UpdateItemAvailabilityAsync(placeId, productId, true);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(() =>
+            _menuService.UpdateItemAvailabilityAsync(placeId, productId, true));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-        });
+        Assert.That(ex!.Message, Does.Contain("access").IgnoreCase);
 
         await _menuRepository.DidNotReceive().GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
         await _menuRepository.DidNotReceive().UpdateAsync(Arg.Any<MenuItem>());
     }
 
     [Test]
-    public async Task UpdateItemAvailabilityAsync_MenuItemNotFound_ReturnsNotFound()
+    public async Task UpdateItemAvailabilityAsync_MenuItemNotFound_ThrowsMenuItemNotFoundException()
     {
         // Arrange
         var placeId = 1;
@@ -681,20 +634,17 @@ public class MenuItemServiceMutationTests
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: placeId));
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns((MenuItem?)null);
 
-        // Act
-        var result = await _menuService.UpdateItemAvailabilityAsync(placeId, productId, true);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<MenuItemNotFoundException>(() =>
+            _menuService.UpdateItemAvailabilityAsync(placeId, productId, true));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Menu item with place ID {placeId} and product ID {productId}"));
+
         await _menuRepository.DidNotReceive().UpdateAsync(Arg.Any<MenuItem>());
     }
 
     [Test]
-    public async Task UpdateItemAvailabilityAsync_UnexpectedError_ReturnsUnknownError()
+    public async Task UpdateItemAvailabilityAsync_UnexpectedError_ThrowsException()
     {
         // Arrange
         var placeId = 1;
@@ -704,15 +654,12 @@ public class MenuItemServiceMutationTests
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>())
             .Throws(new Exception("Database is down"));
 
-        // Act
-        var result = await _menuService.UpdateItemAvailabilityAsync(placeId, productId, true);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<Exception>(() =>
+            _menuService.UpdateItemAvailabilityAsync(placeId, productId, true));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
-        });
+        Assert.That(ex!.Message, Does.Contain("Database is down"));
+        await _menuRepository.DidNotReceive().UpdateAsync(Arg.Any<MenuItem>());
     }
 
     [Test]
@@ -723,24 +670,17 @@ public class MenuItemServiceMutationTests
         var productId = 5;
         var menuItem = TestDataFactory.CreateValidMenuItem(1, placeId, productId);
 
-        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: placeId, role: EmployeeRole.regular));
+        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: placeId));
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(menuItem);
 
-        // Act
-        var result = await _menuService.DeleteAsync(placeId, productId);
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Error, Is.Null);
-        });
+        // Act & Assert
+        Assert.DoesNotThrowAsync(() => _menuService.DeleteAsync(placeId, productId));
 
         await _menuRepository.Received(1).DeleteAsync(menuItem);
     }
 
     [Test]
-    public async Task DeleteAsync_MenuItemNotFound_ReturnsNotFound()
+    public async Task DeleteAsync_MenuItemNotFound_ThrowsMenuItemNotFoundException()
     {
         // Arrange
         var placeId = 1;
@@ -749,22 +689,17 @@ public class MenuItemServiceMutationTests
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: placeId));
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns((MenuItem?)null);
 
-        // Act
-        var result = await _menuService.DeleteAsync(placeId, productId);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<MenuItemNotFoundException>(() =>
+            _menuService.DeleteAsync(placeId, productId));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.NotFound));
-            Assert.That(result.Error, Does.Contain("not found"));
-        });
+        Assert.That(ex!.Message, Does.Contain($"Menu item with place ID {placeId} and product ID {productId}"));
 
         await _menuRepository.DidNotReceive().DeleteAsync(Arg.Any<MenuItem>());
     }
 
     [Test]
-    public async Task DeleteAsync_UnauthorizedAccess_ReturnsUnauthorized()
+    public async Task DeleteAsync_UnauthorizedAccess_ThrowsUnauthorizedPlaceAccessException()
     {
         // Arrange
         var placeId = 99;
@@ -773,21 +708,17 @@ public class MenuItemServiceMutationTests
 
         _currentUser.GetCurrentUserAsync().Returns(otherPlaceStaff);
 
-        // Act
-        var result = await _menuService.DeleteAsync(placeId, productId);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(() =>
+            _menuService.DeleteAsync(placeId, productId));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unauthorized));
-        });
+        Assert.That(ex!.Message, Does.Contain("access").IgnoreCase);
 
         await _menuRepository.DidNotReceive().DeleteAsync(Arg.Any<MenuItem>());
     }
 
     [Test]
-    public async Task DeleteAsync_UnexpectedError_ReturnsUnknownError()
+    public async Task DeleteAsync_UnexpectedError_ThrowsException()
     {
         // Arrange
         var placeId = 1;
@@ -797,15 +728,11 @@ public class MenuItemServiceMutationTests
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>())
             .Throws(new Exception("DB crashed"));
 
-        // Act
-        var result = await _menuService.DeleteAsync(placeId, productId);
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<Exception>(() =>
+            _menuService.DeleteAsync(placeId, productId));
 
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.errorType, Is.EqualTo(ErrorType.Unknown));
-        });
+        Assert.That(ex!.Message, Does.Contain("DB crashed"));
 
         await _menuRepository.DidNotReceive().DeleteAsync(Arg.Any<MenuItem>());
     }
