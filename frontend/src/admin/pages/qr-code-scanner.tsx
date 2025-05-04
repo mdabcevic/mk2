@@ -11,9 +11,8 @@ const QrCodeScanner = () => {
       <Scanner
         onScan={(result:any) => {
             let qrValue = result[0].rawValue; 
-            console.log(qrValue);
             setQrCodeValue(qrValue);
-            setScanResult(qrValue === "kiki" ? "Success" : "Ticket not valid");
+            setScanResult(qrValue === "test" ? "Success" : "code not valid");
         }}
         onError={(error) => console.error("QR Scan Error:", error)}
         constraints={{ facingMode: "environment" }}

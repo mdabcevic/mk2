@@ -32,10 +32,9 @@ export function Button({
     large: "px-5 py-3 text-lg",
   }[size];
 
-  const baseClass =
-    `rounded-xl font-medium ${typeClasses} ${sizeClasses} ` + className;
+  const baseClass =`rounded-xl font-medium ${typeClasses} ${sizeClasses} ` + className;
 
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick = (_e: React.MouseEvent<HTMLButtonElement>) => {
     onClick?.();
     onClose?.();
   };

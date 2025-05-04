@@ -134,8 +134,8 @@ function CreateTables() {
                   bounds="parent"
                   position={{ x: table?.x ?? 10, y: table?.y ?? 10 }}
                   size={{ width: table?.width ?? 100, height: table.height ?? 100 }}
-                  onDragStop={(e, d) => {updateTable(index, d);}}
-                  onResizeStop={(e, direction, ref, delta, position) =>
+                  onDragStop={(_e, d) => {updateTable(index, d);}}
+                  onResizeStop={(_e, _direction, ref, _delta, position) =>
                     updateTable(index, position, {
                       width: parseInt(ref.style.width),
                       height: parseInt(ref.style.height),
