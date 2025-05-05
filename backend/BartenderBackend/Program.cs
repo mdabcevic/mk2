@@ -125,6 +125,8 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<ITableRepository, TableRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
 
 builder.Services.AddScoped<IBusinessService, BusinessService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
