@@ -2,7 +2,7 @@
 
 
 # 1. Install NodeJs (version 22.13.1)
-# 2. Navigate to the project directory  (".../frontend/mk2") and install dependencies -> "npm install" (terminal)
+# 2. Navigate to the project directory  (".../mk2/frontend") and install dependencies -> "npm install" (terminal)
 # 3. Start the development server -> run "npm run dev" (terminal)
 
 
