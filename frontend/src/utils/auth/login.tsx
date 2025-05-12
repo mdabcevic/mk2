@@ -1,19 +1,10 @@
-import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { authService } from "./auth.service";
-import { AppPaths } from "../routing/routes";
-import { Button } from "../components/button";
+import LoginForm from "./login-form";
+import loginIllustration from "../../../public/assets/images/coffee_shop.jpg"
+
 
 const LoginPage = () => {
-  const { t } = useTranslation("public");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-
-  const login = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await authService.login(username,password);
-    window.location.href = AppPaths.admin.dashboard;
-  };
+  useTranslation("public");
 
   return (
     <div
@@ -22,41 +13,26 @@ const LoginPage = () => {
         background: "",
       }}
     >
-      <div className="w-full max-w-sm bg-white p-6 rounded-2xl shadow-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          {t("login")}
-        </h2>
-        <form onSubmit={login} className="space-y-4 " >
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-            {t("username")}
-            </label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 w-full border border-gray-300 text-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300"
-              required
-            />
-          </div>
+      {/* main container */}
+      <div className="min-h-screen flex bg-[#F5F0EA]">
+      {/* Left: Illustration */}
+      <div className="hidden lg:flex w-1/2 items-center justify-center">
+        <div className="bg-white border border-[#d1c3aa] rounded-xl shadow-lg h-[85%] w-[90%] flex items-center justify-center p-4">
+          <img
+            src={loginIllustration}
+            alt="Login visual"
+            className="object-contain max-h-full"
+          />
+        </div>
+      </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            {t("password")}
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full border border-gray-300 text-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300"
-              required
-            />
-          </div>
-
-          <Button textValue={t("login")} type="brown" size="large" onClick={() => login} className="w-full" />
-        </form>
+      {/* Right: Login Card */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-6">
+        <div className="bg-[#E9DDC9] border border-[#b6a584] rounded-2xl shadow-lg p-8 w-full max-w-md">
+          <LoginForm />
+        </div>
+      </div>
+    </div>
 
 
         {/* Not implemented yet. It will be added in the future! */}
@@ -65,7 +41,6 @@ const LoginPage = () => {
           <span className="text-[#f49241] hover:underline cursor-pointer">Sign up</span>
         </p> */}
       </div>
-    </div>
   );
 };
 
