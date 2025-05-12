@@ -6,7 +6,6 @@ using Bartender.Domain.DTO.Order;
 using Bartender.Domain.DTO.Place;
 using Bartender.Domain.DTO.Product;
 using Bartender.Domain.DTO.Staff;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BartenderTests.Utility;
 
@@ -18,6 +17,7 @@ public static class TestDataFactory
         var business = CreateValidBusiness(businessid);
         var place = CreateValidPlace(placeid);
         place.Business = business;
+        place.BusinessId = business.Id;
 
         return new Staff
         {
@@ -28,7 +28,7 @@ public static class TestDataFactory
             Password = BCrypt.Net.BCrypt.HashPassword(password),
             FullName = "Test User",
             Role = role,
-            Place = place
+            Place = place,
         };
     }
 

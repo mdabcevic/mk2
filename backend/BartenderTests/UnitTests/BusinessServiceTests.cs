@@ -142,7 +142,7 @@ public class BusinessServiceTests
     public async Task UpdateSubscriptionAsync_UpdatesTier_WhenAuthorized()
     {
         // Arrange
-        var staff = TestDataFactory.CreateValidStaff(businessid: 999);
+        var staff = TestDataFactory.CreateValidStaff(businessid: 1);
         var business = TestDataFactory.CreateValidBusiness(1);
 
         _currentUser.GetCurrentUserAsync().Returns(staff);
