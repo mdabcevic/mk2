@@ -20,9 +20,7 @@ public class StaffService(
             throw new UnauthorizedBusinessAccessException();
 
         if (await repository.ExistsAsync(s => s.Username == dto.Username))
-        {
             throw new ConflictException($"Staff with username '{dto.Username}' already exists.");
-        }
 
         var employee = mapper.Map<Staff>(dto);
         await repository.AddAsync(employee);
@@ -31,9 +29,7 @@ public class StaffService(
 
     public async Task DeleteAsync(int id)
     {
-        var staff = await repository.GetByIdAsync(id);
-        if (staff == null)
-            throw new StaffNotFoundException(id);
+        var staff = await repository.GetByIdAsync(id) ?? throw new StaffNotFoundException(id);
 
         if (!await IsSameBusinessAsync(staff.PlaceId))
             throw new UnauthorizedPlaceAccessException(id);
@@ -57,9 +53,7 @@ public class StaffService(
 
     public async Task<StaffDto> GetByIdAsync(int id, bool includeNavigations = false)
     {
-        var staff = await repository.GetByIdAsync(id, includeNavigations);
-        if (staff is null)
-            throw new StaffNotFoundException(id);
+        var staff = await repository.GetByIdAsync(id, includeNavigations) ?? throw new StaffNotFoundException(id);
 
         if (!await IsSameBusinessAsync(staff.PlaceId))
             throw new UnauthorizedPlaceAccessException(id);
@@ -70,12 +64,14 @@ public class StaffService(
 
     public async Task UpdateAsync(int id, UpsertStaffDto dto)
     {
-        var employee = await repository.GetByIdAsync(id);
-        if (employee == null)
-            throw new StaffNotFoundException(id);
+        var employee = await repository.GetByIdAsync(id) ?? throw new StaffNotFoundException(id);
 
         if (!await IsSameBusinessAsync(dto.PlaceId))
             throw new UnauthorizedPlaceAccessException(id);
+
+        var usernameTaken = await repository.ExistsAsync(s => s.Username == dto.Username && s.Id != id);
+        if (usernameTaken)
+            throw new ConflictException($"Staff with username '{dto.Username}' already exists.");
 
         mapper.Map(dto, employee);
         await repository.UpdateAsync(employee);
@@ -85,6 +81,6 @@ public class StaffService(
     private async Task<bool> IsSameBusinessAsync(int targetPlaceId)
     {
         var user = await currentUser.GetCurrentUserAsync();
-        return targetPlaceId == user.PlaceId;
+        return targetPlaceId == user!.PlaceId;
     }
 }

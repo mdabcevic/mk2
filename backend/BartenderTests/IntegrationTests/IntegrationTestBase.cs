@@ -1,15 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
-using System.Net.Http;
 using Bartender.Data;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Testcontainers.PostgreSql;
-using Bartender.Data.Enums;
 using Npgsql;
-
-
+using Bartender.Domain.Interfaces;
+using BartenderTests.Utility;
 
 namespace BartenderTests.IntegrationTests;
 
@@ -50,11 +46,18 @@ public class IntegrationTestBase
                     using var scope = sp.CreateScope();
                     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                     db.Database.Migrate();
+
+                    var existing = services.SingleOrDefault(s => s.ServiceType == typeof(ICurrentUserContext));
+                    if (existing != null)
+                        services.Remove(existing);
+
+                    services.AddScoped<MockCurrentUser>();
+                    services.AddScoped<ICurrentUserContext>(sp => sp.GetRequiredService<MockCurrentUser>());
                 });
             });
 
         TestClient = Factory.CreateClient();
-        // ✅ Then: seed data from init.sql
+        // seed data from init.sql
         var initScript = await File.ReadAllTextAsync("initseed.sql");
 
         using var conn = new NpgsqlConnection(_pgContainer.GetConnectionString());
