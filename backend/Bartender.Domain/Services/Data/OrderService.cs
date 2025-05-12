@@ -245,10 +245,10 @@ public class OrderService(
     public async Task<List<OrderDto>> GetCurrentOrdersByTableLabelAsync(string tableLabel) //staff only?
     {
         var orders = await repository.GetCurrentOrdersByTableLabelAsync(tableLabel); //TODO: should fetching be done after validation?
-        if(orders.Count == 0)
+        if(orders == null || orders.Count == 0)
             return [];
 
-        var verifyAccess = await validationService.VerifyUserGuestAccess(orders[0].Table.Id);
+        var verifyAccess = await validationService.VerifyUserGuestAccess(orders[0]!.Table!.Id);
         if (!verifyAccess)
         {
             throw new TableAccessDeniedException(tableLabel: tableLabel);

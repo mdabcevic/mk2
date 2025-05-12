@@ -12,10 +12,8 @@ public class MenuItemServiceIntegrationTests : IntegrationTestBase
 {
     private IMenuItemService _service = null!;
     private IRepository<MenuItem> _menuItemRepo = null!;
-    private IRepository<Place> _placeRepo = null!;
     private IRepository<Product> _productRepo = null!;
-    private IRepository<ProductCategory> _categoryRepo = null!;
-    private IRepository<Business> _businessRepo = null!;
+
     private MockCurrentUser _mockUser = null!;
 
     [SetUp]
@@ -24,10 +22,7 @@ public class MenuItemServiceIntegrationTests : IntegrationTestBase
         var scope = Factory.Services.CreateScope();
         _service = scope.ServiceProvider.GetRequiredService<IMenuItemService>();
         _menuItemRepo = scope.ServiceProvider.GetRequiredService<IRepository<MenuItem>>();
-        _placeRepo = scope.ServiceProvider.GetRequiredService<IRepository<Place>>();
         _productRepo = scope.ServiceProvider.GetRequiredService<IRepository<Product>>();
-        _categoryRepo = scope.ServiceProvider.GetRequiredService<IRepository<ProductCategory>>();
-        _businessRepo = scope.ServiceProvider.GetRequiredService<IRepository<Business>>();
         _mockUser = scope.ServiceProvider.GetRequiredService<MockCurrentUser>();
     }
 
@@ -196,7 +191,8 @@ public class MenuItemServiceIntegrationTests : IntegrationTestBase
 
         var groups = await _service.GetByPlaceIdGroupedAsync(1);
         Assert.That(groups, Has.Count.GreaterThan(0));
-        Assert.That(groups.All(g => g.Items.Any()), Is.True);
+        Assert.That(groups.All(g => g.Items != null), Is.True);
+        Assert.That(groups.All(g => g.Items!.Count != 0), Is.True);
     }
 
     [Test]
@@ -220,7 +216,7 @@ public class MenuItemServiceIntegrationTests : IntegrationTestBase
         Assert.That(placeMenu, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(placeMenu!.Items.Any(), Is.True);
+            Assert.That(placeMenu!.Items.Count != 0, Is.True);
             Assert.That(placeMenu.Place.Address, Is.Not.Null.And.Not.Empty);
         });
     }
