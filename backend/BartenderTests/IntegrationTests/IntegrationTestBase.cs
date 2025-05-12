@@ -6,6 +6,13 @@ using Testcontainers.PostgreSql;
 using Npgsql;
 using Bartender.Domain.Interfaces;
 using BartenderTests.Utility;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Bartender.Domain.Utility;
+using Docker.DotNet.Models;
+using System.Net.Http.Headers;
 
 namespace BartenderTests.IntegrationTests;
 
@@ -42,17 +49,17 @@ public class IntegrationTestBase
                         options.UseNpgsql(_pgContainer.GetConnectionString());
                     });
 
-                    var sp = services.BuildServiceProvider();
-                    using var scope = sp.CreateScope();
-                    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                    db.Database.Migrate();
-
                     var existing = services.SingleOrDefault(s => s.ServiceType == typeof(ICurrentUserContext));
                     if (existing != null)
                         services.Remove(existing);
 
                     services.AddScoped<MockCurrentUser>();
                     services.AddScoped<ICurrentUserContext>(sp => sp.GetRequiredService<MockCurrentUser>());
+
+                    var sp = services.BuildServiceProvider();
+                    using var scope = sp.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    db.Database.Migrate();
                 });
             });
 
@@ -66,6 +73,10 @@ public class IntegrationTestBase
         using var cmd = new NpgsqlCommand(initScript, conn);
         await cmd.ExecuteNonQueryAsync();
         Console.WriteLine("✅ Test database seeded successfully.");
+
+        var jwt = Factory.Services.GetRequiredService<JwtSettings>();
+        var token = GenerateTestToken(jwt.Key);
+        TestClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
     [OneTimeTearDown]
@@ -75,4 +86,26 @@ public class IntegrationTestBase
         await Factory.DisposeAsync();
         await _pgContainer.DisposeAsync();
     }
+
+    private static string GenerateTestToken(string key, int placeId = 1)
+    {
+        var claims = new[]
+        {
+        new Claim(ClaimTypes.NameIdentifier, "99"),
+        new Claim(ClaimTypes.Role, "manager"),
+        new Claim("PlaceId", placeId.ToString())
+    };
+
+        var credentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: null,
+            audience: null,
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
 }

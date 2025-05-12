@@ -150,6 +150,7 @@ builder.Services.AddSignalR();
 
 builder.Services.AddAutoMapper(
     typeof(BusinessProfile).Assembly,
+    typeof(StaffProfile).Assembly,
     typeof(ProductProfile).Assembly,
     typeof(MenuItemProfile).Assembly,
     typeof(PlaceProfile).Assembly,
