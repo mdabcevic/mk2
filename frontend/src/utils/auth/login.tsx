@@ -8,7 +8,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F5F0EA] px-4 py-8">
       {/* Main Card */}
-      <div className="flex w-full max-w-4xl h-[520px] rounded-2xl shadow-lg overflow-hidden border border-[#d9cbb2] bg-white relative">
+      <div className="flex w-full max-w-4xl h-[520px] rounded-2xl shadow-lg overflow-hidden border border-[#b5a17e] bg-white relative">
         {/* Left: Illustration */}
         <div className="w-1/2 hidden lg:block relative">
           <img

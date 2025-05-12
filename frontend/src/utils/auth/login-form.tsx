@@ -33,7 +33,7 @@ const LoginForm = () => {
             id="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="mt-1 w-full border border-gray-300 text-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300"
+            className="mt-1 w-full border border-[#A87C4F] text-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#A87C4F]"
             required
           />
         </div>
@@ -50,7 +50,7 @@ const LoginForm = () => {
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full border border-gray-300 text-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300"
+            className="mt-1 w-full border border-[#A87C4F] text-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#A87C4F]"
             required
           />
         </div>
