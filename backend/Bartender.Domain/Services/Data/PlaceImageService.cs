@@ -60,9 +60,7 @@ public class PlaceImageService(
 
         var existingPicture = await CheckForExistingImageAsync(newPicture.PlaceId, newPicture.ImageType, newPicture.Url);
         if (existingPicture != null)
-        {
             throw new ConflictException($"Image already exists in category '{existingPicture.ImageType}'");
-        }
 
         if (newPicture.ImageType == ImageType.banner)
             await HandleBannerChangeAsync(newPicture.PlaceId);
@@ -73,19 +71,15 @@ public class PlaceImageService(
 
     public async Task UpdateImageAsync(int id, UpsertImageDto newPicture)
     {
-        var existingPicture = await repository.GetByIdAsync(id);
-        if (existingPicture == null)
-        {
-            throw new NotFoundException($"Picture with id {id} not found");
-        }
+        var existingPicture = await repository.GetByIdAsync(id) ?? throw new NotFoundException($"Picture with id {id} not found");
+
         newPicture.PlaceId = existingPicture.PlaceId;
         await ValidatePlaceAndAccessAsync(newPicture.PlaceId);
 
         var existingPictureUrl = await CheckForExistingImageAsync(newPicture.PlaceId, newPicture.ImageType, newPicture.Url, id);
         if (existingPictureUrl != null)
-        {
             throw new ConflictException($"Image already exists in category '{existingPicture.ImageType}'");
-        }
+
 
         if (newPicture.ImageType == ImageType.banner)
             await HandleBannerChangeAsync(newPicture.PlaceId, id);
@@ -97,11 +91,7 @@ public class PlaceImageService(
 
     public async Task DeleteImageAsync(int id)
     {
-        var existingPicture = await repository.GetByIdAsync(id);
-        if (existingPicture == null)
-        {
-            throw new NotFoundException($"Picture with id {id} not found");
-        }
+        var existingPicture = await repository.GetByIdAsync(id) ?? throw new NotFoundException($"Picture with id {id} not found");
 
         await ValidatePlaceAndAccessAsync(existingPicture.PlaceId);
 
