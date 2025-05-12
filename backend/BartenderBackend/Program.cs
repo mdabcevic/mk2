@@ -190,3 +190,4 @@ app.MapGet("/health", () => Results.Ok("Application is healthy."))
    .WithTags("System");
 
 await app.RunAsync();
+public partial class Program { }
