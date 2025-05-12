@@ -43,15 +43,7 @@ public class IntegrationTestBase
 
                     services.AddDbContext<AppDbContext>(options =>
                     {
-                        options.UseNpgsql(_pgContainer.GetConnectionString(), o =>
-                        {
-                            o.MapEnum<EmployeeRole>("employeerole");
-                            o.MapEnum<SubscriptionTier>("subscriptiontier");
-                            o.MapEnum<TableStatus>("tablestatus");
-                            o.MapEnum<OrderStatus>("orderstatus");
-                            o.MapEnum<PaymentType>("paymenttype");
-                            o.MapEnum<ImageType>("picturetype");
-                        });
+                        options.UseNpgsql(_pgContainer.GetConnectionString());
                     });
 
                     var sp = services.BuildServiceProvider();
@@ -63,7 +55,7 @@ public class IntegrationTestBase
 
         TestClient = Factory.CreateClient();
         // ✅ Then: seed data from init.sql
-        var initScript = await File.ReadAllTextAsync("seed.sql");
+        var initScript = await File.ReadAllTextAsync("initseed.sql");
 
         using var conn = new NpgsqlConnection(_pgContainer.GetConnectionString());
         await conn.OpenAsync();

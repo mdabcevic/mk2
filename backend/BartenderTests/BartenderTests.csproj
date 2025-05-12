@@ -36,7 +36,8 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<None Update="..\..\db\seed.sql">
+		<None Include="..\..\db\initseed.sql">
+			<Link>initseed.sql</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
