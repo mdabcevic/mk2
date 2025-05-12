@@ -1,5 +1,4 @@
-﻿
-using Bartender.Data.Enums;
+﻿using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Staff;
 using Bartender.Domain.Interfaces;
@@ -35,12 +34,14 @@ public class StaffControllerIntegrationTests : IntegrationTestBase
     [Test]
     public async Task Post_ShouldCreateNewStaff()
     {
+        // Arrange
         var dto = BuildValidStaffDto();
 
+        // Act
         var response = await TestClient.PostAsJsonAsync("/api/staff", dto);
 
+        // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
-
         var exists = await _staffRepo.ExistsAsync(s => s.Username == dto.Username);
         Assert.That(exists, Is.True);
     }
@@ -48,9 +49,10 @@ public class StaffControllerIntegrationTests : IntegrationTestBase
     [Test]
     public async Task Get_ShouldReturnAllStaff()
     {
-
+        // Act
         var response = await TestClient.GetAsync("/api/staff");
         
+        // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
 
@@ -91,6 +93,7 @@ public class StaffControllerIntegrationTests : IntegrationTestBase
     [Test]
     public async Task Delete_ShouldRemoveStaff()
     {
+        // Arrange
         var staff = new Staff
         {
             PlaceId = 1,
@@ -102,10 +105,11 @@ public class StaffControllerIntegrationTests : IntegrationTestBase
         };
         await _staffRepo.AddAsync(staff);
 
+        // Act
         var response = await TestClient.DeleteAsync($"/api/staff/{staff.Id}");
 
+        // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
-
         var deleted = await _staffRepo.GetByIdAsync(staff.Id);
         Assert.That(deleted, Is.Null);
     }
