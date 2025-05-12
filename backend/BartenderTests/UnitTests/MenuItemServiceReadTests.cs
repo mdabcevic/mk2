@@ -5,12 +5,13 @@ using Bartender.Domain.DTO.MenuItem;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
 using Bartender.Domain.Utility.Exceptions;
+using BartenderTests.Utility;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System.Linq.Expressions;
 
-namespace BartenderTests;
+namespace BartenderTests.UnitTests;
 
 [TestFixture]
 public class MenuItemServiceReadTests

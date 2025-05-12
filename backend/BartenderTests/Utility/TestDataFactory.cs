@@ -8,7 +8,7 @@ using Bartender.Domain.DTO.Product;
 using Bartender.Domain.DTO.Staff;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace BartenderTests;
+namespace BartenderTests.Utility;
 
 public static class TestDataFactory
 {

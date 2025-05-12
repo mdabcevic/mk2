@@ -5,11 +5,12 @@ using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
 using Bartender.Domain.Utility.Exceptions;
+using BartenderTests.Utility;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.Linq.Expressions;
 
-namespace BartenderTests;
+namespace BartenderTests.UnitTests;
 
 [TestFixture]
 public class TableInteractionServiceTests

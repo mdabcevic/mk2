@@ -5,8 +5,9 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.Linq.Expressions;
 using Bartender.Domain.Utility.Exceptions;
+using BartenderTests.Utility;
 
-namespace BartenderTests;
+namespace BartenderTests.UnitTests;
 
 [TestFixture]
 public class AuthServiceTests

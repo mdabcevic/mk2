@@ -7,11 +7,12 @@ using Bartender.Domain.Interfaces;
 using Bartender.Domain.Mappings;
 using Bartender.Domain.Services.Data;
 using Bartender.Domain.Utility.Exceptions;
+using BartenderTests.Utility;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Table = Bartender.Data.Models.Table;
 
-namespace BartenderTests;
+namespace BartenderTests.UnitTests;
 
 
 [TestFixture]

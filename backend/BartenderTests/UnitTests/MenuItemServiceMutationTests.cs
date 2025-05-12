@@ -5,13 +5,14 @@ using Bartender.Domain.DTO.MenuItem;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
 using Bartender.Domain.Utility.Exceptions;
+using BartenderTests.Utility;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 
-namespace BartenderTests;
+namespace BartenderTests.UnitTests;
 
 [TestFixture]
 public class MenuItemServiceMutationTests
@@ -95,7 +96,7 @@ public class MenuItemServiceMutationTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<ConflictException>(() => _menuService.AddAsync(dto));
-        Assert.That((ex).Message, Does.Contain("already exists"));
+        Assert.That(ex.Message, Does.Contain("already exists"));
 
         await _menuRepository.Received(1).ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
         await _menuRepository.DidNotReceive().AddAsync(Arg.Any<MenuItem>());

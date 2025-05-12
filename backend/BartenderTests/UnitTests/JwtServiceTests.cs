@@ -1,9 +1,10 @@
 ﻿using Bartender.Data.Enums;
 using Bartender.Domain.Services;
+using BartenderTests.Utility;
 using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace BartenderTests;
+namespace BartenderTests.UnitTests;
 
 [TestFixture]
 public class JwtServiceTests

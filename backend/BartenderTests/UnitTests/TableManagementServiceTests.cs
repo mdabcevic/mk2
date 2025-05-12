@@ -7,8 +7,9 @@ using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Services.Data;
 using Bartender.Domain.Utility.Exceptions;
+using BartenderTests.Utility;
 
-namespace BartenderTests;
+namespace BartenderTests.UnitTests;
 
 [TestFixture]
 public class TableManagementServiceTests

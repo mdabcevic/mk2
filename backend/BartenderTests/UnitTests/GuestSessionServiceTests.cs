@@ -1,12 +1,13 @@
 ﻿using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Services.Data;
+using BartenderTests.Utility;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System.Linq.Expressions;
 
 
-namespace BartenderTests;
+namespace BartenderTests.UnitTests;
 
 [TestFixture]
 public class GuestSessionServiceTests
