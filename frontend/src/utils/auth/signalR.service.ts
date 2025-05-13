@@ -12,7 +12,7 @@ export const startConnection = async (placeId:number) => {
         accessTokenFactory: () => authService.token() ?? "testQuery",
         // skipNegotiation:true,
         // transport: signalR.HttpTransportType.WebSockets,
-        withCredentials: true,
+        // withCredentials: true,
       })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Information)

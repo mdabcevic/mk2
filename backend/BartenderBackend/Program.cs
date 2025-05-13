@@ -189,17 +189,18 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+app.UseCors(allowedOrigins);
 app.Use(async (context, next) =>
 {
     context.Response.OnStarting(() =>
     {
-        context.Response.Headers.Append("Access-Control-Allow-Origin", "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io");
+        context.Response.Headers["Access-Control-Allow-Origin"] = "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io";
         context.Response.Headers.Append("Access-Control-Allow-Credentials", "true");
         return Task.CompletedTask;
     });
     await next();
 });
-app.UseCors(allowedOrigins);
+
 app.UseHttpsRedirection();
 app.UseExceptionHandler(_ => { });
 app.UseAuthentication(); // <--- MUST come before UseAuthorization
