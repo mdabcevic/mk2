@@ -177,8 +177,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
-app.UseHttpsRedirection();
 app.UseCors(allowedOrigins);
+app.UseHttpsRedirection();
 app.UseExceptionHandler(_ => { });
 app.UseAuthentication(); // <--- MUST come before UseAuthorization
 app.UseAuthorization();

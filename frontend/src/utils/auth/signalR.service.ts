@@ -8,8 +8,8 @@ let connection: signalR.HubConnection | null = null;
 export const startConnection = async (placeId:number) => {
   if (!connection) {
     connection = new signalR.HubConnectionBuilder()
-      .withUrl(Constants.signalR_hub_url, {
-        accessTokenFactory: () => authService.token() ?? "",
+      .withUrl(Constants.signalR_hub_url + `?access_token=˘${authService.token()}`, {
+        accessTokenFactory: () => authService.token() ?? "testQuery",
       })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Information)
