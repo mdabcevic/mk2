@@ -10,8 +10,8 @@ export const startConnection = async (placeId:number) => {
     connection = new signalR.HubConnectionBuilder()
       .withUrl(Constants.signalR_hub_url + `?access_token=${authService.token()}`, {
         accessTokenFactory: () => authService.token() ?? "testQuery",
-        skipNegotiation:true,
-        transport: signalR.HttpTransportType.WebSockets,
+        // skipNegotiation:true,
+        // transport: signalR.HttpTransportType.WebSockets,
         withCredentials: true,
       })
       .withAutomaticReconnect()
