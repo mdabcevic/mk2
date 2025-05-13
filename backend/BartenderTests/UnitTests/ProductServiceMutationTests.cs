@@ -4,6 +4,7 @@ using Bartender.Data.Models;
 using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.Product;
 using Bartender.Domain.Interfaces;
+using Bartender.Domain.Services;
 using Bartender.Domain.Services.Data;
 using Bartender.Domain.Utility.Exceptions;
 using BartenderTests.Utility;
@@ -16,22 +17,24 @@ namespace BartenderTests.UnitTests;
 [TestFixture]
 public class ProductServiceMutationTests
 {
-    private IRepository<Product> _repository;
+    private IProductRepository _repository;
     private IRepository<ProductCategory> _categoryRepository;
     private ICurrentUserContext _currentUser;
     private IMapper _mapper;
     private ILogger<ProductService> _logger;
+    private IValidationService _validationService;
     private ProductService _productService;
 
     [SetUp]
     public void SetUp()
     {
-        _repository = Substitute.For<IRepository<Product>>();
+        _repository = Substitute.For<IProductRepository>();
         _categoryRepository = Substitute.For<IRepository<ProductCategory>>();
         _currentUser = Substitute.For<ICurrentUserContext>();
         _mapper = Substitute.For<IMapper>();
         _logger = Substitute.For<ILogger<ProductService>>();
-        _productService = new ProductService(_repository, _categoryRepository, _logger, _currentUser, _mapper);
+        _validationService = Substitute.For<IValidationService>();
+        _productService = new ProductService(_repository, _categoryRepository, _logger, _currentUser, _validationService, _mapper);
     }
 
     // AddAsync tests
@@ -79,12 +82,18 @@ public class ProductServiceMutationTests
     public async Task AddAsync_ShouldThrow_WhenDuplicateProductExists()
     {
         // Arrange
-        var dto = TestDataFactory.CreateValidUpsertProductDto();
+        var dto = TestDataFactory.CreateValidUpsertProductDto(businessId: 1);
         var staff = TestDataFactory.CreateValidStaff(businessid: 1);
-
+      
         _currentUser.GetCurrentUserAsync().Returns(staff);
         _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>()).Returns(true);
-        _repository.ExistsAsync(Arg.Any<Expression<Func<Product, bool>>>()).Returns(true); // duplicate
+        _repository.ProductExists(
+            productId: null,
+            businessId: dto.BusinessId,
+            name: dto.Name,
+            volume: dto.Volume
+        )
+        .Returns(true);
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<ConflictException>(async () =>
@@ -107,7 +116,13 @@ public class ProductServiceMutationTests
         _currentUser.GetCurrentUserAsync().Returns(staff);
         _repository.GetByIdAsync(1).Returns(existing);
         _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>()).Returns(true);
-        _repository.ExistsAsync(Arg.Any<Expression<Func<Product, bool>>>()).Returns(false);
+        _validationService.VerifyProductAccess(staff.Place!.BusinessId, true, staff).Returns(true);
+        _repository.ProductExists(
+            productId: 1,
+            businessId: dto.BusinessId,
+            name: dto.Name,
+            volume: dto.Volume
+        ).Returns(false);
 
         // Act & Assert
         Assert.DoesNotThrowAsync(async () => await _productService.UpdateAsync(1, dto));
@@ -163,14 +178,21 @@ public class ProductServiceMutationTests
     public async Task UpdateAsync_ShouldThrow_WhenDuplicateProductExists()
     {
         // Arrange
-        var dto = TestDataFactory.CreateValidUpsertProductDto(name: "Duplicate", volume: "1L");
+        var dto = TestDataFactory.CreateValidUpsertProductDto(name: "Duplicate", volume: "1L", businessId: 1);
         var existing = TestDataFactory.CreateValidProduct(1, businessId: 1);
         var staff = TestDataFactory.CreateValidStaff(businessid: 1);
 
         _currentUser.GetCurrentUserAsync().Returns(staff);
         _repository.GetByIdAsync(1).Returns(existing);
         _categoryRepository.ExistsAsync(Arg.Any<Expression<Func<ProductCategory, bool>>>()).Returns(true);
-        _repository.ExistsAsync(Arg.Any<Expression<Func<Product, bool>>>()).Returns(true); // duplicate
+        _validationService.VerifyProductAccess(staff.Place!.BusinessId, true, staff).Returns(true);
+        _repository.ProductExists(
+            productId: 1,
+            businessId: dto.BusinessId,
+            name: dto.Name,
+            volume: dto.Volume
+        )
+        .Returns(true);
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<ConflictException>(async () =>
@@ -194,9 +216,12 @@ public class ProductServiceMutationTests
         _repository.GetByIdAsync(1).Returns(product);
         _currentUser.GetCurrentUserAsync().Returns(staff);
 
-        // Act & Assert
-        Assert.DoesNotThrowAsync(async () => await _productService.DeleteAsync(1));
-        await _repository.Received(1).DeleteAsync(product);
+        // Act
+        await _productService.DeleteAsync(1);
+
+        // Assert
+        Assert.That(product.DeletedAt, Is.Not.Null);
+        await _repository.Received(1).UpdateAsync(product);
     }
 
     [Test]

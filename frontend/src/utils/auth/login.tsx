@@ -1,70 +1,50 @@
-import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { authService } from "./auth.service";
-import { AppPaths } from "../routing/routes";
-import { Button } from "../components/button";
+import LoginForm from "./login-form";
+import loginIllustration from "../../../public/assets/images/coffee_shop.png";
 
 const LoginPage = () => {
-  const { t } = useTranslation("public");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-
-  const login = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await authService.login(username,password);
-    window.location.href = AppPaths.admin.dashboard;
-  };
+  useTranslation("public");
 
   return (
-    <div
-      className="min-h-[80vh] flex items-center justify-center px-4"
-      style={{
-        background: "",
-      }}
-    >
-      <div className="w-full max-w-sm bg-white p-6 rounded-2xl shadow-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          {t("login")}
-        </h2>
-        <form onSubmit={login} className="space-y-4 " >
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-            {t("username")}
-            </label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 w-full border border-gray-300 text-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300"
-              required
-            />
+    <div className="min-h-screen flex items-center justify-center bg-[#F5F0EA] px-4 py-8">
+      {/* Main Card */}
+      <div className="flex w-full max-w-4xl h-[520px] rounded-2xl shadow-lg overflow-hidden border border-[#b5a17e] bg-white relative">
+        {/* Left: Illustration */}
+        <div className="w-1/2 hidden lg:block relative">
+          <img
+            src={loginIllustration}
+            alt="Cafe illustration"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute top-0 right-0 h-full w-[95px] z-10">
+            <svg
+              width="115.5"
+              height="100%"
+              viewBox="0 0 100 580"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M74.01 102.312C56.7679 140.754 22.83 181.094 8.91552 219.998C-5.43771 260.031 -4.60168 301.787 9.23834 341.884C18.9479 370.032 34.9566 397.364 43.8881 425.59C60.2978 478.042 51.9704 532.133 19.8087 582H96.5V-2H76.4684C95.606 31.0009 89.3068 68.2211 74.01 102.312Z"
+                fill="#E3DAC9"
+              />
+            </svg>
           </div>
+        </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            {t("password")}
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full border border-gray-300 text-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300"
-              required
-            />
+        {/* Right: Form Section */}
+        <div className="w-full lg:w-1/2 bg-[#E3DAC9] px-10 py-12 flex items-center justify-center">
+          <div className="w-full max-w-md">
+            <LoginForm />
           </div>
+        </div>
+      </div>
 
-          <Button textValue={t("login")} type="brown" size="large" onClick={() => login} className="w-full" />
-        </form>
-
-
-        {/* Not implemented yet. It will be added in the future! */}
-        {/* <p className="text-sm text-center text-gray-600 mt-4">
+      {/* Not implemented yet. It will be added in the future! */}
+      {/* <p className="text-sm text-center text-gray-600 mt-4">
           Don’t have an account?{" "}
           <span className="text-[#f49241] hover:underline cursor-pointer">Sign up</span>
         </p> */}
-      </div>
     </div>
   );
 };

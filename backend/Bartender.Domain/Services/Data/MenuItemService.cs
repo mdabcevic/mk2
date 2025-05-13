@@ -2,7 +2,6 @@
 using Bartender.Domain.Interfaces;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.MenuItem;
-using Bartender.Domain.DTO.Product;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Bartender.Data.Enums;
@@ -12,21 +11,21 @@ using Bartender.Domain.Utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 public class MenuItemService(
-    IRepository<MenuItem> repository,
+    IMenuItemRepository repository,
     IRepository<Place> placeRepository,
     IRepository<Product> productRepository,
     ILogger<MenuItemService> logger,
     ICurrentUserContext currentUser,
+    IValidationService validationService,
     IMapper mapper) : IMenuItemService
 {
 
     public async Task<List<MenuItemBaseDto>> GetByPlaceIdAsync(int id, bool onlyAvailable = false)
     {
-        var query = await GetPlaceMenuItemsQuery(id, onlyAvailable);
+        if (!await placeRepository.ExistsAsync(p => p.Id == id))
+            throw new PlaceNotFoundException(id);
 
-        var menu = await query
-            .OrderBy(mi => mi.Product != null ? mi.Product.Name : "")
-            .ToListAsync();
+        var menu = await repository.GetMenuItemsByPlaceIdAync(id, onlyAvailable);
 
         var dto = mapper.Map<List<MenuItemBaseDto>>(menu);
         return dto;
@@ -41,46 +40,19 @@ public class MenuItemService(
     /// <returns>Menu items grouped by product category for a single place</returns>
     public async Task<List<GroupedCategoryMenuDto>> GetByPlaceIdGroupedAsync(int id, bool onlyAvailable = false)
     {
-        var query = await GetPlaceMenuItemsQuery(id, onlyAvailable);
+        if (!await placeRepository.ExistsAsync(p => p.Id == id))
+            throw new PlaceNotFoundException(id);
 
-        var menuItems = await query.ToListAsync();
+        var groupedMenu = await repository.GetMenuItemsByPlaceIdGroupedAsync(id, onlyAvailable);
 
-        var groupedMenu = menuItems
-            .GroupBy(mi => mi.Product != null && mi.Product.Category != null
-                ? mi.Product.Category.Name
-                : "Unknown")
-            .Select(g => new GroupedCategoryMenuDto
+        var groupedMenuDto = groupedMenu
+            .Select( g => new GroupedCategoryMenuDto
             {
                 Category = g.Key,
-                Items = [.. g.OrderBy(mi => mi.Product != null ? mi.Product.Name : "")
-                .Select(mi => new MenuItemBaseDto
-                {
-                    Id = mi.Id,
-                    Product = mapper.Map<ProductBaseDto>(mi.Product),
-                    Price = mi.Price,
-                    Description = mi.Description,
-                    IsAvailable = mi.IsAvailable,
-                })]
-            })
-            .Where(g => g.Items.Any())
-            .ToList();
-        
-        return groupedMenu;
-    }
-
-    private async Task<IQueryable<MenuItem>> GetPlaceMenuItemsQuery(int id, bool onlyAvailable)
-    {
-        if (!await placeRepository.ExistsAsync(p => p.Id == id))
-            throw new NotFoundException($"Place with id {id} not found");
-
-        var query = repository
-            .QueryIncluding(mi => mi.Product!, mi => mi.Product!.Category) 
-            .Where(mi => mi.PlaceId == id);                   
-
-        if (onlyAvailable)
-            query = query.Where(mi => mi.IsAvailable);
-
-        return query;
+                Items = mapper.Map<List<MenuItemBaseDto>>(g.Value)
+            }).ToList();
+             
+        return groupedMenuDto;
     }
 
     public async Task<MenuItemDto?> GetByIdAsync(int placeId, int productId)
@@ -104,44 +76,20 @@ public class MenuItemService(
     /// <returns>List of places with their menus when successful</returns>
     public async Task<List<GroupedPlaceMenuDto>> GetAllAsync()
     {
-        var groupedMenus = await placeRepository.Query()
-        .Select(p => new GroupedPlaceMenuDto
-        {
-            Place = new PlaceDto
+        var groupedMenus = await repository.GetAllGroupedByPlaceAsync();
+        var menuDto = groupedMenus
+            .Select(g => new GroupedPlaceMenuDto
             {
-                BusinessName = p.Business != null ? p.Business.Name : "Unknown",
-                Address = p.Address,
-                CityName = p.City != null ? p.City.Name : "Unknown",
-                WorkHours = $"{p.OpensAt:hh\\:mm} - {p.ClosesAt:hh\\:mm}"
-            },
-            Items = p.MenuItems
-                .Where(mi => mi.Product != null)
-                .OrderBy(mi => mi.Product!.Name)
-                .Select(mi => new MenuItemBaseDto
-                {
-                    Product = new ProductBaseDto
-                    {
-                        Name = mi.Product!.Name,
-                        Volume = mi.Product!.Volume != null ? mi.Product!.Volume : "",
-                        Category = mi.Product.Category != null
-                            ? mi.Product.Category.Name
-                            : "Uncategorized"
-                    },
-                    Price = mi.Price,
-                    Description = mi.Description,
-                    IsAvailable = mi.IsAvailable
-                })
-                .ToList()
-        })
-        .AsNoTracking()
-        .ToListAsync();
+                Place = mapper.Map<PlaceDto>(g.Key),
+                Items = mapper.Map<List<MenuItemBaseDto>>(g.Value)
+            }).ToList();
 
-        return groupedMenus;
+        return menuDto;
     }
 
     public async Task AddAsync(UpsertMenuItemDto menuItem)
     {
-        if (!await VerifyUserPlaceAccess(menuItem.PlaceId))
+        if (!await validationService.VerifyUserPlaceAccess(menuItem.PlaceId))
             throw new UnauthorizedPlaceAccessException();
 
         await ValidateMenuItemAsync(menuItem);
@@ -168,7 +116,7 @@ public class MenuItemService(
         {
             try
             {
-                if (!await VerifyUserPlaceAccess(menuItem.PlaceId))
+                if (!await validationService.VerifyUserPlaceAccess(menuItem.PlaceId))
                     throw new UnauthorizedAccessException("Cross-business access denied.");   
 
                 if (await repository.ExistsAsync(mi =>
@@ -226,13 +174,12 @@ public class MenuItemService(
         if (!existingPlace2)
             throw new PlaceNotFoundException(toPlaceId);
 
-        if (!await VerifyUserPlaceAccess(toPlaceId) || !await VerifySameBusinessAccess(fromPlaceId, toPlaceId))
+        if (!await validationService.VerifyUserPlaceAccess(toPlaceId) || !await VerifySameBusinessAccess(fromPlaceId, toPlaceId))
             throw new UnauthorizedPlaceAccessException();
 
+            var menuItemsToCopy = await repository.GetMenuItemsByPlaceIdAync(fromPlaceId, false);
 
-            var menuItemsToCopy = await (await GetPlaceMenuItemsQuery(fromPlaceId, false)).ToListAsync();
-
-            var existingProductIds = await repository.QueryIncluding()
+        var existingProductIds = await repository.QueryIncluding()
                 .Where(mi => mi.PlaceId == toPlaceId)
                 .Select(mi => mi.ProductId)
             .ToListAsync();
@@ -279,7 +226,7 @@ public class MenuItemService(
 
     public async Task UpdateAsync(UpsertMenuItemDto menuItem)
     {
-        if (!await VerifyUserPlaceAccess(menuItem.PlaceId))
+        if (!await validationService.VerifyUserPlaceAccess(menuItem.PlaceId))
             throw new UnauthorizedPlaceAccessException();
 
         var existingItem = await repository.GetByKeyAsync(mi =>
@@ -299,7 +246,7 @@ public class MenuItemService(
     public async Task UpdateItemAvailabilityAsync(int placeId, int productId, bool isAvailable)
     {
 
-        if (!await VerifyUserPlaceAccess(placeId))
+        if (!await validationService.VerifyUserPlaceAccess(placeId))
         {
             throw new UnauthorizedPlaceAccessException();
         }
@@ -316,7 +263,7 @@ public class MenuItemService(
 
     public async Task DeleteAsync(int placeId, int productId)
     {
-        if (!await VerifyUserPlaceAccess(placeId))
+        if (!await validationService.VerifyUserPlaceAccess(placeId))
             throw new UnauthorizedPlaceAccessException();
 
         var menuItem = await repository.GetByKeyAsync(mi => mi.PlaceId == placeId && mi.ProductId == productId);
@@ -324,7 +271,8 @@ public class MenuItemService(
         if (menuItem == null)
             throw new MenuItemNotFoundException(placeId, productId);
 
-        await repository.DeleteAsync(menuItem);
+        menuItem.DeletedAt = DateTime.UtcNow;
+        await repository.UpdateAsync(menuItem);
 
         logger.LogInformation("User {UserId} deleted product {ProductId} in menu for place {PlaceId}",
             currentUser.UserId, menuItem.ProductId, menuItem.PlaceId);
@@ -364,16 +312,6 @@ public class MenuItemService(
         if (existingProduct.BusinessId != null && existingProduct.BusinessId != user!.Place!.BusinessId)
             throw new UnauthorizedAccessException($"Access to product with id {menuItem.ProductId} denied");
 
-    }
-
-    private async Task<bool> VerifyUserPlaceAccess(int targetPlaceId)
-    {
-        var user = await currentUser.GetCurrentUserAsync();
-        
-        if (user!.Role == EmployeeRole.admin) // TODO: Add Owner role check when implemented
-            return true;
-
-        return targetPlaceId == user.PlaceId;
     }
 
     private async Task<bool> VerifySameBusinessAccess(int placeId1, int placeId2)

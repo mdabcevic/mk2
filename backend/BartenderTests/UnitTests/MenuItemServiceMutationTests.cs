@@ -3,6 +3,7 @@ using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.MenuItem;
 using Bartender.Domain.Interfaces;
+using Bartender.Domain.Repositories;
 using Bartender.Domain.Services.Data;
 using Bartender.Domain.Utility.Exceptions;
 using BartenderTests.Utility;
@@ -17,23 +18,25 @@ namespace BartenderTests.UnitTests;
 [TestFixture]
 public class MenuItemServiceMutationTests
 {
-    private IRepository<MenuItem> _menuRepository;
+    private IMenuItemRepository _menuRepository;
     private IRepository<Place> _placeRepository;
     private IRepository<Product> _productRepository;
     private ILogger<MenuItemService> _logger;
     private ICurrentUserContext _currentUser;
     private IMapper _mapper;
+    private IValidationService _validationService;
     private MenuItemService _menuService;
 
     [SetUp]
     public void SetUp()
     {
-        _menuRepository = Substitute.For<IRepository<MenuItem>>();
+        _menuRepository = Substitute.For<IMenuItemRepository>();
         _placeRepository = Substitute.For<IRepository<Place>>();
         _productRepository = Substitute.For<IRepository<Product>>();
         _logger = Substitute.For<ILogger<MenuItemService>>();
         _currentUser = Substitute.For<ICurrentUserContext>();
         _mapper = Substitute.For<IMapper>();
+        _validationService = Substitute.For<IValidationService>();
 
         _menuService = new MenuItemService(
             _menuRepository,
@@ -41,6 +44,7 @@ public class MenuItemServiceMutationTests
             _productRepository,
             _logger,
             _currentUser,
+            _validationService,
             _mapper);
     }
 
@@ -53,6 +57,7 @@ public class MenuItemServiceMutationTests
         var product = TestDataFactory.CreateValidProduct(dto.ProductId);
 
         _currentUser.GetCurrentUserAsync().Returns(user);
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns(product);
         _menuRepository.ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(false);
@@ -72,6 +77,7 @@ public class MenuItemServiceMutationTests
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns(TestDataFactory.CreateValidProduct(dto.ProductId));
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<ValidationException>(() => _menuService.AddAsync(dto));
@@ -92,6 +98,7 @@ public class MenuItemServiceMutationTests
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns(TestDataFactory.CreateValidProduct());
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
         _menuRepository.ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(true); // duplicate
 
         // Act & Assert
@@ -108,14 +115,15 @@ public class MenuItemServiceMutationTests
         // Arrange
         var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
         var staff = TestDataFactory.CreateValidStaff(placeid: 999); // different place
+
         _currentUser.GetCurrentUserAsync().Returns(staff);
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId, staff).Returns(false);
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(() => _menuService.AddAsync(dto));
         Assert.That(ex.Message, Does.Contain("Access").IgnoreCase);
         Assert.That(ex.Message, Does.Contain("denied").IgnoreCase);
 
-        await _currentUser.Received(1).GetCurrentUserAsync();
         await _menuRepository.DidNotReceive().ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>());
         await _menuRepository.DidNotReceive().AddAsync(Arg.Any<MenuItem>());
         await _productRepository.DidNotReceive().GetByIdAsync(Arg.Any<int>(), true);
@@ -126,10 +134,11 @@ public class MenuItemServiceMutationTests
     public async Task AddAsync_ProductDoesNotExist_ThrowsNotFoundException()
     {
         // Arrange
-        var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
-        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
+        var dto = TestDataFactory.CreateValidUpsertMenuItemDto(placeId: 1);
+        _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: 1));
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns((Product?)null);
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.AddAsync(dto));
@@ -148,6 +157,7 @@ public class MenuItemServiceMutationTests
         var dto = TestDataFactory.CreateValidUpsertMenuItemDto();
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff());
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(false);
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<NotFoundException>(() => _menuService.AddAsync(dto));
@@ -171,6 +181,7 @@ public class MenuItemServiceMutationTests
         };
         var currentUser = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
         _currentUser.GetCurrentUserAsync().Returns(currentUser);
+        _validationService.VerifyUserPlaceAccess(1).Returns(true);
 
         _menuRepository.ExistsAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(false);
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
@@ -235,6 +246,7 @@ public class MenuItemServiceMutationTests
         };
         var currentUser = TestDataFactory.CreateValidStaff(role: EmployeeRole.admin);
         _currentUser.GetCurrentUserAsync().Returns(currentUser);
+        _validationService.VerifyUserPlaceAccess(1).Returns(true);
 
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(Arg.Any<int>(), true)
@@ -435,6 +447,7 @@ public class MenuItemServiceMutationTests
         var existingMenuItem = TestDataFactory.CreateValidMenuItem(1, dto.PlaceId, dto.ProductId, name: "Espresso");
 
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: dto.PlaceId));
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>())
             .Returns(existingMenuItem);
 
@@ -459,6 +472,7 @@ public class MenuItemServiceMutationTests
         var existingMenuItem = TestDataFactory.CreateValidMenuItem(1, dto.PlaceId, dto.ProductId, isAvailable: false);
 
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: dto.PlaceId));
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>())
             .Returns(existingMenuItem);
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
@@ -478,6 +492,7 @@ public class MenuItemServiceMutationTests
         // Arrange
         var dto = TestDataFactory.CreateUpsertMenuItemDto();
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: dto.PlaceId));
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns((MenuItem?)null);
 
         // Act & Assert
@@ -515,6 +530,7 @@ public class MenuItemServiceMutationTests
         var item = TestDataFactory.CreateValidMenuItem(1, dto.PlaceId, dto.ProductId);
 
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: dto.PlaceId));
+        _validationService.VerifyUserPlaceAccess(item.PlaceId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(item);
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns(item.Product);
@@ -535,6 +551,7 @@ public class MenuItemServiceMutationTests
         var existingItem = TestDataFactory.CreateValidMenuItem(1, dto.PlaceId, dto.ProductId);
 
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: dto.PlaceId));
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(existingItem);
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns((Product?)null); // Simulate missing product
@@ -558,6 +575,7 @@ public class MenuItemServiceMutationTests
         var user = TestDataFactory.CreateValidStaff(placeid: dto.PlaceId, businessid: 1);
 
         _currentUser.GetCurrentUserAsync().Returns(user);
+        _validationService.VerifyUserPlaceAccess(dto.PlaceId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(existingItem);
         _placeRepository.ExistsAsync(Arg.Any<Expression<Func<Place, bool>>>()).Returns(true);
         _productRepository.GetByIdAsync(dto.ProductId, true).Returns(product);
@@ -580,6 +598,7 @@ public class MenuItemServiceMutationTests
         var menuItem = TestDataFactory.CreateValidMenuItem(1, placeId, productId, "Espresso", isAvailable: false);
 
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: placeId));
+        _validationService.VerifyUserPlaceAccess(menuItem.PlaceId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(menuItem);
 
         // Act & Assert
@@ -615,6 +634,7 @@ public class MenuItemServiceMutationTests
         var placeId = 1;
         var productId = 2;
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: placeId));
+        _validationService.VerifyUserPlaceAccess(placeId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns((MenuItem?)null);
 
         // Act & Assert
@@ -634,6 +654,7 @@ public class MenuItemServiceMutationTests
         var productId = 3;
 
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: placeId));
+        _validationService.VerifyUserPlaceAccess(placeId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>())
             .Throws(new Exception("Database is down"));
 
@@ -654,12 +675,13 @@ public class MenuItemServiceMutationTests
         var menuItem = TestDataFactory.CreateValidMenuItem(1, placeId, productId);
 
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: placeId));
+        _validationService.VerifyUserPlaceAccess(placeId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns(menuItem);
 
         // Act & Assert
         Assert.DoesNotThrowAsync(() => _menuService.DeleteAsync(placeId, productId));
-
-        await _menuRepository.Received(1).DeleteAsync(menuItem);
+        Assert.That(menuItem.DeletedAt, Is.Not.Null);
+        await _menuRepository.Received(1).UpdateAsync(menuItem);
     }
 
     [Test]
@@ -670,6 +692,7 @@ public class MenuItemServiceMutationTests
         var productId = 5;
 
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: placeId));
+        _validationService.VerifyUserPlaceAccess(placeId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>()).Returns((MenuItem?)null);
 
         // Act & Assert
@@ -707,6 +730,7 @@ public class MenuItemServiceMutationTests
         var productId = 1;
 
         _currentUser.GetCurrentUserAsync().Returns(TestDataFactory.CreateValidStaff(placeid: placeId));
+        _validationService.VerifyUserPlaceAccess(placeId).Returns(true);
         _menuRepository.GetByKeyAsync(Arg.Any<Expression<Func<MenuItem, bool>>>())
             .Throws(new Exception("DB crashed"));
 

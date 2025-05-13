@@ -32,7 +32,8 @@ builder.Services.AddCors(options =>
                 "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io", "https://definite-squid-29206.upstash.io")
                   .AllowAnyHeader()
                   .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
-                  .AllowCredentials();
+                  .AllowCredentials()
+                  .WithExposedHeaders("Authorization");
         });
 });
 
@@ -86,11 +87,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
+
                 var accessToken = context.Request.Query["access_token"];
 
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    var authorizationHeader = context.Request.Headers["Authorization"].ToString();
+                    if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer "))
+                    {
+                        accessToken = authorizationHeader.Substring("Bearer ".Length);
+                    }
+                }
+
                 var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) &&
-                    (path.StartsWithSegments("/hubs/place")))
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/place"))
                 {
                     context.Token = accessToken;
                 }
@@ -125,6 +135,8 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<ITableRepository, TableRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
 
 builder.Services.AddScoped<IBusinessService, BusinessService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
@@ -178,8 +190,19 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
-app.UseHttpsRedirection();
 app.UseCors(allowedOrigins);
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        context.Response.Headers["Access-Control-Allow-Origin"] = "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io";
+        context.Response.Headers.Append("Access-Control-Allow-Credentials", "true");
+        return Task.CompletedTask;
+    });
+    await next();
+});
+
+app.UseHttpsRedirection();
 app.UseExceptionHandler(_ => { });
 app.UseAuthentication(); // <--- MUST come before UseAuthorization
 app.UseAuthorization();

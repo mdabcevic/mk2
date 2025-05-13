@@ -121,6 +121,11 @@ function HomePage() {
             navigateTo={AppPaths.public.contactUs}
         />
       </div>
+
+
+      <section className="mt-20 flex flex-row items-center gap-10">
+        <iframe width="100%" height="315" src="https://www.youtube.com/embed/R6YCZ6ReAsM?si=K68bsjk-87esWzL-" title="YouTube - Bartender" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy={"strict-origin-when-cross-origin"} allowFullScreen></iframe>
+      </section>
     </div>
     </div>
   );
