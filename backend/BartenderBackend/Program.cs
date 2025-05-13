@@ -32,7 +32,8 @@ builder.Services.AddCors(options =>
                 "https://bartender.jollywater-cb9f5de7.germanywestcentral.azurecontainerapps.io", "https://definite-squid-29206.upstash.io")
                   .AllowAnyHeader()
                   .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
-                  .AllowCredentials();
+                  .AllowCredentials()
+                  .WithExposedHeaders("Authorization");
         });
 });
 
@@ -86,11 +87,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
+
                 var accessToken = context.Request.Query["access_token"];
 
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    var authorizationHeader = context.Request.Headers["Authorization"].ToString();
+                    if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer "))
+                    {
+                        accessToken = authorizationHeader.Substring("Bearer ".Length);
+                    }
+                }
+
                 var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) &&
-                    (path.StartsWithSegments("/hubs/place")))
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/place"))
                 {
                     context.Token = accessToken;
                 }
