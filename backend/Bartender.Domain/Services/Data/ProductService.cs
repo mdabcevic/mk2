@@ -3,18 +3,17 @@ using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Product;
 using Bartender.Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Linq.Expressions;
 using Bartender.Domain.Utility.Exceptions;
 
 namespace Bartender.Domain.Services.Data;
 
 public class ProductService(
-    IRepository<Product> repository, 
+    IProductRepository repository, 
     IRepository<ProductCategory> categoryRepository,
     ILogger<ProductService> logger,
     ICurrentUserContext currentUser,
+    IValidationService validationService,
     IMapper mapper) : IProductService
 {
     public async Task<ProductDto?> GetByIdAsync(int id)
@@ -25,7 +24,7 @@ public class ProductService(
         if (product == null)
             throw new ProductNotFoundException(id);
 
-        if (!VerifyProductAccess(user!, product.BusinessId, false))
+        if (!await validationService.VerifyProductAccess(product.BusinessId, false, user))
         {
             throw new AuthorizationException("Access to product denied")
                 .WithLogMessage($"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to access product from Business {product.BusinessId}.");
@@ -39,26 +38,10 @@ public class ProductService(
     {
         var user = await currentUser.GetCurrentUserAsync();
 
-        Expression<Func<Product, bool>>? filter = null;
-
-        if (user!.Role != EmployeeRole.admin && exclusive == null)
-            filter = p => p.BusinessId == user.Place!.BusinessId || p.BusinessId == null;
-
-        else if (exclusive == true)
-        {
-            if (user!.Role == EmployeeRole.admin)
-                filter = p => p.BusinessId != null;
-            else
-                filter = p => p.BusinessId == user.Place!.BusinessId;
-        }
-
-        else if (exclusive == false)
-            filter = p => p.BusinessId == null;    
-
-        var products = await repository.GetFilteredAsync(
-            includeNavigations: true,
-            filterBy: filter,
-            orderBy: p => p.Name);
+        var products = await repository.GetAllProductsAsync(
+            businessId: user.Place?.BusinessId,
+            exclusive: exclusive,
+            isAdmin: user.Role == EmployeeRole.admin);
 
         var dto = mapper.Map<List<ProductDto>>(products);
         return dto;
@@ -68,59 +51,29 @@ public class ProductService(
     {
         var user = await currentUser.GetCurrentUserAsync();
 
-        var groupedProducts = await categoryRepository.QueryIncluding()
-            .Select(g => new GroupedProductsDto
-            {
-                Category = g.Name,
-                Products = g.Products
-                    .Where(p =>
-                        exclusive == null && user!.Role == EmployeeRole.admin ||
-                        exclusive == null && (p.BusinessId == user.Place!.BusinessId || p.BusinessId == null) ||
-                        exclusive == true && user!.Role == EmployeeRole.admin && p.BusinessId != null ||
-                        exclusive == true && p.BusinessId == user.Place!.BusinessId ||
-                        exclusive == false && p.BusinessId == null
-                    )
-                    .OrderBy(p => p.Name)
-                    .Select(p => mapper.Map<ProductBaseDto>(p))
-                    .ToList()
-            })
-            .Where(g => g.Products.Any())
-            .ToListAsync();
+        var groupedProducts = await repository.GetProductsGroupedAsync(
+            businessId: user.Place?.BusinessId,
+            exclusive: exclusive,
+            isAdmin: user.Role == EmployeeRole.admin);
 
-        return groupedProducts;
+        var result = groupedProducts.Select(g => new GroupedProductsDto
+        {
+            Category = g.Key.Name,
+            Products = mapper.Map<List<ProductBaseDto>>(g.Value)
+        }).ToList();
+
+        return result; 
     }
 
     public async Task<List<ProductBaseDto>> GetFilteredAsync(bool? exclusive = null, string? name = null, string? category = null)
     {
         var user = await currentUser.GetCurrentUserAsync();
 
-        var query = repository.QueryIncluding(p => p.Category);
-
-
-        Expression<Func<Product, bool>>? filter = null;
-
-        if (exclusive == null && user!.Role != EmployeeRole.admin)
-            filter = p => p.BusinessId == user.Place!.BusinessId || p.BusinessId == null;
-
-        else if (exclusive == true)
-        {
-            if (user!.Role == EmployeeRole.admin)
-                filter = p => p.BusinessId != null;
-            else
-                filter = p => p.BusinessId == user.Place!.BusinessId;
-        }
-
-        else if (exclusive == false)
-            filter = p => p.BusinessId == null;
-
-        if (filter != null)
-            query = query.Where(filter);
-
-        query = query.Where(p =>
-            (name == null || EF.Functions.ILike(p.Name, $"%{name}%")) &&
-            (category == null || EF.Functions.ILike(p.Category.Name, $"%{category}%")));
-
-        var products = await query.ToListAsync();
+        var products = await repository.GetProductsFilteredAsync(
+            exclusive: exclusive,
+            isAdmin: user!.Role == EmployeeRole.admin,
+            name: name,
+            category: category);
 
         var dto = mapper.Map<List<ProductBaseDto>>(products);
         return dto;
@@ -150,7 +103,7 @@ public class ProductService(
         if (product.BusinessId != updateProduct.BusinessId && user!.Role != EmployeeRole.admin)
             product.BusinessId = updateProduct.BusinessId;
 
-        if (!VerifyProductAccess(user!, product.BusinessId, true))
+        if (!await validationService.VerifyProductAccess(product.BusinessId, true, user))
         {
             throw new AuthorizationException("Access to product denied")
                 .WithLogMessage($"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to update product from Business {product.BusinessId}.");
@@ -160,6 +113,7 @@ public class ProductService(
 
         mapper.Map(product, updateProduct);
 
+        updateProduct.UpdatedAt = DateTime.UtcNow;
         await repository.UpdateAsync(updateProduct);
         logger.LogInformation("Product updated with ID: {ProductId}", id);
     }
@@ -174,7 +128,8 @@ public class ProductService(
                 .WithLogMessage($"Access denied: User {user!.Id} (Business: {user.Place!.BusinessId}) attempted to delete product from Business {product.BusinessId}.");
         }
 
-        await repository.DeleteAsync(product);
+        product.DeletedAt = DateTime.UtcNow;
+        await repository.UpdateAsync(product);
         logger.LogInformation("Product deleted with ID: {ProductId}", id);
     }
 
@@ -191,25 +146,14 @@ public class ProductService(
         if (!categoryExists)
             throw new NotFoundException($"Product category id {product.CategoryId} not found");
 
-        var existingProduct = await repository.ExistsAsync(p =>
-            (id == null || p.Id != id) &&
-            (p.BusinessId == null || p.BusinessId == product.BusinessId) &&
-            p.Name.ToLower() == product.Name.ToLower() &&
-            (p.Volume == null && product.Volume == null ||
-             p.Volume != null && product.Volume != null && p.Volume.ToLower() == product.Volume.ToLower()));
+        var existingProduct = await repository.ProductExists(
+            productId: id,
+            businessId: product.BusinessId,
+            name: product.Name,
+            volume: product.Volume
+         );
 
         if (existingProduct)
             throw new ConflictException($"Product with name '{product.Name}' and volume '{product.Volume}' already exists.");
-    }
-
-    private static bool VerifyProductAccess(Staff user, int? businessId, bool upsert)
-    {
-        if (user.Role == EmployeeRole.admin)
-            return true;
-
-        if (businessId == null && !upsert)
-            return true;
-
-        return user!.Place!.BusinessId == businessId;
     }
 }

@@ -41,27 +41,21 @@ public class ValidationService(
         return false;
     }
 
-    /*public async Task VerifyUserGuestAccess(int orderTableId)
+    public async Task<bool> VerifyProductAccess(int? businessId, bool isUpsertOperation, Staff? user = null)
     {
-        if (currentUser.IsGuest && !await tableSessionService.HasActiveSessionAsync(orderTableId, currentUser.GetRawToken()))
-        {
-            throw new TableAccessDeniedException(orderTableId, currentUser?.GetRawToken());
-        }
+        user ??= await currentUser.GetCurrentUserAsync();
 
-        else if (!currentUser.IsGuest)
-        {
-            var user = await currentUser.GetCurrentUserAsync();
-            var table = await tableRepository.GetByIdAsync(orderTableId);
+        if (user == null)
+            return false;
 
-            if (table == null)
-                throw new TableNotFoundException(orderTableId);
+        if (user.Role == EmployeeRole.admin)
+            return true;
 
-            if (!await VerifyUserPlaceAccess(table.PlaceId, user))
-            {
-                throw new TableAccessDeniedException(table.Id, user?.Id);
-            }
-        }
-    }*/
+        if (!isUpsertOperation && businessId == null)
+            return true;
+
+        return user.Place?.BusinessId == businessId;
+    }
 
     public async Task<bool> VerifyUserPlaceAccess(int targetPlaceId, Staff? user = null)
     {
