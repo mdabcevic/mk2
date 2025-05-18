@@ -219,7 +219,7 @@ public class TableInteractionServiceIntegrationTests : IntegrationTestBase
         {
             PlaceId = 1,
             Label = "JOIN1",
-            Status = TableStatus.occupied,
+            Status = TableStatus.empty, // ✅ must be empty initially
             QrSalt = "join-pass",
             Width = 100,
             Height = 100,
@@ -228,22 +228,24 @@ public class TableInteractionServiceIntegrationTests : IntegrationTestBase
         };
         await _tableRepo.AddAsync(table);
 
-        // Setup guest A to start the session with a shared passphrase
+        // Guest A starts a session (generates passphrase)
         var starterGuestToken = "starter-token";
         _mockUser.OverrideGuest(starterGuestToken);
 
         var firstScan = await _service.GetBySaltAsync("join-pass");
-        var groupPass = await _guestSessionRepo
-            .GetByKeyAsync(g => g.Token == firstScan.GuestToken);
 
-        Assert.That(groupPass, Is.Not.Null);
+        var session = await _guestSessionRepo
+            .GetByKeyAsync(g => g.Token == firstScan.GuestToken, includeNavigations: true);
 
-        // Switch to a second guest
+        Assert.That(session, Is.Not.Null);
+        Assert.That(session!.Group, Is.Not.Null);
+        var passphrase = session.Group!.Passphrase;
+
+        // Guest B joins with correct passphrase
         var joiningGuestToken = "joining-guest";
         _mockUser.OverrideGuest(joiningGuestToken);
 
-        // Act
-        var result = await _service.GetBySaltAsync("join-pass", groupPass!.Group!.Passphrase);
+        var result = await _service.GetBySaltAsync("join-pass", passphrase);
 
         // Assert
         Assert.Multiple(() =>
@@ -258,16 +260,14 @@ public class TableInteractionServiceIntegrationTests : IntegrationTestBase
         Assert.That(sessionCount, Is.EqualTo(2));
     }
 
-
     [Test]
     public async Task GetBySaltAsync_ShouldFail_WhenIncorrectPassphrase()
     {
-        // Arrange
         var table = new Table
         {
             PlaceId = 1,
             Label = "FAIL1",
-            Status = TableStatus.occupied,
+            Status = TableStatus.empty, // start as empty
             QrSalt = "fail-qr",
             Width = 100,
             Height = 100,
@@ -276,31 +276,32 @@ public class TableInteractionServiceIntegrationTests : IntegrationTestBase
         };
         await _tableRepo.AddAsync(table);
 
-        // Start valid session with Guest A
+        // Guest A starts session — generates passphrase
         var starterToken = "starter-token";
         _mockUser.OverrideGuest(starterToken);
-
         var firstScan = await _service.GetBySaltAsync("fail-qr");
-        var actualPassphrase = await _guestSessionRepo
-            .GetByKeyAsync(g => g.Token == firstScan.GuestToken);
 
-        Assert.That(actualPassphrase, Is.Not.Null);
+        // Load actual passphrase
+        var session = await _guestSessionRepo
+            .GetByKeyAsync(g => g.Token == firstScan.GuestToken, includeNavigations: true);
+        Assert.That(session, Is.Not.Null);
+        Assert.That(session!.Group, Is.Not.Null);
 
-        // Switch to Guest B using wrong passphrase
+        // Guest B uses incorrect passphrase
         var wrongToken = "wrong-token";
         _mockUser.OverrideGuest(wrongToken);
 
-        // Act & Assert
         var ex = Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _service.GetBySaltAsync("fail-qr", "WRONG-PASSPHRASE"));
 
         Assert.That(ex, Is.Not.Null);
         Assert.That(ex!.Message, Does.Contain("passphrase"));
 
-        // Ensure only one session still exists
+        // Only one session should exist
         var sessionCount = await _guestSessionRepo.CountAsync(g => g.TableId == table.Id);
         Assert.That(sessionCount, Is.EqualTo(1));
     }
+
 
     [Test]
     public async Task ChangeStatusAsync_ShouldFreeTable_WhenGuestHasValidToken()
