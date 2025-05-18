@@ -227,15 +227,17 @@ public class TableInteractionService(
 
     private async Task ApplyEmptyStatusAsync(Table table)
     {
+        //TODO: notifications should come after these actions, but then lack permissions because session was terminated.
+        await notificationService.AddNotificationAsync(table,
+            NotificationFactory.ForTableStatus(table, $"Guests have left table {table.Label}.", NotificationType.GuestLeftTable));
+        await notificationService.ClearNotificationsAsync(table.Id);
+
         await guestSessionService.EndGroupSessionAsync(table.Id);
         await orderRepository.SetTableOrdersAsClosedAsync(table.Id);
 
         table.Status = TableStatus.empty;
         await repository.UpdateAsync(table);
 
-        await notificationService.AddNotificationAsync(table,
-            NotificationFactory.ForTableStatus(table, $"Guests have left table {table.Label}.", NotificationType.GuestLeftTable));
-        await notificationService.ClearNotificationsAsync(table.Id);
         logger.LogInformation("Table {TableId} set to empty and all sessions/orders cleared.", table.Id);
     }
 }
