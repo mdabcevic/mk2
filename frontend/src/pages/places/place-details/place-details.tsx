@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import ImageSlider from "./image-slider";
 import { ImageType, IPlaceItem } from "../../../utils/interfaces/place-item";
 import { placeService } from "../../../utils/services/place.service";
@@ -10,6 +10,7 @@ import { UserRole } from "../../../utils/constants";
 import MyOrders from "./my-orders";
 import { PlaceMainInfo } from "../../../utils/components/place-main-info";
 import Footer from "../../../containers/footer";
+import { Button } from "../../../utils/components/button";
 
 
 const PlaceDetails = () => {
@@ -43,16 +44,20 @@ const PlaceDetails = () => {
           <ImageSlider images={place?.images!.find(i => i.imageType == ImageType.gallery)?.urls!}/>
           <div className="flex flex-col items-center mt-8 w-full">
             <p className="text-black font-bold">{t("free_tables")}: {place?.freeTablesCount}</p>
-            <button className="w-full px-5 py-3 rounded-[16px] max-w-[350px] mt-3 bg-mocha-600 text-white">
-              <Link to={AppPaths.public.placeTables.replace(":placeId", id!.toString())} className="w-full block text-center">
-                {t("view_tables").toUpperCase()}
-              </Link>
-            </button>
-            <button className="w-full px-5 py-3 rounded-[16px] max-w-[350px] mt-6 bg-mocha-600 text-white">
-              <Link to={AppPaths.public.menu.replace(":placeId", id!.toString())} className="w-full block text-center">
-                {t("menu").toUpperCase()}
-              </Link>
-            </button>           
+            <Button 
+              textValue={t("view_tables").toUpperCase()} 
+              type={"brown-dark"}
+              size={"large"}
+              navigateTo={AppPaths.public.placeTables.replace(":placeId", id!.toString())}
+              className={"w-full max-w-[350px] rounded-[16px] "}
+              />
+              <Button 
+                textValue={t("menu").toUpperCase()} 
+                type={"brown-dark"}
+                size={"large"}
+                navigateTo={AppPaths.public.menu.replace(":placeId", id!.toString())}
+                className={"w-full max-w-[350px] rounded-[16px] "}
+              />        
           </div>            
 
           <article className="mt-20">

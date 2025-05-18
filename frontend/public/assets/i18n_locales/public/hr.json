@@ -102,5 +102,11 @@
   },
   "cart":{
     "order":"Naruči"
+  },
+  "contactUs":{
+    "email":"Email",
+    "subject":"Predmet emaila",
+    "message":"Poruka",
+    "send":"Pošalji"
   }
 }

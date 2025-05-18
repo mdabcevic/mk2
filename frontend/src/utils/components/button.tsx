@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 type ButtonProps = {
   textValue: string;
-  type: "brown" | "white";
+  type: "brown" | "white" | "brown-dark";
   size: "small" | "medium" | "large";
   className?: string;
   onClick?: () => void;
@@ -24,7 +24,8 @@ export function Button({
   const typeClasses =
     type === "brown"
       ? "bg-mocha-300 hover:bg-mocha-400 transition-colors rounded-md mt-6 w-[180px] h-[50px] text-white font-bold"
-      : "bg-white text-black border border-gray-300";
+      : type === "brown-dark" ? "bg-mocha-600 text-white hover:bg-mocha-400 transition-colors mt-3" 
+      : type === "white" ? "bg-white text-black border border-gray-300" : "";
 
   const sizeClasses = {
     small: "px-3 py-1 text-sm",
@@ -32,7 +33,7 @@ export function Button({
     large: "px-5 py-3 text-lg",
   }[size];
 
-  const baseClass =`rounded-xl font-medium ${typeClasses} ${sizeClasses} ` + className;
+  const baseClass =`font-medium ${typeClasses} ${sizeClasses} ` + className;
 
   const handleClick = (_e: React.MouseEvent<HTMLButtonElement>) => {
     onClick?.();
@@ -46,7 +47,7 @@ export function Button({
   );
 
   return navigateTo ? (
-    <Link to={navigateTo} className="inline-block">
+    <Link to={navigateTo} className="inline-block w-full block text-center">
       {buttonElement}
     </Link>
   ) : (
