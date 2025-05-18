@@ -11,7 +11,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Bartender.Domain.Utility;
-using Docker.DotNet.Models;
 using System.Net.Http.Headers;
 
 namespace BartenderTests.IntegrationTests;

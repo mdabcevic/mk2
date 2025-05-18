@@ -22,21 +22,6 @@ public class StaffServiceIntegrationTests : IntegrationTestBase
         _staffRepo = scope.ServiceProvider.GetRequiredService<IRepository<Staff>>();
     }
 
-    private async Task<Staff> SeedStaff(string username = "staffuser", int placeId = 1)
-    {
-        var staff = new Staff
-        {
-            PlaceId = placeId,
-            OIB = "10000000000",
-            Username = username,
-            Password = "hashed",
-            FullName = "Seeded Staff",
-            Role = EmployeeRole.regular
-        };
-        await _staffRepo.AddAsync(staff);
-        return staff;
-    }
-
     // ---- TESTS BELOW ---
 
     [Test]
