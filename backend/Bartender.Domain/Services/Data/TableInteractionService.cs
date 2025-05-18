@@ -27,12 +27,8 @@ public class TableInteractionService(
     /// <returns></returns>
     public async Task<TableScanDto> GetBySaltAsync(string salt, string? passphrase = null)
     {
-        var table = await repository.GetByKeyAsync(t => t.QrSalt == salt);
-        if (table is null)
-        {
-            throw new NotFoundException("Invalid QR code")
+        var table = await repository.GetByKeyAsync(t => t.QrSalt == salt) ?? throw new NotFoundException("Invalid QR code")
                 .WithLogMessage($"lookup failed: Stale or invalid Token was used: {salt}");
-        }
 
         return currentUser.IsGuest
             ? await HandleGuestScanAsync(table, passphrase)
@@ -42,20 +38,13 @@ public class TableInteractionService(
     public async Task ChangeStatusAsync(string token, TableStatus newStatus)
     {
         // Should it also use GetValidTableBySalt
-        var table = await repository.GetByKeyAsync(t => t.QrSalt == token);
-        if (table is null)
-        {
-            throw new TableNotFoundException(token);
-        }
+        var table = await repository.GetByKeyAsync(t => t.QrSalt == token) ?? throw new TableNotFoundException(token);
 
         if (currentUser.IsGuest)
-        {
             await HandleGuestStatusChangeAsync(table, newStatus, currentUser.GetRawToken()!);  // not table access token, user access token for session...
-        }
+        
         else
-        {
             await HandleStaffStatusChangeAsync(table, newStatus);
-        }
     }
 
     private async Task<TableScanDto> HandleGuestScanAsync(Table table, string? passphrase)
@@ -87,10 +76,8 @@ public class TableInteractionService(
             var activeSession = await tableSessionService.GetConflictingSessionAsync(token, table.Id);
 
             if (activeSession != null)
-            {
                 throw new ConflictException("You already have an active session on another table. Mark it as complete before next attempt.")
                     .WithLogMessage($"Guest tried to join Table {table.Id} while already active on Table {activeSession.TableId}.");
-            }
         }
 
         // 3. First-time scan
@@ -106,22 +93,16 @@ public class TableInteractionService(
     {
         var accessToken = currentUser.GetRawToken();
         if (string.IsNullOrWhiteSpace(accessToken))
-        {
             throw new AuthorizationException("Missing authentication token.")
                 .WithLogMessage($"Guest attempted to change table {token} without token");
-        }
 
         if (!await tableSessionService.HasActiveSessionAsync(table.Id, token))
-        {
             throw new AuthorizationException("Unauthorized or expired session.")
                 .WithLogMessage($"Invalid session for guest trying to change status on Table {table.Id}");
-        }
 
         if (newStatus != TableStatus.empty)
-        {
             throw new AuthorizationException("Guests can only free tables.")
                 .WithLogMessage($"Guest tried to set status to {newStatus} on Table {table.Id} — only 'empty' is allowed");
-        }
 
         if (table.Status == TableStatus.empty)
         {
@@ -130,27 +111,21 @@ public class TableInteractionService(
         }
 
         await ApplyEmptyStatusAsync(table); //TODO: look into applying orders as complete
-        return;
     }
 
     private async Task HandleStaffStatusChangeAsync(Table table, TableStatus newStatus)
     {
         var user = await currentUser.GetCurrentUserAsync();
         if (!await IsSameBusinessAsync(table.PlaceId))
-        {
             throw new UnauthorizedBusinessAccessException()
                 .WithLogMessage($"Unauthorized staff (User {user!.Id}) tried to change status of Table {table.Id}");
-        }
 
         if (newStatus == TableStatus.empty)
-        {
             await ApplyEmptyStatusAsync(table);
-        }
 
         logger.LogInformation("User {UserId} changed Table {Id} status to {NewStatus}", user!.Id, table.Id, newStatus);
         table.Status = newStatus;
         await repository.UpdateAsync(table);
-        return;
     }
 
     private async Task<TableScanDto> HandleStaffScanAsync(Table table)
@@ -221,7 +196,6 @@ public class TableInteractionService(
         {
             logger.LogWarning(ex, "Join failed: incorrect passphrase for table {TableId}.", table.Id);
             throw new UnauthorizedAccessException("Incorrect passphrase. Please ask someone at the table.");
-
         }
     }
 

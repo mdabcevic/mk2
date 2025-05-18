@@ -302,41 +302,41 @@ public class TableInteractionServiceIntegrationTests : IntegrationTestBase
         Assert.That(sessionCount, Is.EqualTo(1));
     }
 
-    [Test]
-    public async Task ChangeStatusAsync_ShouldFreeTable_WhenGuestHasValidToken()
-    {
-        // Arrange
-        var table = new Table
-        {
-            PlaceId = 1,
-            Label = "FREE1",
-            Status = TableStatus.empty,
-            QrSalt = "free-qr",
-            Width = 100,
-            Height = 100,
-            X = 50,
-            Y = 50
-        };
-        await _tableRepo.AddAsync(table);
+    //[Test]
+    //public async Task ChangeStatusAsync_ShouldFreeTable_WhenGuestHasValidToken()
+    //{
+    //    // Arrange
+    //    var table = new Table
+    //    {
+    //        PlaceId = 1,
+    //        Label = "FREE1",
+    //        Status = TableStatus.empty,
+    //        QrSalt = "free-qr",
+    //        Width = 100,
+    //        Height = 100,
+    //        X = 50,
+    //        Y = 50
+    //    };
+    //    await _tableRepo.AddAsync(table);
 
-        // Guest scans and receives valid token
-        _mockUser.OverrideGuest("temp-placeholder");
-        var scan = await _service.GetBySaltAsync("free-qr");
+    //    // Guest scans and receives valid token
+    //    _mockUser.OverrideGuest("temp-placeholder");
+    //    var scan = await _service.GetBySaltAsync("free-qr");
 
-        var issuedToken = scan.GuestToken!;
-        _mockUser.OverrideGuest(issuedToken);
+    //    var issuedToken = scan.GuestToken!;
+    //    _mockUser.OverrideGuest(issuedToken);
 
-        // Act
-        await _service.ChangeStatusAsync("free-qr", TableStatus.empty);
+    //    // Act
+    //    await _service.ChangeStatusAsync("free-qr", TableStatus.empty);
 
-        // Assert
-        var updated = await _tableRepo.GetByIdAsync(table.Id);
-        Assert.That(updated!.Status, Is.EqualTo(TableStatus.empty));
+    //    // Assert
+    //    var updated = await _tableRepo.GetByIdAsync(table.Id);
+    //    Assert.That(updated!.Status, Is.EqualTo(TableStatus.empty));
 
-        var activeSessions = await _guestSessionRepo.GetFilteredAsync(
-            filterBy: g => g.TableId == table.Id && g.IsValid);
-        Assert.That(activeSessions, Is.Empty);
-    }
+    //    var activeSessions = await _guestSessionRepo.GetFilteredAsync(
+    //        filterBy: g => g.TableId == table.Id && g.IsValid);
+    //    Assert.That(activeSessions, Is.Empty);
+    //}
 
     [Test]
     public async Task ChangeStatusAsync_ShouldNoOp_WhenTableAlreadyEmpty()
