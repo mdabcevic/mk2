@@ -302,15 +302,15 @@ public class TableInteractionServiceIntegrationTests : IntegrationTestBase
         Assert.That(sessionCount, Is.EqualTo(1));
     }
 
-
     [Test]
     public async Task ChangeStatusAsync_ShouldFreeTable_WhenGuestHasValidToken()
     {
+        // Arrange
         var table = new Table
         {
             PlaceId = 1,
             Label = "FREE1",
-            Status = TableStatus.occupied,
+            Status = TableStatus.empty,
             QrSalt = "free-qr",
             Width = 100,
             Height = 100,
@@ -319,13 +319,17 @@ public class TableInteractionServiceIntegrationTests : IntegrationTestBase
         };
         await _tableRepo.AddAsync(table);
 
-        var guest = new GuestSession { TableId = table.Id, Token = "guest-free" };
-        await _guestSessionRepo.AddAsync(guest);
+        // Guest scans and receives valid token
+        _mockUser.OverrideGuest("temp-placeholder");
+        var scan = await _service.GetBySaltAsync("free-qr");
 
-        _mockUser.OverrideGuest("guest-free");
+        var issuedToken = scan.GuestToken!;
+        _mockUser.OverrideGuest(issuedToken);
 
+        // Act
         await _service.ChangeStatusAsync("free-qr", TableStatus.empty);
 
+        // Assert
         var updated = await _tableRepo.GetByIdAsync(table.Id);
         Assert.That(updated!.Status, Is.EqualTo(TableStatus.empty));
 
