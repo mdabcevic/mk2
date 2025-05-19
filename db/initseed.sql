@@ -415,3 +415,100 @@ INSERT INTO place_pictures (place_id, url, image_type, is_visible, created_at) V
 (9, 'https://greatlocations.com/wp-content/uploads/2023/07/sunset-club-1.jpg', 'banner', true, now()),
 (10, 'https://media-cdn.tripadvisor.com/media/photo-s/13/8a/25/b6/lighting-up-the-night.jpg', 'banner', true, now()),
 (11, 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/19/63/5d/31/cloud9-cafe-bar-at-our.jpg?w=1000&h=-1&s=1', 'banner', true, now())
+
+DO $$
+DECLARE
+    start_date DATE := CURRENT_DATE - INTERVAL '1 year';
+    end_date DATE := CURRENT_DATE - INTERVAL '1 day';
+    d DATE;
+    day_offset INTEGER;
+    i INTEGER;
+    order_id_var INTEGER;
+    quantity INTEGER;
+    item RECORD;
+    table_rec RECORD;
+    total_price_var NUMERIC;
+    item_counter INTEGER;
+    payment_type paymenttype;
+    actual_price NUMERIC;
+BEGIN
+    FOR day_offset IN 0..(end_date - start_date) LOOP
+        d := start_date + day_offset;
+
+        -- Simulate daily number of orders (20–40)
+        FOR i IN 1..(20 + FLOOR(random() * 21)::INT) LOOP
+
+            total_price_var := 0;
+
+            -- Select a random table from place_id = 1
+            SELECT id INTO table_rec FROM tables
+            WHERE place_id = 1
+            ORDER BY random()
+            LIMIT 1;
+
+            -- Randomly select payment_type between 'cash' and 'creditcard'
+            IF random() < 0.5 THEN
+                payment_type := 'cash'::paymenttype;
+            ELSE
+                payment_type := 'creditcard'::paymenttype;
+            END IF;
+
+            -- Create a new order
+            INSERT INTO orders (table_id, created_at, status, total_price, payment_type)
+            VALUES (
+                table_rec.id,
+                d + (random() * interval '23 hours' + random() * interval '59 minutes'),
+                'closed',
+                0,
+                payment_type
+            )
+            RETURNING id INTO order_id_var;
+
+            -- Choose 1–3 products per order
+            item_counter := 1 + FLOOR(random() * 3)::INT;
+
+            FOR i IN 1..item_counter LOOP
+                -- Select product based on popularity
+                SELECT mi.id AS menu_item_id, mi.product_id, p.name, mi.price
+                INTO item
+                FROM menu_items mi
+                JOIN products p ON mi.product_id = p.id
+                JOIN product_category c ON p.category_id = c.id
+                WHERE mi.place_id = 1
+                ORDER BY 
+                    CASE
+                        WHEN LOWER(p.name) LIKE '%kava%' THEN 1 
+                        WHEN LOWER(c.name) LIKE '%kava%' THEN 2 
+                        WHEN LOWER(p.name) LIKE '%pivo%' THEN 3
+                        WHEN LOWER(p.name) LIKE '%sok%' THEN 4
+                        WHEN LOWER(c.name) LIKE '%topli napitci%' THEN 5 
+                        WHEN LOWER(p.name) LIKE '%naran%' THEN 6
+                        ELSE 10 + random() * 10
+                    END,
+                    random()
+                LIMIT 1;
+
+                quantity := 1 + FLOOR(random() * 2)::INT;
+
+                -- Calculate price: 10% discount if older than 3 months
+                IF d < CURRENT_DATE - INTERVAL '3 months' THEN
+                    actual_price := ROUND(item.price * 0.90, 2);
+                ELSE
+                    actual_price := item.price;
+                END IF;
+
+                -- Insert or ignore product in the order (ON CONFLICT DO NOTHING)
+                INSERT INTO products_per_orders (order_id, menu_item_id, price, discount, count)
+                VALUES (order_id_var, item.menu_item_id, actual_price, 0, quantity)
+                ON CONFLICT (order_id, menu_item_id) DO NOTHING;
+
+                total_price_var := total_price_var + (actual_price * quantity);
+            END LOOP;
+
+            -- Update total price of the order
+            UPDATE orders SET total_price = total_price_var WHERE id = order_id_var;
+        END LOOP;
+    END LOOP;
+END;
+$$;
+
