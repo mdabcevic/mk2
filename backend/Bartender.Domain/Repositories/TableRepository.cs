@@ -38,7 +38,7 @@ public class TableRepository(AppDbContext context) : Repository<Table>(context),
     public async Task<List<Table>> GetActiveByPlaceAsync(int placeId)
     {
         return await Query()
-            .Where(t => t.PlaceId == placeId && !t.IsDisabled)
+            .Where(t => t.PlaceId == placeId && !t.IsDisabled && t.DeletedAt == null)
             .ToListAsync();
     }
 
