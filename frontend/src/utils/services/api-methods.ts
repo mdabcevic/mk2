@@ -32,8 +32,12 @@ export const ApiMethods ={
 
     callBartender:"/api/places/notify-staff/{salt}",
 
-    regenerateQrCode:"/api/tables/{label}/rotate-token"
+    regenerateQrCode:"/api/tables/{label}/rotate-token",
 
-
-
+    getPopularProducts:"/api/analytics/products/{placeId}",
+    getWeeklyTraffic:"/api/analytics/traffic/daily/{placeId}",
+    getHourlyTraffic:"/api/analytics/traffic/hourly/{placeId}",
+    getTableTraffic:"/api/analytics/traffic/table/{placeId}",
+    getAllPlacesTraffic:"/api/analytics/traffic",
+    getTotalEarnings:"/api/analytics/earnings/{placeId}",
 }
