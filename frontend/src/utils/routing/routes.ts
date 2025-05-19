@@ -12,7 +12,7 @@ export const AppPaths = {
         placeTables:"/place/:placeId/tables",
         redirectPage: "/table-lookup/:placeId/:salt",
         login:"/login",
-        subsciption:"/subscription",
+        subsciption:"/subscription"
     },
     
     admin:{
@@ -22,6 +22,6 @@ export const AppPaths = {
         tables:`${AdminRoot}/tables`,
         notifications:`${AdminRoot}/notifications`,
         scanner:`${AdminRoot}/scanner`,
-        
+        analytics:`${AdminRoot}/analytics`,
     },
 }
