@@ -101,5 +101,11 @@
     },
     "cart":{
         "order":"Order"
-  }
+    },
+    "contactUs":{
+        "email":"Email",
+        "subject":"Subject",
+        "message":"Message",
+        "send":"Send"
+    }
 }
