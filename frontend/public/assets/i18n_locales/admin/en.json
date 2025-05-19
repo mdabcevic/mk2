@@ -37,6 +37,6 @@
         "select_category": "Select category",
         "search":"search",
         "custom":"custom"
-    }
-    
+    },
+    "analytics":"Analytics"
 }
