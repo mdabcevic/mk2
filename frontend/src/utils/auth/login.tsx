@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import LoginForm from "./login-form";
-import loginIllustration from "../../../public/assets/images/coffee_shop.png";
 
 const LoginPage = () => {
   useTranslation("public");
@@ -12,7 +11,7 @@ const LoginPage = () => {
         {/* Left: Illustration */}
         <div className="w-1/2 hidden lg:block relative">
           <img
-            src={loginIllustration}
+            src="/assets/images/coffee_shop.png"
             alt="Cafe illustration"
             className="w-full h-full object-cover"
           />
