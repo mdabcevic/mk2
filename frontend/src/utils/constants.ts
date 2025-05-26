@@ -48,6 +48,7 @@ export interface Table {
   seats: number;
   status: string;
   token?: string;
+  isDisabled?:boolean;
   requestType?:number;
 }
 

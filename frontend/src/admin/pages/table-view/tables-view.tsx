@@ -84,6 +84,7 @@ const TablesView = () => {
       doc.addImage(qrDataUrl, "PNG", 20, 30, 100, 100);
   
       doc.save(`qr_${tableLabel}.pdf`);
+      fetchTables();
     } catch (err) {
       console.error("Error generating QR code PDF:", err);
       alert("Error")
@@ -91,7 +92,13 @@ const TablesView = () => {
   }
 
   const disableTable = async (tableLabel: string) => {
-    await tableService.disableTable(tableLabel);
+    await tableService.disableTable(tableLabel,true);
+    fetchTables();
+  };
+
+  const enableTable = async (tableLabel: string) => {
+    await tableService.disableTable(tableLabel,false);
+    fetchTables();
   };
 
   const onClose = (label: string) => {
@@ -156,10 +163,12 @@ const TablesView = () => {
               {selectedTable?.label === table.label && manageTables &&  (
               <TableActionModal
                 tableLabel={table.label}
+                isDisabled={table.isDisabled!}
                 onClose={() => setSelectedTable(null)}
                 onSetStatus={setNewStatus}
                 onGenerateQR={() => generateQrCode()}
                 disable={() => disableTable(table.label)}
+                enable={()=> enableTable(table.label)}
               />
               )}
 
