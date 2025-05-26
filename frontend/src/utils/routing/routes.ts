@@ -13,6 +13,7 @@ export const AppPaths = {
         redirectPage: "/table-lookup/:placeId/:salt",
         login:"/login",
         subsciption:"/subscription",
+        myOrders:"/:placeId/my-orders"
     },
     
     admin:{

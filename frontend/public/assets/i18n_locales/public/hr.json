@@ -1,7 +1,8 @@
 {
   "header":{
         "login":"Prijava",
-        "coffee_shop":"Kafići"
+        "coffee_shop":"Kafići",
+        "my_orders":"Narudžbe"
     },
     "go_back":"Nazad",
     "passcode_required":"Potreban kod",

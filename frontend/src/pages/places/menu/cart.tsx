@@ -35,7 +35,7 @@ const Cart = () => {
 
     await orderService.createOrder(orderItems, paymentType, note);
     cartStorage.deleteCart();
-    window.location.href = AppPaths.public.placeDetails.replace(":id",authService.placeId().toString());
+    window.location.href = AppPaths.public.myOrders.replace(":placeId",authService.placeId().toString());
   };
 
   const paymentTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {

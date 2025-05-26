@@ -1,6 +1,7 @@
 {
     "header":{
-        "login":"Login"
+        "login":"Login",
+        "my_orders":"My orders"
     },
     "go_back":"Back",
     "passcode_required":"Passcode required",

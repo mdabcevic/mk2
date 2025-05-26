@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation, } from "react-router-dom";
 import { languages } from "../utils/languages";
 import { AppPaths } from "../utils/routing/routes";
+import { authService } from "../utils/auth/auth.service";
+import { UserRole } from "../utils/constants";
 
 
 const HeaderComponent = () => {
@@ -28,14 +30,25 @@ const HeaderComponent = () => {
 
       <ul className={open ? "menu-items active" : "menu-items"}>
       <Link
-          to={AppPaths.public.login}
+        to={AppPaths.public.login}
+        onClick={()=> setOpen(!open)}
+        className={`nav-links text-light ${
+          location.pathname === AppPaths.public.login ? "text-orange-500" : "text-light"
+        } ${((authService.token()?.length ?? 0) > 10 ) ? "hidden" : "block"}`}
+      >
+        {t("header.login")}
+      </Link>
+
+      {authService.userRole() === UserRole.guest && (
+        <Link
+          to={AppPaths.public.myOrders.replace(":placeId",authService.placeId().toString())}
           onClick={()=> setOpen(!open)}
-          className={`nav-links text-light ${
-            location.pathname === AppPaths.public.login ? "text-orange-500" : "text-light"
-          }`}
+          className={`nav-links text-light ${(authService.placeId() > 0) ? "block" : "hidden"}`}
         >
-          {t("header.login")}
+          {t("header.my_orders")}
         </Link>
+      )}
+      
         
         <div className="relative">
         <button className="m-0 p-0"

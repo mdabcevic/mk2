@@ -1,36 +1,22 @@
 import { useEffect, useState } from "react";
 import { orderService } from "../menu/order.service";
 import { AppPaths } from "../../../utils/routing/routes";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { notificationService } from "../../../utils/services/notification.service";
-import { authService } from "../../../utils/auth/auth.service";
+import { authService, removePreviousState } from "../../../utils/auth/auth.service";
 import { placeOrderService } from "../../../admin/pages/table-view/place-orders.service";
 import { orderStatusIndex } from "../../../utils/table-color";
 import { useTranslation } from "react-i18next";
+import { MyOrder } from "../../../utils/interfaces/order";
 
-export interface OrderItem {
-  menuItem: string;
-  price: number;
-  discount: number;
-  count: number;
-}
 
-export interface Order {
-  id: number;
-  items: OrderItem[];
-  table: string;
-  note: string;
-  paymentType: string;
-  totalPrice: number; 
-  status: string;
-  customer: string | null;
-  createdAt: string;
-}
-const passCode = authService.passCode();
-function MyOrders({ placeId }: { placeId: string }) {
-  const [myOrders, setMyOrders] = useState<Order[]>([]);
+// function MyOrders({ placeId }: { placeId: string }) {
+function MyOrders() {
+  const { placeId } = useParams();
+  const [myOrders, setMyOrders] = useState<MyOrder[]>([]);
   const [showOrders, setShowOrders] = useState(false);
   const { t } = useTranslation("public");
+  const passCode = authService.passCode();
   
   const fetchMyOrders = async () => {
     const response = await orderService.getMyOrders();
@@ -49,21 +35,38 @@ function MyOrders({ placeId }: { placeId: string }) {
     );
   };
 
+  const checkSession = async () => {
+    if(authService.getLastSessionCheckTime()){
+      const secondsSinceLastCall = ((new Date()).getTime() - authService.getLastSessionCheckTime()!.getTime()) / 1000;
+      if(secondsSinceLastCall < 5) return;
+    }
+    const response = await authService.getGuestToken(authService.salt()!,true);
+    if (!response.isSessionEstablished) {
+        removePreviousState();
+    }
+    else{
+      authService.setGuestToken(response.guestToken,placeId!);
+    }
+      
+  }
+  
   useEffect(() => {
-    fetchMyOrders();
-  }, []);
+    if(authService.salt()){
+      checkSession();
+      fetchMyOrders();  
+    }
+    else
+      window.location.href = AppPaths.public.placeDetails.replace(":id",placeId!); 
+  }, [placeId]);
 
   return (
-    <section className={`relative w-full min-h-[80vh]  h-content ${showOrders ? "overflowY-scroll": "overflow-hidden"}  py-4`}>
+    <section className={`relative w-full min-h-[80vh] mt-[100px]  h-content ${showOrders ? "overflowY-scroll": "overflow-hidden"} p-4`}>
 
       <div
         className={`absolute top-0 left-0 w-full h-full flex flex-col justify-start items-center transition-all duration-700 transform ${
-          showOrders
-            ? "opacity-0 scale-90 pointer-events-none"
-            : "opacity-100 scale-100"
+          showOrders ? "opacity-0 scale-90 pointer-events-none" : "opacity-100 scale-100"
         }`}
       >
-        
         <p className="text-center mb-8 mt-20  font-bold text-[16px]">{t("sm_message").toUpperCase()}</p>
 
         <button
@@ -74,7 +77,7 @@ function MyOrders({ placeId }: { placeId: string }) {
         </button>
 
         <Link
-          to={AppPaths.public.menu.replace(":placeId", placeId)}
+          to={AppPaths.public.menu.replace(":placeId", placeId!)}
           className="px-6 py-3 rounded-[40px] bg-mocha-600 font-bold text-white mb-4 w-64 text-center"
         >
           {t("order").toUpperCase()}
@@ -92,9 +95,7 @@ function MyOrders({ placeId }: { placeId: string }) {
 
       <div
         className={`relative top-0 left-0 w-full h-full flex flex-col p-4 pb-28 transition-all duration-700 transform ${
-          showOrders
-            ? "opacity-100 scale-100"
-            : "opacity-0 scale-90 pointer-events-none"
+          showOrders ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
         }`}
       >
 
