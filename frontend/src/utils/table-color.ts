@@ -87,6 +87,6 @@ export function getBgColorByNotificationStatus(type: number){
     3: "../assets/images/icons/newOrder.webp", // OrderCreated
     4: "../assets/images/icons/euro.svg" // payment requested
   };
-  export function getTableIcon(type: number):string{
-    return tableIcon[type] || "";
+  export function getTableIcon(type: number):string | undefined{
+    return tableIcon[type] || undefined;
   }

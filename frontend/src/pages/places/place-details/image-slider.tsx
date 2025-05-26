@@ -18,7 +18,7 @@ const ImageSlider = ({ images }: { images: string[] }) => {
         className="flex transition-transform duration-500"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        {images.map((img, index) => (
+        {images?.map((img, index) => (
           <img
             key={index}
             src={img}

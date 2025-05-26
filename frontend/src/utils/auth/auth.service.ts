@@ -4,8 +4,9 @@ import { ApiMethods } from "../services/api-methods";
 import api from "../services/client";
 import { GuestToken, Payload } from "./guest-token";
 
+let checkSessionLastSent: Date | null = null;
 export const authService = {
-
+    
     login: async (username: string, password: string): Promise<any> => {
         const response = await api.post(ApiMethods.login, { username: username, password: password });
         setToken(response);
@@ -17,12 +18,17 @@ export const authService = {
         window.location.href = AppPaths.admin.dashboard;
     },
 
+    getLastSessionCheckTime: (): Date | null => checkSessionLastSent,
 
-    getGuestToken: async (salt: string): Promise<GuestToken> => {
+    getGuestToken: async (salt: string, checkSession: boolean): Promise<GuestToken> => {
         const params = { salt: salt }
-        removePreviousState();
-        setSalt(salt);    
-        return await api.get(ApiMethods.getGuestToken, params);
+        if(!checkSession){
+            removePreviousState();
+            setSalt(salt);  
+        }     
+        checkSessionLastSent = new Date();
+        const response = await api.get(ApiMethods.getGuestToken, params);
+        return response;
     },
 
     setGuestToken: (token: string,placeId:string) => {
@@ -31,8 +37,6 @@ export const authService = {
         localStorage.setItem(Constants.place_id,placeId);
         if (passcode)
             setPassCode(passcode);
-        setTimeout(()=>{window.location.href = AppPaths.public.placeDetails.replace(":id", placeId);},100)
-        
     },
 
     joinTable: async (passcode:string, salt: string): Promise<GuestToken> => {   
@@ -122,9 +126,10 @@ function setPassCode(passcode: string) {
     localStorage.setItem(Constants.passcode, passcode);
 }
 
-function removePreviousState(){
+export function removePreviousState(){
     localStorage.removeItem(Constants.tokenKey);
     localStorage.removeItem(Constants.salt);
     localStorage.removeItem(Constants.passcode);
     localStorage.removeItem(Constants.cartKey);
 }
+

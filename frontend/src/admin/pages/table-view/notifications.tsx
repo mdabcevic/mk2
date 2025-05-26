@@ -32,7 +32,7 @@ export function NotificationScreen({ onClose }:{onClose?: (label: string) => voi
     <section id="notifications" className={`flex flex-col pb-8 md:pt-0  flex-start items-start w-full md:w-[350px]  ${authService.userRole() === UserRole.staff ? "pt-[100px] min-h-[700px] ":"md:max-h-[450px] min-h-[400px] border overflow-hidden mr-4  rounded-[30px]"}`}>
       <h3 className="text-lg font-bold mb-2 text-center bg-latte w-full border-b-3"><img className="m-auto" src="/assets/images/icons/notificationBell.svg" alt="notification bell"/></h3>
       <div className="flex flex-col gap-2 max-w-sm p-2 w-full">
-      {notifications.map((n) => (
+      {notifications.map((n) => { if(n.pending) return (
         <div
           key={n.id}
           className={`p-4 rounded shadow border text-black w-full  flex justify-between items-center ${getNotificationColor(n.type)}`}
@@ -45,7 +45,7 @@ export function NotificationScreen({ onClose }:{onClose?: (label: string) => voi
             <img src="/assets/images/icons/checkMark.svg"/>
           </button>
         </div>
-      ))}
+      )})}
     </div>
     </section>
     

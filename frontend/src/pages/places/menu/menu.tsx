@@ -22,7 +22,7 @@ export function Menu() {
   const [itemsOfSelectedCategory, setItemsOfSelectedCategory] = useState<MenuGroupedItemDto[]>([]);
   const userRole = authService.userRole();
   const [totalPrice, setTotalPrice] = useState(0);
-
+  const enableAdd = authService.placeId()?.toString() === placeId;
   useEffect(() => {
     const unsubscribe = cartStorage.subscribe(() => {
       setTotalPrice(cartStorage.getTotalPrice());
@@ -45,10 +45,10 @@ export function Menu() {
     }
   };
 
-    const changeCategory = (category: string) => {
-        setSelectedCategory(category);
-        setItemsOfSelectedCategory(menu.find(group => group.category === category)?.items ?? []);
-    }
+  const changeCategory = (category: string) => {
+      setSelectedCategory(category);
+      setItemsOfSelectedCategory(menu.find(group => group.category === category)?.items ?? []);
+  }
   useEffect(() => {
       fetchMenu();
   }, [placeId]);
@@ -85,6 +85,7 @@ export function Menu() {
           <MenuItemsList
             items={itemsOfSelectedCategory}
             userRole={userRole}
+            enableAdd={enableAdd}
             />
           </div>
         </section>
@@ -109,7 +110,7 @@ export function Menu() {
         </section>
       </div>
       {
-        !showCart && userRole === UserRole.guest && (
+        !showCart && userRole === UserRole.guest && enableAdd && (
           <div className="fixed bottom-0 left-0 w-full p-4 text-center z-50">
             <button
               onClick={() => {if(totalPrice > 0) setShowCart(true);}}
