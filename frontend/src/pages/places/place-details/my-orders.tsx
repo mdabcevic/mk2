@@ -7,13 +7,13 @@ import { authService, removePreviousState } from "../../../utils/auth/auth.servi
 import { placeOrderService } from "../../../admin/pages/table-view/place-orders.service";
 import { orderStatusIndex } from "../../../utils/table-color";
 import { useTranslation } from "react-i18next";
-import { MyOrder } from "../../../utils/interfaces/order";
+import { Order } from "../../../utils/interfaces/order";
 
 
 // function MyOrders({ placeId }: { placeId: string }) {
 function MyOrders() {
   const { placeId } = useParams();
-  const [myOrders, setMyOrders] = useState<MyOrder[]>([]);
+  const [myOrders, setMyOrders] = useState<Order[]>([]);
   const [showOrders, setShowOrders] = useState(false);
   const { t } = useTranslation("public");
   const passCode = authService.passCode();

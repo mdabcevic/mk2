@@ -34,7 +34,7 @@ const HeaderComponent = () => {
         onClick={()=> setOpen(!open)}
         className={`nav-links text-light ${
           location.pathname === AppPaths.public.login ? "text-orange-500" : "text-light"
-        } ${((authService.token()?.length ?? 0) > 10 ) ? "hidden" : "block"}`}
+        } ${authService.tokenValid() ? "hidden" : "block"}`}
       >
         {t("header.login")}
       </Link>

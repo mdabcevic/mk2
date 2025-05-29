@@ -6,11 +6,15 @@ import { authService } from "../../../utils/auth/auth.service";
 import { UserRole } from "../../../utils/constants";
 
 
-export function NotificationScreen({ onClose }:{onClose?: (label: string) => void}) {
+export function NotificationScreen({ onClose }:{onClose?: (label: string, setOrdersAsPaid:boolean) => void}) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
     const unsubscribe = subscribeToNotifications((n) => {
+        const regexStaff = /^Staff updated Order \d+ status to payment_requested\.$/;
+        const regexGuest = /^Guest updated Order \d+ status to payment_requested\.$/;
+        if(n.type === NotificationType.OrderStatusUpdated && (regexStaff.test(n.message) || regexGuest.test(n.message)))
+          n.type = NotificationType.PaymentRequested;
       setNotifications((prev) => [...prev, n]);
     });
 
@@ -21,10 +25,15 @@ export function NotificationScreen({ onClose }:{onClose?: (label: string) => voi
     setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
     const label = notifications.find(not => not.id === notification.id)?.tableLabel;
     if (onClose && label) {
-      onClose(label);
       if(notification.type == NotificationType.OrderCreated){
+        onClose(label, false);
         await placeOrderService.updateOrderStatus(notification.orderId!, orderStatusIndex.delivered);
       }
+      if(notification.type == NotificationType.PaymentRequested){
+        onClose(label, true);
+      }
+      else
+        onClose(label, false);
     }
   };
 

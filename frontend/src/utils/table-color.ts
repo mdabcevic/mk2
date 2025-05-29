@@ -30,7 +30,6 @@ export enum OrderStatusValue {
 
 
 
-
   const statusColors: Record<OrderStatusValue, string> = {
     created: "#3B82F6",
     approved: "#3B82F6",
@@ -62,6 +61,7 @@ export function getStatusColor(status: OrderStatusValue): string {
     3: "bg-[#10B981] text-black", // OrderCreated
     4: "bg-[#3B82F6] text-white", // OrderStatusUpdated
     5: "bg-[#3B82F6] text-white", // OrderContentUpdated
+    6: "bg-[#FCD34D] text-black", // PaymentRequested
   };
 
 export function getBgColorByNotificationStatus(type: number){
@@ -79,13 +79,14 @@ export function getBgColorByNotificationStatus(type: number){
     GuestLeftTable=2,
     OrderCreated=3,
     OrderStatusUpdated=4,
-    OrderContentUpdated=5
+    OrderContentUpdated=5,
+    PaymentRequested=6,
   }
 
   const tableIcon: Record<number, string> = {
-    0: "../assets/images/icons/notificationBell.svg", // StaffNeeded
-    3: "../assets/images/icons/newOrder.webp", // OrderCreated
-    4: "../assets/images/icons/euro.svg" // payment requested
+    [NotificationType.StaffNeeded]: "../assets/images/icons/notificationBell.svg", // StaffNeeded
+    [NotificationType.OrderCreated]: "../assets/images/icons/cup.svg", // OrderCreated
+    [NotificationType.PaymentRequested]: "../assets/images/icons/dollar.svg" // payment requested
   };
   export function getTableIcon(type: number):string | undefined{
     return tableIcon[type] || undefined;

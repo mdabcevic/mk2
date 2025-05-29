@@ -59,7 +59,7 @@ export const authService = {
             const payload = JSON.parse(atob(token.split(".")[1]));
             const exp = payload.exp;
             if (!exp) return false;
-    
+            
             const currentTime = Math.floor(Date.now() / 1000);
             if(exp < currentTime){
                 removePreviousState();
@@ -73,7 +73,6 @@ export const authService = {
     },
 
     userRole: (): string => {
-        console.log(getTokenPayload()?.role || "");
         return getTokenPayload()?.role || "";
     },
 
