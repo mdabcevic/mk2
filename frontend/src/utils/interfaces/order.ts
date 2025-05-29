@@ -1,3 +1,5 @@
+import { OrderStatusValue } from "../table-color";
+
 export interface OrderItem {
   menuItem: string;
   price: number;
@@ -5,14 +7,14 @@ export interface OrderItem {
   count: number;
 }
 
-export interface MyOrder {
+export interface Order {
   id: number;
   items: OrderItem[];
   table: string;
   note: string;
   paymentType: string;
   totalPrice: number; 
-  status: string;
+  status: OrderStatusValue;
   customer: string | null;
   createdAt: string;
 }

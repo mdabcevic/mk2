@@ -101,7 +101,8 @@ const ProductsSection = forwardRef((_, ref) => {
             items={filterOptions}
             onChange={dropdownChange}
             type="custom"
-            className="max-w-[180px] bg-white rounded-[16px]"
+            className="max-w-[180px] rounded-[16px]"
+            defaultValue="all"
           />
         </div>
 

@@ -1,65 +1,94 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-export type DropdownItem = {
+export type DropdownItem<T = string> = {
   id: number | string;
-  value: string | React.ReactNode;
+  value: T;
+  label?: string | React.ReactNode;
 };
 
-type DropdownProps = {
-  items: DropdownItem[];
-  onChange: (item: DropdownItem) => void;
+type DropdownProps<T = string> = {
+  items: DropdownItem<T>[];
+  onChange: (item: DropdownItem<T>) => void;
+  value?: T;
+  defaultValue?: T;
+  placeholder?: string;
   type?: "light" | "brown" | "custom";
   className?: string;
-  placeholder?: string;
+  buttonClassName?: string;
+  menuClassName?: string;
+  itemClassName?: string;
 };
 
-export default function Dropdown({
+export default function Dropdown<T = string>({
   items,
   onChange,
+  value,
+  defaultValue,
+  placeholder = "Select...",
   type = "light",
   className = "",
-  placeholder = "Select...",
-}: DropdownProps) {
+  buttonClassName = "",
+  menuClassName = "",
+  itemClassName = "",
+}: DropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<DropdownItem | null>(null);
+  const [internalValue, setInternalValue] = useState<T | undefined>(defaultValue);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const selectedItem =
+    items.find((item) => item.value === (value ?? internalValue)) ?? null;
 
   const toggleDropdown = () => setIsOpen((prev) => !prev);
-  const onSelect = (item: DropdownItem) => {
-    setSelectedItem(item);
+
+  const handleSelect = (item: DropdownItem<T>) => {
+    if (value === undefined) setInternalValue(item.value); // uncontrolled
     onChange(item);
     setIsOpen(false);
   };
 
   const typeClasses =
-    type === "light"
-      ? "bg-white text-black border-gray-300"
-      : type === "brown"
-      ? "bg-[#624935] text-white"
-      : "";
+    type === "light" ? "bg-white text-black border-gray-300": 
+    type === "brown" ? "bg-[#624935] text-white" : 
+    type === "custom" ? "" : "";
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <div className={`relative inline-block w-full ${className}`}>
+    <div ref={ref} className={`relative inline-block ${className}`}>
       <button
         onClick={toggleDropdown}
-        className={`w-full border rounded-[30px] block flex flex-between px-4 py-2 ${typeClasses}`}
+        className={`w-full border rounded-[30px] flex justify-between items-center px-4 py-2 ${typeClasses} ${buttonClassName}`}
       >
-        <span className="w-[150px] text-left">{selectedItem ? selectedItem.value : placeholder}</span>
-        <span className={`${!isOpen ? "" : "rotate-180"} flex item-center transition-transform duration-300`}><img src="/assets/images/icons/dropdown_arrow.svg" /></span>
+        <span>
+          {
+            typeof selectedItem?.label === "string" || typeof selectedItem?.label === "number"
+              ? selectedItem.label
+              : selectedItem?.label ?? String(selectedItem?.value ?? placeholder)
+          }
+        </span>
+        <img src="/assets/images/icons/dropdown_arrow.svg" className={`mr-4 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
 
       {isOpen && (
         <ul
-          className={`absolute mt-2 w-full z-10 rounded border shadow-lg overflow-hidden bg-white ${typeClasses}`}
+          className={`absolute mt-2 w-full z-10 rounded border shadow-lg bg-white overflow-hidden ${menuClassName}`}
         >
           {items.map((item) => (
             <li
               key={item.id}
-              onClick={() => onSelect(item)}
-              className={`px-4 py-2 cursor-pointer hover:bg-gray-200 ${
-                type === "brown" ? "hover:bg-gray-700" : ""
-              }`}
+              onClick={() => handleSelect(item)}
+              className={`px-4 py-2 cursor-pointer hover:bg-gray-200 ${itemClassName}`}
             >
-              {item.value}
+              {(typeof selectedItem?.label === "string" || typeof selectedItem?.label === "number") ? item.label : String(item?.value ?? "")}
             </li>
           ))}
         </ul>

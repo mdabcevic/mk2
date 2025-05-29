@@ -4,13 +4,14 @@ import jsPDF from "jspdf";
 import { useTranslation } from "react-i18next";
 import { Constants, Table, TableStatusString } from "../../../utils/constants";
 import { tableService } from "../../../utils/services/tables.service";
-import { getBgColorByNotificationStatus, getTableColor, getTableIcon, NotificationType } from "../../../utils/table-color";
+import { getBgColorByNotificationStatus, getTableColor, getTableIcon, NotificationType, orderStatusIndex } from "../../../utils/table-color";
 import OrdersTable from "./orders-table";
 import { NotificationScreen } from "./notifications";
 import { subscribeToNotifications,Notification } from "../../../utils/notification-store";
 import TableActionModal from "../../../utils/components/table-actions-modal";
 import { orderService } from "../../../pages/places/menu/order.service";
 import OrdersByTableModal, { Order } from "../../../utils/components/orders-by-table-modal";
+import { placeOrderService } from "./place-orders.service";
 
 const initial_div_width = Constants.create_tables_container_width;
 const initial_div_height = Constants.create_tables_container_height;
@@ -27,13 +28,13 @@ const TablesView = () => {
 
   const fetchTables = async (notification?:Notification) => {
     setTables([]);
+    console.log(notification)
     const response = await tableService.getPlaceTablesByCurrentUser();
     const result = response.map(table => {
       if (notification && table.label === notification.tableLabel) {
-        const regex = /^Staff updated Order \d+ status to payment_requested\.$/;
-        if(notification.type === NotificationType.OrderStatusUpdated && regex.test(notification.message))
-          return { ...table, requestType: notification.type };
-        else return { ...table, requestType: notification.type };
+      if(notification.type === NotificationType.PaymentRequested)
+          return { ...table, requestType: notification.type};
+        else return { ...table};
       }
       return table;
     });
@@ -48,8 +49,7 @@ const TablesView = () => {
   useEffect(() => {
       const unsubscribe = subscribeToNotifications((n) => {
         fetchTables(n);
-        let next = rerenderOrdersFlag + 1;
-        setRerenderOrdersFlag(next);
+        setRerenderOrdersFlag(prev => prev+1);
       });
   
       return () => unsubscribe();
@@ -101,7 +101,7 @@ const TablesView = () => {
     fetchTables();
   };
 
-  const onClose = (label: string) => {
+  const onClose = async (label: string, setOrdersAsPaid:boolean) => {
     setTables(prev =>
       prev.map(table => {
         if (table.label === label) {
@@ -111,6 +111,15 @@ const TablesView = () => {
         return table;
       })
     );
+    if(!setOrdersAsPaid) return;
+
+    const response = await orderService.getOrdersByTable(label);
+    if(response?.length > 0)
+    response.forEach(async order => {
+      await placeOrderService.updateOrderStatus(order.id!, orderStatusIndex.paid);
+    })
+    
+    
   };
 
   return (
