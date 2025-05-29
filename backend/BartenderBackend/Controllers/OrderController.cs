@@ -33,19 +33,19 @@ public class OrderController(IOrderService orderService) : ControllerBase
 
     [Authorize(Roles = "admin, owner, manager")]
     [HttpGet("closed/{placeId}")]
-    public async Task<IActionResult> GetAllByPlace(int placeId, [FromQuery] int page = 1)
+    public async Task<IActionResult> GetAllByPlace(int placeId, [FromQuery] int page = 1, [FromQuery] int size = 30)
     {
-        var result = await orderService.GetAllClosedOrdersByPlaceIdAsync(placeId, page);
+        var result = await orderService.GetAllClosedOrdersByPlaceIdAsync(placeId, page,size);
         return Ok(result);
     }
 
     [Authorize(Roles = "admin, owner, manager, regular")]
     [HttpGet("active/{placeId}")]
-    public async Task<IActionResult> GetAllActiveByPlace(int placeId, [FromQuery] bool onlyWaitingForStaff = false, [FromQuery] int page = 1, [FromQuery] bool grouped = false)
+    public async Task<IActionResult> GetAllActiveByPlace(int placeId, [FromQuery] bool onlyWaitingForStaff = false, [FromQuery] int page = 1, [FromQuery] bool grouped = false, [FromQuery] int size = 15)
     {
         if (grouped)
         {
-            var groupedResult = await orderService.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page, onlyWaitingForStaff);
+            var groupedResult = await orderService.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page, size, onlyWaitingForStaff);
             return Ok(groupedResult);
         }
 
