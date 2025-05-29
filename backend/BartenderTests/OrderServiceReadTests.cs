@@ -176,7 +176,7 @@ public class OrderServiceReadTests
 
         _validationService.EnsurePlaceExistsAsync(placeId).Returns(Task.CompletedTask); // Simulate valid place
         _validationService.VerifyUserPlaceAccess(placeId).Returns(true); // User has access
-        _orderRepo.GetActiveByPlaceIdGroupedAsync(placeId, page).Returns((grouped, 1,15)); // Simulate grouped orders
+        _orderRepo.GetActiveByPlaceIdGroupedAsync(placeId, page,size).Returns((grouped, 1)); // Simulate grouped orders
         _mapper.Map<List<OrderDto>>(grouped[OrderStatus.created]).Returns(new List<OrderDto> { orderDto }); // Map orders to DTOs
 
         // Act
