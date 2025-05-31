@@ -66,6 +66,8 @@
     "message": "Message",
     "close": "Close",
     "send": "Send",
+    "pricing":"Pricing",
+    "terms":"Terms",
     "inquire_plan": "I would like to inquire about the {{sub}} plan.",
     "view_tables":"View tables",
     "free_tables": "Number of Free tables",
