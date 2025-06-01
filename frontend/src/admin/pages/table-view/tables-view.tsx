@@ -126,7 +126,7 @@ const TablesView = () => {
     <div className="relative">
       <section className="hidden lg:flex justify-center items-start  w-full h-full p-[16px] pt-[80px]">
       <div className="flex flex-col items-center space-x-4 absolute right-0 top-0">
-        <span>Manage tables:</span>
+        <span>{t("manage_tables")}:</span>
         <div
           onClick={() => setManageTables(!manageTables)}
           className="relative mt-2 w-14 h-6 bg-[#DFD8CD] rounded-full cursor-pointer transition-colors duration-300"

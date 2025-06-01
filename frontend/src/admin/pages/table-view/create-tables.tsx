@@ -100,13 +100,13 @@ function CreateTables() {
               <div className="flex flex-row w-full gap-4 mt-2">
                 <button
                   onClick={addTable}
-                  className={`py-2 bg-mocha-600 text-white flex-1 text-sm rounded-[12px]`}
+                  className={`py-2 bg-mocha-500 text-white flex-1 font-bold text-sm rounded-[12px]`}
                 >
                   {t("add_table").toUpperCase()}
                 </button>
                 <button
                   onClick={savePlaceGround}
-                  className=" py-2 bg-white flex-1 text-brown-500 text-sm rounded-[12px] border-mocha"
+                  className=" py-2 bg-white flex-1 text-brown-500 font-bold text-sm rounded-[12px] border-mocha"
                 >
                   {t("save").toUpperCase()}
                 </button>

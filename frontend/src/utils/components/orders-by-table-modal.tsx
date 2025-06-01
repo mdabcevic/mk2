@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export interface Order {
   id: number;
@@ -20,7 +21,7 @@ interface OrdersByTable {
 
 const OrdersByTableModal = ({ orders, onClose }: OrdersByTable) => {
   const [currentOrderIndex, setCurrentOrderIndex] = useState(0);
-
+  const { t } = useTranslation("admin");
   if (orders.length === 0) return null;
 
   const currentOrder = orders[currentOrderIndex];
@@ -46,9 +47,16 @@ const OrdersByTableModal = ({ orders, onClose }: OrdersByTable) => {
         <div className="relative bg-[#FAFAFA] rounded-t-[20px] text-[#A3A3A3] w-full flex justify-between items-start p-4">
           <div className="flex flex-col w-full">
             <h3 className="text-lg font-bold">
-              Order #{currentOrder.id}
+              {t("orderStatus.order")} #{currentOrder.id}
             </h3>
-            <div className="text-sm flex items-center gap-2 justify-center">
+          </div>
+          <button onClick={onClose} className="">
+            <img src="/assets/images/icons/close_icon.svg" alt="close" />
+          </button>
+        </div>
+
+        <div className="px-7 pb-6 pt-4 text-black font-normal">
+          <div className="text-sm flex items-center gap-2 justify-center">
             <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -56,7 +64,7 @@ const OrdersByTableModal = ({ orders, onClose }: OrdersByTable) => {
                 }}
                 className="text-xs mr-6"
               >
-                prev
+                <img src="/assets/images/icons/dropdown_arrow.svg" className="rotate-90" />
               </button>
               <span>{currentOrderIndex + 1}/{orders.length}</span>
               <button
@@ -66,33 +74,29 @@ const OrdersByTableModal = ({ orders, onClose }: OrdersByTable) => {
                 }}
                 className="text-xs ml-6"
               >
-                next
+                <img src="/assets/images/icons/dropdown_arrow.svg" className="rotate-270" />
               </button>
             </div>
-          </div>
-          <button onClick={onClose} className="">
-            <img src="/assets/images/icons/close_icon.svg" alt="close" />
-          </button>
-        </div>
-
-        <div className="px-7 pb-6 pt-4 text-black font-normal">
           <p className="mt-2 ">
-            <span className="font-bold">Total price:</span> €{currentOrder.totalPrice.toFixed(2)}
+            <span className="font-bold">{t("orderStatus.total_price")}:</span> €{currentOrder.totalPrice.toFixed(2)}
           </p>
           <p className="mt-2">
-            <span className="font-bold">Payment type:</span> {currentOrder.paymentType}
+            <span className="font-bold">{t("orderStatus.payment_type")}:</span> {currentOrder.paymentType}
           </p>
           <p className="mt-2">
-            <span className="font-bold">Status:</span> {currentOrder.status}
+            <span className="font-bold">{t("orderStatus.status")}:</span> {currentOrder.status}
           </p>
           <p className="mt-2">
-            <span className="font-bold">Created at:</span> {currentOrder.createdAt}
+            <span className="font-bold">{t("orderStatus.create_at")}:</span> {currentOrder.createdAt}
           </p>
-          <div>
+          <p className="mt-2">
+            <span className="font-bold">{t("orderStatus.items")}:</span>
+          </p>
+          <div className="pl-2">
             {currentOrder.items.map((item,index) => <p key={index}>{item.count}x {item.menuItem}</p>)}
           </div>
           <p className="mt-2 mb-4">
-            <span className="font-bold">Note:</span> {currentOrder.note || ""}
+            <span className="font-bold">{t("orderStatus.note")}:</span> {currentOrder.note || ""}
           </p>
         </div>
       </div>

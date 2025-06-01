@@ -5,6 +5,7 @@ import Dropdown from "../../../utils/components/dropdown";
 import { Order } from "../../../utils/interfaces/order";
 import OrderDetailsModal from "../../../utils/components/order-details-modal";
 import PaginationControls from "../../../utils/components/pagination-controlls";
+import { useTranslation } from "react-i18next";
 
 const statusOptions: OrderStatusValue[] = [
   OrderStatusValue.created,
@@ -30,6 +31,7 @@ const OrdersTable:React.FC<{rerender:number,showStatus:boolean}> = ({rerender,sh
   const [activeTab, setActiveTab] = useState<OrderTabs>(OrderTabs.activeOrders);
   const [total,setTotal] = useState<number>(0);
   const [page, setPage] = useState(1);
+  const { t } = useTranslation("admin");
 
   useEffect(() => {
     fetchOrders();
@@ -69,36 +71,36 @@ const OrdersTable:React.FC<{rerender:number,showStatus:boolean}> = ({rerender,sh
         <button onClick={() => setActiveTab(OrderTabs.activeOrders)}
           className={`pb-2 px-4  ${activeTab === OrderTabs.activeOrders ? " text-brown-500 font-semibold" : "text-brown-500 font-thin"}`}        
         >
-          Active orders
+          {t("active_orders")}
         </button>
         <button onClick={() => setActiveTab(OrderTabs.inactiveOrders)}
           className={`pb-2 px-4 ${activeTab === OrderTabs.inactiveOrders ? "text-brown-500 font-semibold" : "text-brown-500 font-thin"}`}       
         >
-          Closed orders
+          {t("closed_orders")}
         </button>
       </div>
       <div>
       </div>
-      <span>Total:{total}</span>
+      <span>{t("orderStatus.total")}:{total}</span>
       <table className="w-full table-auto border-separate border-spacing-y-2">
         <thead>
           <tr className="text-left border-b border-gray-200">
-            <th>Date & Time</th>
-            <th className="text-center">Table</th>  
-            <th className="text-center">{showStatus ? (<span>Status</span>) : (<span>Payment Type</span>) }</th>
-            <th className="text-center">Total</th>
-            <th></th>
+            <th className="border-b border-[#D4D4D4]">{t("orderStatus.date_time")}</th>
+            <th className="text-center border-b border-[#D4D4D4]">{t("orderStatus.table")}</th>  
+            <th className="text-center border-b border-[#D4D4D4]">{showStatus ? (<span>{t("orderStatus.status")}</span>) : (<span>{t("orderStatus.payment_type")}</span>) }</th>
+            <th className="text-center border-b border-[#D4D4D4]">{t("orderStatus.total")}</th>
+            <th className=" border-b border-[#D4D4D4]"></th>
           </tr>
         </thead>
         <tbody>
           { orders?.length > 0 && (orders?.map((order,index) => (
             <tr
               key={index}
-              className="text-sm hover:bg-gray-50 py-4"
+              className="text-sm hover:bg-gray-50 py-4 border-b border-[#D4D4D4]"
             >
-              <td>{order?.createdAt}</td>
-              <td className="text-center">{order?.table}</td>
-              <td className="text-center">
+              <td className="border-b border-[#D4D4D4]">{order?.createdAt}</td>
+              <td className="text-center border-b border-[#D4D4D4]">{order?.table}</td>
+              <td className="text-center border-b border-[#D4D4D4] ">
                 {showStatus ? (
                   <Dropdown
                     items={statusOptions.map((s) => ({
@@ -119,8 +121,8 @@ const OrdersTable:React.FC<{rerender:number,showStatus:boolean}> = ({rerender,sh
                 )}
                 
               </td>
-              <td className="text-center">{order?.totalPrice.toFixed(2)}€</td>
-              <td className="text-center">
+              <td className="text-center border-b border-[#D4D4D4]">{order?.totalPrice.toFixed(2)}€</td>
+              <td className="text-center border-b border-[#D4D4D4]">
                 <button onClick={() => openModal(order)} className="cursor-pointer ">
                   <img src="/assets/images/icons/search_showmore_icon.svg" alt="show"/>
                 </button>

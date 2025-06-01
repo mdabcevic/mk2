@@ -2,6 +2,7 @@
     "home_link_text": "Home",
     "menu_link_text": "Menu",
     "products": "Products",
+    "orders":"Orders",
     "logout": "Logout",
     "management":"Management",
     "lang_option_cro":"Croatian",
@@ -10,6 +11,7 @@
     "price":"Price",
     "total_price_text":"Total price",
     "edit_text":"Edit",
+    "view_text":"View",
     "delete_text":"Delete",
     "save":"Save",
     "product":"Product",
@@ -26,9 +28,14 @@
     "table_info":"Table info",
     "table_label":"Table code",
     "seats_number":"Number of seats",
+    "manage_tables":"Manage tables",
     "add_table":"Add",
     "table_already_exist":"Table name already exists",
     "qr_code_message":"QR Code for Table",
+    "active_orders":"Active orders",
+    "closed_orders":"Closed orders",
+    "add_item": "+ Add Item",
+    "add_product": "+ Add Product",
     "product_modal": {
         "add_new_product": "Add New Product",
         "product_name": "Product Name",
@@ -43,6 +50,18 @@
         "active_orders":"Active orders",
         "closed_orders":"Closed orders",
         "free_tables":"Free tables"
+    },
+    "orderStatus":{
+        "order":"Order",
+        "table":"Table",
+        "total_price":"Total price",
+        "payment_type":"Payment type",
+        "status":"Status",
+        "create_at":"Created at",
+        "items":"Items",
+        "note":"Note",
+        "total":"Total",
+        "date_time":"Date & Time"
     }
-    
+
 }
