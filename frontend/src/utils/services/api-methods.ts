@@ -5,6 +5,7 @@ export const ApiMethods ={
     getPlaces: "/api/places",
     getPlaceById: "/api/places/{id}",
     getPlaceTablesByPlaceId: "/api/tables/{id}/all",
+    getPlaceStatus: "/api/places/dashboard/{id}",
 
     getMenuByPlaceId: "/api/menu/{id}",
     saveProductsToPlace: "/api/menu",
@@ -33,7 +34,5 @@ export const ApiMethods ={
     callBartender:"/api/places/notify-staff/{salt}",
 
     regenerateQrCode:"/api/tables/{label}/rotate-token"
-
-
 
 }

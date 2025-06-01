@@ -37,6 +37,12 @@
         "select_category": "Select category",
         "search":"search",
         "custom":"custom"
+    },
+    "dashboard":{
+        "key_info":"Key Info",
+        "active_orders":"Active orders",
+        "closed_orders":"Closed orders",
+        "free_tables":"Free tables"
     }
     
 }

@@ -18,7 +18,7 @@ import HomePage from "../../pages/home/home.tsx";
 import MyOrders from "../../pages/places/place-details/my-orders.tsx";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
-const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
+const Dashboard = lazy(() => import("../../admin/pages/dashboard/dashboard.tsx"));
 const ProductsViewPage = lazy(() => import("../../admin/pages/products/products"));
 const TablesPage = lazy(() => import("../../admin/pages/table-view/tables.tsx"));
 

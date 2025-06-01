@@ -100,13 +100,13 @@ function CreateTables() {
               <div className="flex flex-row w-full gap-4 mt-2">
                 <button
                   onClick={addTable}
-                  className={`py-2 bg-mocha-600 text-white flex-1 text-sm rounded-[16px]`}
+                  className={`py-2 bg-mocha-600 text-white flex-1 text-sm rounded-[12px]`}
                 >
                   {t("add_table").toUpperCase()}
                 </button>
                 <button
                   onClick={savePlaceGround}
-                  className=" py-2 bg-white flex-1 text-brown-500 text-sm rounded-[16px] border-mocha"
+                  className=" py-2 bg-white flex-1 text-brown-500 text-sm rounded-[12px] border-mocha"
                 >
                   {t("save").toUpperCase()}
                 </button>
@@ -141,7 +141,7 @@ function CreateTables() {
                       height: parseInt(ref.style.height),
                     })
                   }
-                  className="absolute bg-mocha-300 rounded-[50px] text-white flex items-center justify-center text-[12px] cursor-pointer"
+                  className="absolute bg-[#737373] rounded-[50px] text-white flex items-center justify-center text-[12px] cursor-pointer"
                 >
                   <div className="w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                     {table.label}

@@ -38,6 +38,12 @@
         "select_category": "Odaberite kategoriju",
         "search":"Pretraži",
         "custom":"Vlastiti"
+    },
+    "dashboard":{
+        "key_info":"Status",
+        "active_orders":"Aktivne narudžbe",
+        "closed_orders":"Završene narudžbe",
+        "free_tables":"Slobodni stolovi"
     }
       
     
