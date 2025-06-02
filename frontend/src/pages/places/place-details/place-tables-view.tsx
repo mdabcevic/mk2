@@ -8,16 +8,19 @@ import { Link, useParams } from "react-router-dom";
 import { authService } from "../../../utils/auth/auth.service";
 import { PlaceMainInfo } from "../../../utils/components/place-main-info";
 import Footer from "../../../containers/footer";
+import { placeService } from "../../../utils/services/place.service";
+import { ImageType } from "../../../utils/interfaces/place-item";
 
-
+const blueprintDefault = `/${Constants.template_image}`;
 const initial_div_width = Constants.create_tables_container_width;
 const initial_div_height = Constants.create_tables_container_height;
 const userRole = authService.userRole();
+
 const PlaceTablesViewPublic = () => {
   const { placeId } = useParams();
   const [tables, setTables] = useState<Table[]>([]);
   const [scale, setScale] = useState<number>();
-  // const [place, setPlace] = useState<IPlaceItem | null>(null);
+  const [blueprint, setBlueprint] = useState<string>(blueprintDefault);
   const { t } = useTranslation("public");
   const fetchTables = async () => {
     const response = authService.userRole() === UserRole.admin || 
@@ -42,12 +45,13 @@ const PlaceTablesViewPublic = () => {
     }
     
   };
-  // const getPlaceDetails = async () => {
-  //     let place = await placeService.getPlaceDetailsById(Number(placeId));
-  //     setPlace(place);
-  //   };
+  const getPlaceDetails = async () => {
+      let place = await placeService.getPlaceDetailsById(Number(placeId));
+      let blueprintsList = place?.images?.find(img => img.imageType === ImageType.blueprint)?.urls ?? [];
+      setBlueprint(blueprintsList?.length > 0 ? blueprintsList[0] : blueprintDefault);
+    };
   useEffect(() => {
-    // getPlaceDetails();
+    getPlaceDetails();
     fetchTables();
     calculateScale();
     window.addEventListener("resize", calculateScale);
@@ -75,7 +79,7 @@ const PlaceTablesViewPublic = () => {
           style={{
             width: `${initial_div_width * scale!}px`,
             height: `${initial_div_height * scale!}px`,
-            backgroundImage: "url(/assets/images/place_view.png)",
+            backgroundImage: `url(${blueprint})`,
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             position: "relative",

@@ -3,9 +3,13 @@ import { useTranslation } from "react-i18next";
 import { Rnd } from "react-rnd";
 import { tableService } from "../../../utils/services/tables.service";
 import { Constants, Table, TableStatusString } from "../../../utils/constants";
+import { placeService } from "../../../utils/services/place.service";
+import { authService } from "../../../utils/auth/auth.service";
+import { ImageType } from "../../../utils/interfaces/place-item";
 
 const screenWidth = window.innerWidth;
 const minScreenSize = 850;
+const blueprintDefault = `/${Constants.template_image}`;
 
 function CreateTables() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -14,6 +18,7 @@ function CreateTables() {
   const [newTableName, setNewTableName] = useState<string>("");
   const [newSeats, setNewSeats] = useState<number>(4);
   const [labelMessage, setLabelMessage] = useState<string>("");
+  const [blueprint, setBlueprint] = useState<string>(blueprintDefault);
   
   const addTable = () => {
     if (!newTableName.trim()) return;
@@ -64,7 +69,14 @@ function CreateTables() {
     setTables(response);
   };
 
+  const getPlaceDetails = async () => {
+      let place = await placeService.getPlaceDetailsById(Number(authService.placeId()));
+      let blueprintsList = place?.images?.find(img => img.imageType === ImageType.blueprint)?.urls ?? [];
+      setBlueprint(blueprintsList?.length > 0 ? blueprintsList[0] : blueprintDefault);
+    };
+
   useEffect(() => {
+    getPlaceDetails();
     fetchTables();
   }, []);
 
@@ -122,7 +134,7 @@ function CreateTables() {
               ref={containerRef}
               className="w-full h-full border border-gray-300 "
               style={{
-                backgroundImage: `url(../${Constants.template_image})`,
+                backgroundImage: `url(${blueprint})`,
                 backgroundSize: "contain",
                 backgroundRepeat: "no-repeat",
                 position: "relative",
