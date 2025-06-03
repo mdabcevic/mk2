@@ -6,6 +6,7 @@ using Bartender.Domain.DTO.Analytics;
 using AutoMapper;
 using Bartender.Domain.DTO.Table;
 using Bartender.Data.Enums;
+using Bartender.Data.Models;
 
 namespace Bartender.Domain.Services;
 
@@ -44,6 +45,27 @@ public class AnalyticsService(
             .OrderBy(g => GetDayOfWeekOrder(g.DayOfWeek)) 
             .ToList();
 
+        var overallTopProducts = products
+            .GroupBy(o => o.MenuItem.Product)
+            .Select(g => new PopularProductsDto
+            {
+                DayOfWeek = "All",
+                ProductId = g.Key.Id,
+                Product = g.Key.Name,
+                Count = g.Sum(o => o.Count),
+                Earnings = g.Sum(o => (o.Count * o.Price) / (1 - o.Discount / 100m))
+            })
+            .OrderByDescending(p => p.Count)
+            .Take(5)
+            .ToList();
+
+        topProducts.Add(new ProductsByDayOfWeekDto
+        {
+            DayOfWeek = "All",
+            PopularProducts = overallTopProducts
+        });
+
+
         return topProducts;
     }
 
@@ -58,7 +80,7 @@ public class AnalyticsService(
             {
                 DayOfWeek = g.Key.ToString(),
                 Count = g.Count(),
-                AverageEarnings = g.Average(o => o.TotalPrice)
+                Earnings = g.Sum(o => o.TotalPrice)
             })
             .OrderBy(g => GetDayOfWeekOrder(g.DayOfWeek))
             .ToList();
@@ -104,7 +126,7 @@ public class AnalyticsService(
             {
                 Table = mapper.Map<BaseTableDto>(g.Key),
                 Count = g.Count(),
-                AverageEarnings = g.Average(o => o.TotalPrice)
+                AverageEarnings = Math.Round(g.Average(o => o.TotalPrice), 2)
             })
             .ToList();
 
@@ -123,6 +145,8 @@ public class AnalyticsService(
                 PlaceId = g.Key.Id,
                 Address = g.Key?.Address ?? "Unknown",
                 CityName = g.Key?.City?.Name ?? "Unknown",
+                Lat = g.Key?.Latitude,
+                Long = g.Key?.Longitude,
                 Count = g.Count(),
                 Earnings = g.Sum(o => o.TotalPrice)
             })
@@ -131,7 +155,7 @@ public class AnalyticsService(
         return traffic;
     }
 
-    public async Task<decimal> GetTotalEarnings(DateTime? dateTime, TimeFilter? timeFilter = TimeFilter.Day, int? placeId = null)
+    /*public async Task<decimal> GetTotalEarnings(DateTime? dateTime, TimeFilter? timeFilter = TimeFilter.Day, int? placeId = null)
     {
         int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
 
@@ -146,6 +170,27 @@ public class AnalyticsService(
             .Sum(o => o.TotalPrice);
 
         return traffic;
+    }*/
+
+    public async Task<KeyValuesDto> GetAllInfo(int? placeId = null, int? month = null, int? year = null)
+    {
+        int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
+
+        //var orders = await repository.GetOrdersByTime(dateTime.Value, timeFilter.Value, businessId, placeId);
+        var orders = await repository.GetOrdersByBusinessId(businessId, placeId, month, year);
+        var orders2 = await repository.GetOrdersByBusinessId(businessId, placeId);
+
+        var keyValues = new KeyValuesDto
+        {
+            Earnings = orders.Sum(o => o.TotalPrice),
+            AverageOrder = Math.Round(orders.Average(o => o.TotalPrice), 2),
+            TotalOrders = orders.Count(),
+            FirstEverOrderDate = orders2.OrderBy(o => o.CreatedAt).First().CreatedAt.ToString("dd/MM/yyyy"),
+            FirstOrderDate = orders.OrderBy(o => o.CreatedAt).First().CreatedAt,
+            LastOrderDate = orders.OrderByDescending(o => o.CreatedAt).First().CreatedAt
+        };
+
+        return keyValues;
     }
 
     private async Task<int> CheckAuthorizationAndReturnBusinessId(int? placeId = null)
@@ -161,8 +206,10 @@ public class AnalyticsService(
         if (placeId != null)
         {
             await validationService.EnsurePlaceExistsAsync(placeId.Value);
-            if (!await validationService.VerifyUserPlaceAccess(placeId.Value))
-                throw new UnauthorizedPlaceAccessException(placeId);
+            /*if (!await validationService.VerifyUserPlaceAccess(placeId.Value))
+                throw new UnauthorizedPlaceAccessException(placeId);*/
+            if (!await validationService.VerifyUserBusinessAccess(businessId.Value))
+                throw new UnauthorizedBusinessAccessException(businessId.Value);
         }
 
         return businessId.Value;

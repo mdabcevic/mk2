@@ -47,10 +47,17 @@ public class AnalyticsController(IAnalyticsServer analyticsServer) : ControllerB
         return Ok(result);
     }
 
-    [HttpGet("earnings/{placeId?}")]
+    /*[HttpGet("earnings/{placeId?}")]
     public async Task<IActionResult> GetTotalEarnings(int? placeId, [FromQuery] DateTime? dateTime, [FromQuery] TimeFilter? timeFilter)
     {
         var result = await analyticsServer.GetTotalEarnings(dateTime, timeFilter, placeId);
+        return Ok(result);
+    }*/
+
+    [HttpGet("key-values/{placeId?}")]
+    public async Task<IActionResult> GetKeyValues(int? placeId, [FromQuery] int? month, [FromQuery] int? year)
+    {
+        var result = await analyticsServer.GetAllInfo(placeId, month, year);
         return Ok(result);
     }
 }
