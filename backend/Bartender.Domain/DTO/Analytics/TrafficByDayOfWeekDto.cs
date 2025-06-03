@@ -5,5 +5,5 @@ public class TrafficByDayOfWeekDto
 {
     public required string DayOfWeek { get; set; }
     public required int Count { get; set; }
-    public required decimal AverageEarnings { get; set; }
+    public required decimal Earnings { get; set; }
 }
