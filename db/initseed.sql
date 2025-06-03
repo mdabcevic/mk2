@@ -77,7 +77,7 @@ INSERT INTO staff (place_id, o_i_b, username, password, full_name, role, created
 VALUES (1, '99999999905', 'vivasadmin', '$2a$12$iF54En7VicKnz3G6eBosf.m5HezRaQ6c2CyZCB.MUowFMzJayK9Dq', 'Luka Vivasović', 'admin', now()); -- pw: test123
 
 INSERT INTO tables (id, place_id, label, seats, width, height, x, y, status, qr_salt, is_disabled, created_at) VALUES
-(1, 1, '1', 2, 80, 80, 100.0, 100.0, 'empty', '5036144c6f5d41aeb0e332ea0029e073', false, now()),
+/*(1, 1, '1', 2, 80, 80, 100.0, 100.0, 'empty', '5036144c6f5d41aeb0e332ea0029e073', false, now()),
 (2, 1, '2', 2, 80, 80, 200.0, 100.0, 'empty', 'f8b4d726faf1436089415d0e453d33a3', false, now()),
 (3, 1, '3', 2, 80, 80, 300.0, 100.0, 'empty', '766f575f7bf042ccb79e9df9da4e9ca5', true, now()),
 (4, 1, '4', 4, 100, 100, 100.0, 200.0, 'empty', '768e63c7ab2b44a482b2a825645aaabb', false, now()),
@@ -85,7 +85,16 @@ INSERT INTO tables (id, place_id, label, seats, width, height, x, y, status, qr_
 (6, 1, '6', 4, 100, 100, 300.0, 200.0, 'empty', 'ef9bf913754048b083a8571b740fb112', false, now()),
 (7, 1, '7', 4, 100, 100, 400.0, 200.0, 'empty', '52206960508e41a797f546dd4106cf45', false, now()),
 (8, 3, '1', 4, 90, 90, 100.0, 300.0, 'empty', 'e6fae97a5c54471984572d1020388970', false, now()),
-(9, 3, '2', 4, 90, 90, 200.0, 300.0, 'empty', 'eb754108919e4db18cb0d05e2c4262f2', false, now()),
+(9, 3, '2', 4, 90, 90, 200.0, 300.0, 'empty', 'eb754108919e4db18cb0d05e2c4262f2', false, now()),*/
+(1, 1, '1', 2, 27, 41, 110.0, 304.0, 'empty', '5036144c6f5d41aeb0e332ea0029e073', false, now()),
+(2, 1, '2', 2, 27, 41, 148.0, 304.0, 'empty', 'f8b4d726faf1436089415d0e453d33a3', false, now()),
+(3, 1, '3', 2, 27, 41, 191.0, 304.0, 'empty', '766f575f7bf042ccb79e9df9da4e9ca5', true, now()),
+(4, 1, '4', 4, 27, 41, 229.0, 304.0, 'empty', '768e63c7ab2b44a482b2a825645aaabb', false, now()),
+(5, 1, '5', 4, 25, 39, 324.0, 171.0, 'empty', '1b3593e63a6a4fef8f2e5eae19840165', false, now()),
+(6, 1, '6', 4, 25, 39, 363.0, 171.0, 'empty', 'ef9bf913754048b083a8571b740fb112', false, now()),
+(7, 1, '7', 4, 25, 39, 405.0, 171.0, 'empty', '52206960508e41a797f546dd4106cf45', false, now()),
+(8, 3, '8', 4, 25, 39, 442.0, 171.0, 'empty', 'e6fae97a5c54471984572d1020388970', false, now()),
+(9, 3, '9', 4, 42, 42, 324.0, 316.0, 'empty', 'eb754108919e4db18cb0d05e2c4262f2', false, now()),
 
 (10, 2, '1', 4, 80, 80, 100.0, 100.0, 'empty', '768e63c7ab2b44a482b2a825645aaabb', false, now()),
 (11, 2, '2', 4, 80, 80, 200.0, 100.0, 'empty', 'eb754108919e4db18cb0d05e2c4262f2', false, now()),
@@ -425,6 +434,7 @@ DO $$
 DECLARE
     start_date DATE := CURRENT_DATE - INTERVAL '1 year';
     end_date DATE := CURRENT_DATE - INTERVAL '1 day';
+	place_id_var INTEGER := 1;
     d DATE;
     day_offset INTEGER;
     i INTEGER;
@@ -445,9 +455,9 @@ BEGIN
 
             total_price_var := 0;
 
-            -- Select a random table from place_id = 1
+            -- Select a random table from place_id_var
             SELECT id INTO table_rec FROM tables
-            WHERE place_id = 1
+            WHERE place_id = place_id_var
             ORDER BY random()
             LIMIT 1;
 
@@ -479,7 +489,7 @@ BEGIN
                 FROM menu_items mi
                 JOIN products p ON mi.product_id = p.id
                 JOIN product_category c ON p.category_id = c.id
-                WHERE mi.place_id = 1
+                WHERE mi.place_id = place_id_var
                 ORDER BY 
                     CASE
                         WHEN LOWER(p.name) LIKE '%kava%' THEN 1 
