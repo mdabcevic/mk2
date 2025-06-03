@@ -11,6 +11,7 @@ export const ApiMethods ={
     saveProductsToPlace: "/api/menu",
     updateMenuItem:"/api/menu",
     createCustomProduct:"/api/product",
+    deleteMenuItem:"api/menu/{placeId}/{productId}",
 
     getAllProducts: "/api/product",
     getProductCategories: "/api/product/categories",

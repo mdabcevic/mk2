@@ -36,7 +36,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       <div className="bg-white p-6 rounded-lg w-[400px]">
         <div className="flex justify-between w-full">
           <h2 className="text-lg text-[#A3A3A3] font-semibold mb-4">
-            {t("add_new_product")}
+            {t("product_modal.add_new_product")}
           </h2>
           <button onClick={onClose}>
             <img src="/assets/images/close.svg" width="30px" />
@@ -44,7 +44,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
         </div>
 
         <div className="mt-6">
-          <label className="block text-sm mb-1">{t("product_name")}</label>
+          <label className="block text-sm mb-1">{t("product_modal.product_name")}</label>
           <input
             type="text"
             value={name}
@@ -61,7 +61,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
             className="border w-full p-3 rounded-[20px]"
           >
             <option value="" disabled>
-              {t("select_category")}
+              {t("product_modal.select_category")}
             </option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
@@ -72,7 +72,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
         </div>
 
         <div className="mt-6 max-w-[150px]">
-          <label className="block text-sm mb-1">{t("volume")}</label>
+          <label className="block text-sm mb-1">{t("product_modal.volume")}</label>
           <input
             type="text"
             value={volume}

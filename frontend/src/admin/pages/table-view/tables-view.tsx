@@ -12,23 +12,27 @@ import TableActionModal from "../../../utils/components/table-actions-modal";
 import { orderService } from "../../../pages/places/menu/order.service";
 import OrdersByTableModal, { Order } from "../../../utils/components/orders-by-table-modal";
 import { placeOrderService } from "./place-orders.service";
+import { placeService } from "../../../utils/services/place.service";
+import { authService } from "../../../utils/auth/auth.service";
+import { ImageType } from "../../../utils/interfaces/place-item";
 
 const initial_div_width = Constants.create_tables_container_width;
 const initial_div_height = Constants.create_tables_container_height;
 const URL_QR = Constants.url_qr;
+const blueprintDefault = `/${Constants.template_image}`;
 
 const TablesView = () => {
-  const placeId = 1;
+  const placeId = authService.placeId();
   const [tables, setTables] = useState<Table[]>([]);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const { t } = useTranslation("admin");
   const [rerenderOrdersFlag, setRerenderOrdersFlag] = useState<number>(1);
   const [ordersByTable, setOrdersByTables] = useState<Order[] |null>(null);
   const [manageTables, setManageTables] = useState<boolean>(false);
+  const [blueprint, setBlueprint] = useState<string>(blueprintDefault);
 
   const fetchTables = async (notification?:Notification) => {
     setTables([]);
-    console.log(notification)
     const response = await tableService.getPlaceTablesByCurrentUser();
     const result = response.map(table => {
       if (notification && table.label === notification.tableLabel) {
@@ -39,11 +43,17 @@ const TablesView = () => {
       return table;
     });
     setTables(result);
-    
+  };
+
+  const getPlaceDetails = async () => {
+    let place = await placeService.getPlaceDetailsById(Number(placeId));
+    let blueprintsList = place?.images?.find(img => img.imageType === ImageType.blueprint)?.urls ?? [];
+    setBlueprint(blueprintsList?.length > 0 ? blueprintsList[0] : blueprintDefault);
   };
 
   useEffect(() => {
     fetchTables();
+    getPlaceDetails();
   }, []);
 
   useEffect(() => {
@@ -117,9 +127,7 @@ const TablesView = () => {
     if(response?.length > 0)
     response.forEach(async order => {
       await placeOrderService.updateOrderStatus(order.id!, orderStatusIndex.paid);
-    })
-    
-    
+    })   
   };
 
   return (
@@ -130,14 +138,10 @@ const TablesView = () => {
         <div
           onClick={() => setManageTables(!manageTables)}
           className="relative mt-2 w-14 h-6 bg-[#DFD8CD] rounded-full cursor-pointer transition-colors duration-300"
-          style={{
-            backgroundColor: manageTables ? "#7E5E44" : "#DFD8CD",
-          }}
+          style={{ backgroundColor: manageTables ? "#7E5E44" : "#DFD8CD" }}
         >
           <div
-            className={`absolute w-6 h-6 bg-white rounded-full border shadow-md transition-all duration-300 ${
-              manageTables ? "translate-x-8" : ""
-            }`}
+            className={`absolute w-6 h-6 bg-white rounded-full border shadow-md transition-all duration-300 ${ manageTables ? "translate-x-8" : "" }`}
           ></div>
         </div>
       </div>
@@ -146,7 +150,7 @@ const TablesView = () => {
           style={{
             width: `${initial_div_width}px`,
             height: `${initial_div_height}px`,
-            backgroundImage: `url(/${Constants.template_image})`,
+            backgroundImage: `url(${blueprint})`,
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             position: "relative",
@@ -182,15 +186,11 @@ const TablesView = () => {
               )}
 
             {ordersByTable && !manageTables && selectedTable?.label === table.label &&(
-              <OrdersByTableModal
-                orders={ordersByTable}
-                onClose={() => {setOrdersByTables(null); setSelectedTable(null);}}
-              />
+              <OrdersByTableModal orders={ordersByTable} onClose={() => {setOrdersByTables(null); setSelectedTable(null);}} />
             )}
             {typeof table?.requestType === "number" && (
               <div className="absolute bottom-4">
-                <img src={getTableIcon(table?.requestType)} width="30px" height="30px" className="rounded"
-                     style={{animation: 'floatUpDown 1s ease-in-out infinite'}}/>
+                <img src={getTableIcon(table?.requestType)} width="30px" height="30px" className="rounded" style={{animation: 'floatUpDown 1s ease-in-out infinite'}} alt="icon" />
               </div>
             )}
             </div>

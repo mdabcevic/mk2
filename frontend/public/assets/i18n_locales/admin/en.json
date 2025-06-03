@@ -36,6 +36,9 @@
     "closed_orders":"Closed orders",
     "add_item": "+ Add Item",
     "add_product": "+ Add Product",
+    "placeholder":"Select",
+    "available":"Available",
+    "unavailable":"Unavailable",
     "product_modal": {
         "add_new_product": "Add New Product",
         "product_name": "Product Name",

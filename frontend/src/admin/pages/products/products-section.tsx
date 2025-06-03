@@ -8,6 +8,7 @@ import AddProductModal from "./edit-add-product-modal";
 import PaginationControls from "../../../utils/components/pagination-controlls";
 
 const placeId = authService.placeId();
+const itemsPerPage = 30;
 const filterOptions: DropdownItem[] = [
   { id: "custom", value: "Custom" },
   { id: "shared", value: "Shared" },
@@ -20,9 +21,8 @@ const ProductsSection = forwardRef((_, ref) => {
   const [filterType, setFilterType] = useState<"custom" | "shared" | "all">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const itemsPerPage = 30;
   const { t } = useTranslation("admin");
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const fetchCategories = async () => {
     const cats = await productMenuService.getProductCategories();
@@ -67,21 +67,15 @@ const ProductsSection = forwardRef((_, ref) => {
 
   const filtered = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      filterType === "all"
-        ? true
-        : filterType === "custom"
-        ? product.exclusive
-        : !product.exclusive;
+    const matchesFilter = filterType === "all" ? true : filterType === "custom"
+                          ? product.exclusive
+                          : !product.exclusive;
     return matchesSearch && matchesFilter;
   });
 
   const totalItems = filtered.length;
 
-  const paginatedProducts = filtered.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage,currentPage * itemsPerPage);
 
   return (
     <div className="p-4 w-full max-w-[1500px] text-gray-800 m-auto">
@@ -118,10 +112,7 @@ const ProductsSection = forwardRef((_, ref) => {
           </thead>
           <tbody>
             {paginatedProducts.map((item, index) => (
-              <tr
-                key={item.id}
-                className={`transition-all duration-200 ${index % 2 !== 0 ? "bg-[#F5F5F5]" : "bg-white"}`}
-              >
+              <tr key={item.id} className={`transition-all duration-200 ${index % 2 !== 0 ? "bg-[#F5F5F5]" : "bg-white"}`}>
                 <td className="py-6 px-2 text-left">{item.name}</td>
                 <td className="py-6 px-2 text-center">{item.volume}</td>
                 <td className="py-6 px-2 text-center">{item.category.name}</td>
@@ -133,7 +124,9 @@ const ProductsSection = forwardRef((_, ref) => {
                   )}
                 </td>
                 <td className="py-6 px-2 flex gap-4 items-center justify-center">
-                  <button><img src="/assets/images/icons/delete.png" width="15px" /></button>
+                  {item.exclusive && (
+                    <button><img src="/assets/images/icons/delete.png" width="15px" /></button>
+                  )}
                 </td>
               </tr>
             ))}

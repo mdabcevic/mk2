@@ -37,6 +37,9 @@
     "closed_orders":"Završene narudžbe",
     "add_item": "+ Dodaj stavku",
     "add_product": "+ Dodaj proizvod",
+    "placeholder":"Odaberi",
+    "available":"Dostupno",
+    "unavailable":"Nedostupno",
     "product_modal": {
         "add_new_product": "Dodaj novi proizvod",
         "product_name": "Naziv proizvoda",
