@@ -1,11 +1,11 @@
 import  { forwardRef } from "react";
 import AnalyticsSection from "./analytics-section";
 
-const Analytics = forwardRef((_, ref) => {
+const Analytics = forwardRef(() => {
 
     return (
-    <div className="p-4">
-        <AnalyticsSection ref={ref} />
+    <div className="p-4 max-w-[1500px] m-auto">
+        <AnalyticsSection />
     </div>
     );
 });

@@ -14,15 +14,16 @@ export interface ProductsByDayOfWeek {
     popularProducts: PopularProducts[];
 }
 
-export interface ChartData {
-    day: string;
-    [productName: string]: number | string;
+export interface ProductChartData{
+    product: string;
+    count: number;
+    earnings: number;
 };
 
 export interface TrafficByDayOfWeek {
     dayOfWeek: string;
     count: number;
-    averageEarnings: number;
+    earnings: number;
 }
 
 export interface HourlyTraffic {
@@ -46,6 +47,17 @@ export interface PlaceTraffic {
     placeId: number;
     address: string;
     cityName: string;
+    lat: number,
+    long: number;
     count: number;
     earnings: number;
+}
+
+export interface KeyValues {
+    earnings: number;
+    averageOrder: number;
+    totalOrders: number;
+    firstEverOrderDate: string,
+    firstOrderDate: string,
+    lastOrderDate: string;
 }
