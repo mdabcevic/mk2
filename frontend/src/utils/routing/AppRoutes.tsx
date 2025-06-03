@@ -15,10 +15,11 @@ import Subscription from "../../pages/subscription/subscription.tsx";
 import { NotificationScreen } from "../../admin/pages/table-view/notifications.tsx";
 import ManagementView from "../../admin/pages/management/management.tsx";
 import HomePage from "../../pages/home/home.tsx";
+import MyOrders from "../../pages/places/place-details/my-orders.tsx";
 import Analytics from "../../admin/pages/analytics/analytics";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
-const Dashboard = lazy(() => import("../../admin/pages/dashboard"));
+const Dashboard = lazy(() => import("../../admin/pages/dashboard/dashboard.tsx"));
 const ProductsViewPage = lazy(() => import("../../admin/pages/products/products"));
 const TablesPage = lazy(() => import("../../admin/pages/table-view/tables.tsx"));
 
@@ -45,6 +46,7 @@ function AppRoutes(){
           <Route path={AppPaths.public.menu} element={<Menu />} />
           <Route path={AppPaths.public.login} element={<LoginPage />} />
           <Route path={AppPaths.public.subsciption} element={<Subscription />} />
+          <Route path={AppPaths.public.myOrders} element={<MyOrders />} />
           {/* after scanning qr code redirect here */}
           <Route path={AppPaths.public.redirectPage} element={<RedirectPage />} />
           <Route path="*" element={<Places />} />  

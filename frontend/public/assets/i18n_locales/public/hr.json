@@ -1,7 +1,8 @@
 {
   "header":{
         "login":"Prijava",
-        "coffee_shop":"Kafići"
+        "coffee_shop":"Kafići",
+        "my_orders":"Narudžbe"
     },
     "go_back":"Nazad",
     "passcode_required":"Potreban kod",
@@ -66,6 +67,8 @@
     "message": "Poruka",
     "close": "Zatvori",
     "send": "Pošalji",
+    "pricing":"Cijene",
+    "terms":"Uvjeti korištenja",
     "inquire_plan": "Želio bih se informirati o {{sub}} planu.",
     "view_tables":"Popunjenost objekta",
     "free_tables": "Broj slobodnih stolova",

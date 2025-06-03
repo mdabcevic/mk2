@@ -5,11 +5,13 @@ export const ApiMethods ={
     getPlaces: "/api/places",
     getPlaceById: "/api/places/{id}",
     getPlaceTablesByPlaceId: "/api/tables/{id}/all",
+    getPlaceStatus: "/api/places/dashboard/{id}",
 
     getMenuByPlaceId: "/api/menu/{id}",
     saveProductsToPlace: "/api/menu",
     updateMenuItem:"/api/menu",
     createCustomProduct:"/api/product",
+    deleteMenuItem:"api/menu/{placeId}/{productId}",
 
     getAllProducts: "/api/product",
     getProductCategories: "/api/product/categories",

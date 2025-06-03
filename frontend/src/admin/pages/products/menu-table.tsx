@@ -7,8 +7,8 @@ import Dropdown, { DropdownItem } from "../../../utils/components/dropdown";
 import PaginationControls from "../../../utils/components/pagination-controlls";
 
 const itemsPerPage = 20;
-const menuTypes = [{id:'available' ,value:'Available'}, {id:'unavailable',value:'Unavailable'}, {id:'all',value:'/'}];
 export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
+  const { t } = useTranslation("admin");
   const [showModal, setShowModal] = useState(false);
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [editableProduct, setEditableProduct] = useState<Partial<MenuItemDto>>({});
@@ -20,7 +20,8 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
   const [isAvailable, setIsAvailable] = useState<boolean |null>(true);
   const [isEditMode, setIsEditMode] = useState(true);
   const [availableProducts, setAvailableProducts] = useState<{ id: number; name: string }[]>([]);
-  const { t } = useTranslation("admin");
+  const menuTypes = [{id:'available' ,value:t("available")}, {id:'unavailable',value:t("unavailable")}, {id:'all',value:'/'}];
+
 
   useImperativeHandle(ref, () => ({
     openAddModal: () => {
@@ -123,6 +124,11 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
     filterMenuItems();
   }, [menu, searchTerm, currentPage]);
 
+  const deleteMenuItem = async(item: MenuItemDto) =>{
+    await productMenuService.deleteMenuItem(placeId,item.product.id);
+    fetchMenu();
+  }
+
   return (
     <section className="mt-4 bg-white p-4 sm:px-40 rounded-lg shadow col-span-1 md:col-span-2 overflow-x-auto">
 
@@ -188,7 +194,7 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
                 </td>
                 <td className="p-2 flex gap-4 items-center text-center">
                   <button onClick={()=>{startEditing(item);}}><img src="/assets/images/icons/edit.svg" width="15px" /></button>
-                  <button ><img src="/assets/images/icons/delete.png" width="15px" /></button>
+                  <button onClick={()=>{deleteMenuItem(item)}}><img src="/assets/images/icons/delete.png" width="15px" /></button>
                 </td>
               </tr>
             );

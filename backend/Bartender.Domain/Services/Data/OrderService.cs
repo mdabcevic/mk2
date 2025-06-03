@@ -88,7 +88,7 @@ public class OrderService(
                 existingOrder.PaymentType = newStatus.PaymentType ?? existingOrder.PaymentType;
                 logger.LogInformation("Guest updated status of OrderId {OrderId} to {NewStatus}", id, newStatus.Status);
                 notification = NotificationFactory.ForOrder
-                    (existingOrder.Table, existingOrder.Id, $"Guest updated Order {existingOrder.Id} status to {existingOrder.Status}.", NotificationType.OrderStatusUpdated);
+                    (existingOrder.Table, existingOrder.Id, $"Guest updated Order {existingOrder.Id} status to {existingOrder.Status}.", NotificationType.OrderStatusUpdated,true);
             }
             else
             {
@@ -169,11 +169,11 @@ public class OrderService(
         await repository.DeleteAsync(order);
     }
 
-    public async Task<ListResponse<OrderDto>> GetAllClosedOrdersByPlaceIdAsync(int placeId,int page)
+    public async Task<ListResponse<OrderDto>> GetAllClosedOrdersByPlaceIdAsync(int placeId,int page,int size)
     {
         await ValidatePlaceAccessAsync(placeId);
 
-        var (orders,total) = await repository.GetAllByPlaceIdAsync(placeId,page);
+        var (orders,total) = await repository.GetAllByPlaceIdAsync(placeId,page,size);
 
         var dto = mapper.Map<List<OrderDto>>(orders);
         var response = new ListResponse<OrderDto> { Items = dto, Total = total };
@@ -191,12 +191,12 @@ public class OrderService(
         return dto;
     }
 
-    public async Task<ListResponse<GroupedOrderStatusDto>> GetAllActiveOrdersByPlaceIdGroupedAsync(int placeId,int page, bool onlyWaitingForStaff = false)
+    public async Task<ListResponse<GroupedOrderStatusDto>> GetAllActiveOrdersByPlaceIdGroupedAsync(int placeId,int page, int size, bool onlyWaitingForStaff = false)
     {
         await ValidatePlaceAccessAsync(placeId);
 
-        var (groupedOrders,total) = onlyWaitingForStaff ? await repository.GetPendingByPlaceIdGroupedAsync(placeId,page) :
-                    await repository.GetActiveByPlaceIdGroupedAsync(placeId, page);
+        var (groupedOrders,total) = onlyWaitingForStaff ? await repository.GetPendingByPlaceIdGroupedAsync(placeId,page,size) :
+                    await repository.GetActiveByPlaceIdGroupedAsync(placeId, page, size);
 
         var result = groupedOrders.Select(g => new GroupedOrderStatusDto
         {

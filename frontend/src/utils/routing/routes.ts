@@ -12,7 +12,8 @@ export const AppPaths = {
         placeTables:"/place/:placeId/tables",
         redirectPage: "/table-lookup/:placeId/:salt",
         login:"/login",
-        subsciption:"/subscription"
+        subsciption:"/subscription",
+        myOrders:"/:placeId/my-orders"
     },
     
     admin:{

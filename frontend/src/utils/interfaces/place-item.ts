@@ -14,7 +14,8 @@ export interface IPlaceItem{
 export enum ImageType{
     banner="banner", 
     gallery= "gallery",
-    logo= "logo"
+    logo= "logo",
+    blueprint = "blueprints"
 } 
 
 export interface PlaceImages {

@@ -6,6 +6,7 @@ import { PaymentType } from "../../../utils/constants";
 import { orderService } from "../../places/menu/order.service";
 import { AppPaths } from "../../../utils/routing/routes";
 import { authService } from "../../../utils/auth/auth.service";
+import Dropdown, { DropdownItem } from "../../../utils/components/dropdown";
 
 const Cart = () => {
   const [cart, setCart] = useState<Record<string, CartItem>>(cartStorage.getCart());
@@ -35,11 +36,11 @@ const Cart = () => {
 
     await orderService.createOrder(orderItems, paymentType, note);
     cartStorage.deleteCart();
-    window.location.href = AppPaths.public.placeDetails.replace(":id",authService.placeId().toString());
+    window.location.href = AppPaths.public.myOrders.replace(":placeId",authService.placeId().toString());
   };
 
-  const paymentTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setPaymentType(Number(event.target.value));
+  const paymentTypeChange = (item: DropdownItem<number>) => {
+    setPaymentType(item.value);
   };
 
   const noteChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -84,15 +85,14 @@ const Cart = () => {
       <div className="space-y-2 text-black m-0 pt-4">
         <div className="">
           <label className="block text-lg font-semibold mb-2" htmlFor="payment-method">{t("payment_type")}</label>
-          <select
-            id="payment-method"
+          <Dropdown
+            items={[{id:1,value:PaymentType.cash,label:t("cash")},{id:2,value:PaymentType.creditcard,label:t("credit_card")}]}
             value={paymentType}
+            type="custom"
             onChange={paymentTypeChange}
-            className="block w-[250px] py-1 px-4 border rounded-[40px] bg-neutral-latte-light focus:outline-none"
-          >
-            <option value={PaymentType.cash}>{t("cash")}</option>
-            <option value={PaymentType.creditcard}>{t("credit_card")}</option>
-          </select>
+            className="w-[300px]"
+            buttonClassName="block w-[250px] py-1 px-4 border rounded-[40px] bg-neutral-latte-light focus:outline-none"
+          />
         </div>
 
         <div>

@@ -8,7 +8,7 @@ import { showToast, ToastType } from "../../../utils/components/toast";
 
 const EMPTY_DIV_HEIGHT = 20;
 
-export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],userRole:string}) {
+export function MenuItemsList({ items,userRole, enableAdd }: {items:MenuGroupedItemDto[],userRole:string,enableAdd:boolean}) {
     const [cart, setCart] = useState<Record<string, CartItem>>(cartStorage.getCart());
     const { t } = useTranslation("public");
   
@@ -30,7 +30,7 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
                   <div key={index} className={`relative px-3`}>
                   <div className={`pl-[25px] border rounded-[40px]  shadow-sm flex justify-between items-center w-full ${
                     !item.isAvailable && UserRole.guest == userRole ? "bg-gray-200" : "neutral-latte"
-                  } ${userRole !== UserRole.guest ? "py-3 pr-5" : "py-2"}`}>
+                  } ${(userRole !== UserRole.guest || !enableAdd) ? "py-3 pr-5" : "py-2"}`}>
                   <div className="max-w-[250px]">
                     <h4 className="text-sm font-bold">{item.product.name}</h4>
                     <p className="text-gray-600 text-sm">{item.description}</p>
@@ -43,7 +43,7 @@ export function MenuItemsList({ items,userRole }: {items:MenuGroupedItemDto[],us
                         {t("unavailable") ?? "Trenutno nedostupno"}
                       </span>
                     ) : (
-                      userRole === UserRole.guest && (
+                      userRole === UserRole.guest && enableAdd && (
                         <div className="">
                           <button
                             className="p-0 rounded ml-5 relative left-1 top-1 cursor-pointer"
