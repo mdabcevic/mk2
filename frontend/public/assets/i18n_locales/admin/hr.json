@@ -39,6 +39,12 @@
         "search":"Pretraži",
         "custom":"Vlastiti"
     },
-    "analytics":"Analitika"
-    
+    "analytics":"Analitika",
+    "popular_products":"Popularni proizvodi",
+    "daily_traffic": "Dnevni promet",
+    "daily_earnings": "Dnevna zarada",
+    "hourly_traffic": "Promet po satu",
+    "table_earnings": "Prosječne narudžbe po stolu",
+    "table_traffic": "Promet po stolu",
+    "place_traffic": "Promet mjesta"
 }

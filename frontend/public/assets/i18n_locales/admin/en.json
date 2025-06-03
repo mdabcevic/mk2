@@ -38,5 +38,12 @@
         "search":"search",
         "custom":"custom"
     },
-    "analytics":"Analytics"
+    "analytics":"Analytics",
+    "popular_products":"Popular products",
+    "daily_traffic": "Daily traffic",
+    "daily_earnings": "Daily earnings",
+    "hourly_traffic": "Hourly traffic",
+    "table_earnings": "Table average orders",
+    "table_traffic": "Table traffic",
+    "place_traffic": "Place traffic"
 }
