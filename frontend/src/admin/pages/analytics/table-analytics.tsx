@@ -56,7 +56,11 @@ const TableAnalytics: React.FC<TableAnalyticsProp> = ({ data, count }) => {
                             height: tableData.table.height,
                             backgroundColor: color,
                             borderRadius: `${Math.min(tableData.table.width, tableData.table.height) / 2}px`,
-                            zIndex: 2
+                            zIndex: 2,
+                            whiteSpace: "normal",
+                            ...(count ? {} : { wordBreak: "break-word" }),
+                            textAlign: "center",
+                            overflow: "visible",
                         }}
                         title={`Table: ${tableData.table.label}, Traffic: ${count ? tableData.count : tableData.averageEarnings}`}
                     >
