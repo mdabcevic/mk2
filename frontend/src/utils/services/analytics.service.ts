@@ -52,13 +52,22 @@ export const analyticsService = {
         return response;
     },
 
-    getTotalEarnings: async (id?: number, month?: number, year?: number) => {
+    /*getTotalEarnings: async (id?: number, month?: number, year?: number) => {
         const params = {
             month: month,
             year: year
         }
 
         const response = await api.get(ApiMethods.getTotalEarnings.replace("{placeId}", id ? id.toString() : ""), params);
+        return response;
+    },*/
+    getKeyValues: async (id?: number, month?: number, year?: number) => {
+        const params = {
+            month: month,
+            year: year
+        }
+
+        const response = await api.get(ApiMethods.getKeyValues.replace("{placeId}", id ? id.toString() : ""), params);
         return response;
     },
 }

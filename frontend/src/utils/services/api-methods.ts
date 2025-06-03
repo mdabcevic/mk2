@@ -39,5 +39,6 @@ export const ApiMethods ={
     getHourlyTraffic:"/api/analytics/traffic/hourly/{placeId}",
     getTableTraffic:"/api/analytics/traffic/table/{placeId}",
     getAllPlacesTraffic:"/api/analytics/traffic",
-    getTotalEarnings:"/api/analytics/earnings/{placeId}",
+    //getTotalEarnings:"/api/analytics/earnings/{placeId}",
+    getKeyValues:"/api/analytics/key-values/{placeId}",
 }
