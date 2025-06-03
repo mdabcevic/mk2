@@ -38,7 +38,12 @@ const TablesView = () => {
       if (notification && table.label === notification.tableLabel) {
       if(notification.type === NotificationType.PaymentRequested)
           return { ...table, requestType: notification.type};
-        else return { ...table};
+        else if(notification.type === NotificationType.GuestJoinedTable)
+          return {...table, requestType: NotificationType.StaffNeeded}
+        else if(notification.type === NotificationType.GuestLeftTable)
+          return {...table}
+        else if(notification.pending) return { ...table, requestType: notification.type};
+        else return {...table}
       }
       return table;
     });
@@ -91,7 +96,7 @@ const TablesView = () => {
   
       doc.setFontSize(16);
       doc.text(`${t("qr_code_message")}: ${tableLabel}`, 20, 20);
-      doc.addImage(qrDataUrl, "PNG", 20, 30, 100, 100);
+      doc.addImage(qrDataUrl, "PNG", 20, 30, 50, 50);
   
       doc.save(`qr_${tableLabel}.pdf`);
       fetchTables();
