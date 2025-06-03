@@ -159,6 +159,7 @@ builder.Services.AddScoped<ITableSessionService, GuestSessionService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<IAnalyticsServer, AnalyticsService>();
+builder.Services.AddHttpClient<IGeoCodingService, GeoCodingService>();
 
 builder.Services.AddSignalR();
 
