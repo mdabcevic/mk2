@@ -12,7 +12,6 @@ type DropdownProps<T = string> = {
   onChange: (item: DropdownItem<T>) => void;
   value?: T;
   defaultValue?: T;
-  placeholder?: string;
   type?: "light" | "brown" | "custom";
   className?: string;
   buttonClassName?: string;
@@ -25,7 +24,6 @@ export default function Dropdown<T = string>({
   onChange,
   value,
   defaultValue,
-  placeholder = "Select...",
   type = "light",
   className = "",
   buttonClassName = "",
@@ -66,8 +64,7 @@ export default function Dropdown<T = string>({
         <span>
           {
             typeof selectedItem?.label === "string" || typeof selectedItem?.label === "number"
-              ? selectedItem.label
-              : selectedItem?.label ?? String(selectedItem?.value ?? `${t("placeholder")}...` )
+              ? selectedItem.label : selectedItem?.label ?? String(selectedItem?.value ?? `${t("placeholder")}...` )
           }
         </span>
         <img src="/assets/images/icons/dropdown_arrow.svg" className={`mr-4 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
