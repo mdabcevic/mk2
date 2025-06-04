@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { orderService } from "../menu/order.service";
 import { AppPaths } from "../../../utils/routing/routes";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { notificationService } from "../../../utils/services/notification.service";
 import { authService, removePreviousState } from "../../../utils/auth/auth.service";
 import { placeOrderService } from "../../../admin/pages/table-view/place-orders.service";
@@ -17,6 +17,7 @@ function MyOrders() {
   const [showOrders, setShowOrders] = useState(false);
   const { t } = useTranslation("public");
   const passCode = authService.passCode();
+  const navigate = useNavigate();
   
   const fetchMyOrders = async () => {
     const response = await orderService.getMyOrders();
@@ -46,6 +47,7 @@ function MyOrders() {
     }
     else{
       authService.setGuestToken(response.guestToken,placeId!);
+      navigate(AppPaths.public.myOrders);
     }
       
   }
