@@ -50,8 +50,12 @@ function RedirectPage(){
                 setPassCodeRequired(true);
                 setMessage(t("invalid_passcode_message"))
             }
-            else
+            else{
                 authService.setGuestToken(response.guestToken,placeId!);
+                console.log("redirect redirectPage ");
+                navigate(AppPaths.public.myOrders.replace(":placeId",placeId!.toString()));
+            }
+                
         }
         catch(error:any){
             setPassCodeRequired(true);
