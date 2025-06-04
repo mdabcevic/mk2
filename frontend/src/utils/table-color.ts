@@ -31,7 +31,7 @@ export enum OrderStatusValue {
 
 
   const statusColors: Record<OrderStatusValue, string> = {
-    created: "#3B82F6",
+    created: "#FCD34D",
     approved: "#3B82F6",
     delivered: "#10B981",
     paid: "#10B981",
@@ -58,7 +58,7 @@ export function getStatusColor(status: OrderStatusValue): string {
     0: "bg-[#FCD34D] text-black", // StaffNeeded
     1: "bg-[#FCD34D] text-white", // GuestJoinedTable
     2: "bg-[#10B981] text-white", // GuestLeftTable
-    3: "bg-[#10B981] text-black", // OrderCreated
+    3: "bg-[#FCD34D] text-black", // OrderCreated
     4: "bg-[#3B82F6] text-white", // OrderStatusUpdated
     5: "bg-[#3B82F6] text-white", // OrderContentUpdated
     6: "bg-[#FCD34D] text-black", // PaymentRequested
