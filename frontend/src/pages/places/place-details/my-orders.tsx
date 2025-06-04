@@ -47,8 +47,8 @@ function MyOrders() {
     }
     else{
       authService.setGuestToken(response.guestToken,placeId!);
-      console.log("redirect my orders ");
-      navigate(AppPaths.public.myOrders.replace(":placeId",placeId!.toString()));
+      // console.log("redirect my orders ");
+      // navigate(AppPaths.public.myOrders.replace(":placeId",placeId!.toString()));
       //window.location.href = AppPaths.public.myOrders.replace(":placeId",placeId!.toString());
 
     }
