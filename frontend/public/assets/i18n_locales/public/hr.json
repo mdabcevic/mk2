@@ -74,6 +74,8 @@
     "free_tables": "Broj slobodnih stolova",
     "empty":"Prazno",
     "occupied":"Zauzeto",
+    "call_bartender_message":"Konobar dolazi",
+    "request_payment_message":"Plaćanje zatraženo",
     "home": {
         "explore":"Istraži kafiće u kojima je naručivanje jednostavno.",
         "explore_desc":"Vidi gdje možeš preskočiti čekanje, naručiti skeniranjem i uživati u ugodnijem iskustvu objedovanja.",

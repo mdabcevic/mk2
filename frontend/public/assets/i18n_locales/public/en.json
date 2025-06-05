@@ -73,6 +73,8 @@
     "free_tables": "Number of Free tables",
     "empty":"Empty",
     "occupied":"Occupied",
+    "call_bartender_message":"The Bartender is coming",
+    "request_payment_message":"Payment requested",
     "home": {
         "explore":"Explore cafés that make ordering simple",
         "explore_desc":"See where you can skip the wait, order with a scan, and enjoy a smoother dining experience.",
