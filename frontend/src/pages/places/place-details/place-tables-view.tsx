@@ -95,7 +95,7 @@ const PlaceTablesViewPublic = () => {
                 top: table.y * scale!,
                 width: table.width * scale!,
                 height: table.height * scale!,
-                backgroundColor: getTableColor(table.status),
+                backgroundColor: getTableColor(table.status,"public"),
                 borderRadius: `${(Math.min(table.width, table.height) * scale!) / 2}px`,
               }}
               >

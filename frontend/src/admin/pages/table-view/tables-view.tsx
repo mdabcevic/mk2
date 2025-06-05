@@ -172,7 +172,7 @@ const TablesView = () => {
                 top: table.y,
                 width: table.width,
                 height: table.height,
-                backgroundColor: ((table?.requestType ?? -1) >=0) ? getBgColorByNotificationStatus(table.requestType!): getTableColor(table.status)  ,
+                backgroundColor: ((table?.requestType ?? -1) >=0) ? getBgColorByNotificationStatus(table.requestType!): getTableColor(table.status, "admin")  ,
                 borderRadius: `${Math.min(table.width, table.height) / 2}px`,             
               }}
               onClick={() => {setSelectedTable(table); fetchOrdersByTable(table.label); }}

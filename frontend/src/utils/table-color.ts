@@ -2,15 +2,16 @@ import {  TableStatusString } from "./constants";
 
 export enum TableColor {
   empty = "#ffffff",
-  occupied = "#A3A3A3",
+  occupied = "#60A5FA",
+  occupiedPublic = "#A3A3A3",
   reserved = "#c8c8c8",
   bartenderRequired = "#eebd66",
   billRequested = "#7e96c2"
 }
-export function getTableColor(status: string){
+export function getTableColor(status: string, view: "admin" | "public"){
     switch (status) {
           case TableStatusString.occupied:
-            return TableColor.occupied;
+            return view === "public" ? TableColor.occupiedPublic : TableColor.occupied;
           case TableStatusString.reserved:
             return TableColor.reserved;
           default:
@@ -58,7 +59,7 @@ export function getStatusColor(status: OrderStatusValue): string {
     0: "bg-[#FCD34D] text-black", // StaffNeeded
     1: "bg-[#FCD34D] text-white", // GuestJoinedTable
     2: "bg-[#10B981] text-white", // GuestLeftTable
-    3: "bg-[#FCD34D] text-black", // OrderCreated
+    3: "bg-[#60A5FA] text-black", // OrderCreated
     4: "bg-[#3B82F6] text-white", // OrderStatusUpdated
     5: "bg-[#3B82F6] text-white", // OrderContentUpdated
     6: "bg-[#FCD34D] text-black", // PaymentRequested
