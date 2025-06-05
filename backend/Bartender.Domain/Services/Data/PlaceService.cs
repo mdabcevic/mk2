@@ -70,6 +70,7 @@ public class PlaceService(
         var place = await repository.Query()
         .Include(p => p.Business)
         .Include(p => p.City)
+        .Include(p => p.GoogleMapIframeLink)
         .Include(p => p.Tables)
         .Include(p => p.Images)
         .Include(p => p.MenuItems)!
