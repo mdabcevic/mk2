@@ -8,16 +8,22 @@ import { placeOrderService } from "../../../../admin/pages/table-view/place-orde
 import { orderStatusIndex } from "../../../../utils/table-color";
 import { useTranslation } from "react-i18next";
 import { Order } from "../../../../utils/interfaces/order";
-import MyOrdersModal from "./my-orders-modal";
 import { showToast, ToastType } from "../../../../utils/components/toast";
+import MyOrdersList from "./my-orders-list";
 
+const myOrdersKey = "showMyOrders";
+export function updateShowOrders(status:boolean | null){
+  let _status = localStorage.getItem(myOrdersKey) === "false" ? false : true; 
+  sessionStorage.setItem(myOrdersKey, status !== null ? status.toString() :  (!_status).toString());
+  window.dispatchEvent(new Event("showOrdersUpdated"));
+}
 
 function MyOrders() {
   const { placeId } = useParams();
   const [myOrders, setMyOrders] = useState<Order[]>([]);
-  const [showOrders, setShowOrders] = useState(false);
   const { t } = useTranslation("public");
   const passCode = authService.passCode();
+  const [showOrders, setShowOrders] = useState(false);
 
   
   const fetchMyOrders = async () => {
@@ -60,6 +66,20 @@ function MyOrders() {
       window.location.href = AppPaths.public.placeDetails.replace(":id",placeId!); 
   }, [placeId]);
 
+
+  useEffect(() => {
+    const syncWithStorage = () => {
+      const value = sessionStorage.getItem(myOrdersKey) === "true";
+      setShowOrders(value);
+    };
+
+    window.addEventListener("showOrdersUpdated", syncWithStorage);
+
+    return () => {
+      window.removeEventListener("showOrdersUpdated", syncWithStorage);
+    };
+  }, []);
+
   return (
     <section className={`relative w-full min-h-[80vh] mt-[100px]  h-content ${showOrders ? "overflowY-scroll": "overflow-hidden"} p-4`}>
 
@@ -68,7 +88,7 @@ function MyOrders() {
           showOrders ? "opacity-0 scale-90 pointer-events-none" : "opacity-100 scale-100"
         }`}
       >
-        <p className="text-center mb-8 mt-20  font-bold text-[16px]">{t("sm_message").toUpperCase()}</p>
+        <p className="text-center mb-8 mt-20  font-bold text-[16px] px-4">{t("sm_message").toUpperCase()}</p>
 
         <button className="px-6 py-3 rounded-[40px] bg-white color-mocha-600 font-bold border-mocha mb-4 w-64" onClick={() => callBartender()}>
           {t("call_bartender").toUpperCase()}
@@ -100,22 +120,19 @@ function MyOrders() {
         </h4>
 
         {showOrders && myOrders.length > 0 ? (
-          <MyOrdersModal
+          <MyOrdersList
             visible={showOrders}
             myOrders={myOrders}
             onClose={() => setShowOrders(false)}
             onRequestPayment={requestPayment}
           />
         ) : (
-          <p className="text-center">{t("sm_message")}</p>
+          <p className="text-center px-4">{t("sm_message")}</p>
         )}
 
         {myOrders.length > 0 && (
           <div className="fixed bottom-2 left-0 w-full flex flex-col items-center">
-            <button
-              className="px-6 py-3 rounded-[40px] bg-mocha-600 text-white mb-4 w-64"
-              onClick={() => requestPayment()}
-            >
+            <button onClick={() => requestPayment()} className="px-6 py-3 rounded-[40px] bg-mocha-600 text-white mb-4 w-64">
               {t("request_payment").toUpperCase()}
             </button>
           </div>
