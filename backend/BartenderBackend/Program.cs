@@ -6,7 +6,6 @@ using Bartender.Domain.Mappings;
 using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
 using Bartender.Domain.Services.Data;
-using Bartender.Domain.utility.ExceptionHandlers;
 using Bartender.Domain.Utility;
 using BartenderBackend.ExceptionHandlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
