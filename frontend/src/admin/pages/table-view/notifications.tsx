@@ -14,7 +14,7 @@ export function NotificationScreen({ onClose }:{onClose?: (label: string, setOrd
     const unsubscribe = subscribeToNotifications((n) => {
         const regexStaff = /^Staff updated Order \d+ status to payment_requested\.$/;
         const regexGuest = /^Guest updated Order \d+ status to payment_requested\.$/;
-        console.log(n);
+
         if(n.type === NotificationType.OrderStatusUpdated && (regexStaff.test(n.message) || regexGuest.test(n.message))){
           n.type = NotificationType.PaymentRequested;
         } 
@@ -24,9 +24,6 @@ export function NotificationScreen({ onClose }:{onClose?: (label: string, setOrd
           n.message = n.message.replace("Guest have left table","Gosti napustili stol");
           n.message = n.message.replace("New guest at table","Novi gost na stolu");
         }
-        console.log(n);
-        if(i18n.language === "hr" && n.type === NotificationType.GuestJoinedTable)
-          n.message = "Novi gost na stolu " + n.tableLabel;
       setNotifications((prev) => [...prev, n]);
     });
 
@@ -59,11 +56,8 @@ export function NotificationScreen({ onClose }:{onClose?: (label: string, setOrd
           className={`p-4 rounded shadow border text-black w-full  flex justify-between items-center ${getNotificationColor(n.type)}`}
         >
           <span className="text-black">{n.message}</span>
-          <button
-            className="ml-4 text-sm"
-            onClick={() => removeNotification(n)}
-          >
-            <img width={"32px"} src="/assets/images/icons/checkMark.svg"/>
+          <button onClick={() => removeNotification(n)} className="ml-4 text-sm w-[30px]">
+            <img width={"30px"} src="/assets/images/icons/checkMark.svg"/>
           </button>
         </div>
       )})}

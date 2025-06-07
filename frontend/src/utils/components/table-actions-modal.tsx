@@ -34,64 +34,40 @@ const TableActionModal: React.FC<Props> = ({
       transition={{ duration: 0.2 }}
     >
       {onGenerateQR && (
-        <button
-          onClick={() => {
-            onGenerateQR();
-            onClose();
-          }}
-          className={`${isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
+        <button onClick={() => {onGenerateQR(); onClose(); }}
+                className={`${isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
         >
           {t("generate_qr")}
         </button>
       )}
-      <button
-        onClick={() => {
-          onSetStatus(TableStatusString.empty);
-          onClose();
-        }}
-        className={`${isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
+      <button onClick={() => { onSetStatus(TableStatusString.empty); onClose();}}
+              className={`${isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
       >
         {t("set_as_empty")}
       </button>
-      <button
-        onClick={() => {
-          onSetStatus(TableStatusString.occupied);
-          onClose();
-        }}
-        className={`${isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
+      <button onClick={() => { onSetStatus(TableStatusString.occupied); onClose(); }}
+              className={`${isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
       >
         {t("set_as_occupied")}
       </button>
-      <button
-        onClick={() => {
-          onSetStatus(TableStatusString.reserved);
-          onClose();
-        }}
-        className={`${isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
+      <button onClick={() => { onSetStatus(TableStatusString.reserved); onClose();}}
+              className={`${isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
       >
         {t("set_as_reserved")}
       </button>
-      <button
-        onClick={() => {
-          disable(tableLabel);
-          onClose();
-        }}
-        className={`${isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
+      <button onClick={() => { disable(tableLabel); onClose(); }}
+              className={`${isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
       >
         {t("disable")}
       </button>
-      <button
-        onClick={() => {
-          enable(tableLabel);
-          onClose();
-        }}
-        className={`${!isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
+      <button onClick={() => { enable(tableLabel); onClose(); }}
+              className={`${!isDisabled ? "hidden" : "block"} w-full text-left mb-2 hover:text-mocha-600 transition-colors duration-100`}
       >
         {t("enable")}
       </button>
       <button onClick={onClose} className=" absolute right-5 top-3 z-10">
             <img src="/assets/images/icons/close_icon.svg" alt="close" />
-          </button>
+      </button>
     </motion.div>
   );
 };

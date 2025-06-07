@@ -60,39 +60,28 @@ export function Menu() {
       <h2 className={`text-xl font-bold mb-4 text-center mt-2 ${!showCart ? "block":"hidden"}`} >
         {t("menu_text")}
       </h2>
-      <Link className={`ml-4 ${!showCart ? "block":"hidden"}`} to={AppPaths.public.placeDetails.replace(":id",placeId!)} >Go Back</Link>
-
+      <Link className={`ml-4 ${!showCart ? "block":"hidden"}`} to={enableAdd ? AppPaths.public.myOrders.replace(":placeId",authService.placeId().toString()) : AppPaths.public.placeDetails.replace(":id",placeId!)} >{t("go_back")}</Link>
       
       <h2 className={`text-xl font-bold mb-4 text-left pl-2 pb-2 border-b mt-2 ${showCart ? "block":"hidden"}`}>
-          My orders
+        {t("my_orders")}
       </h2>
 
       <div className="relative w-full h-full">
 
-        <section
-          id="menu"
+        <section id="menu"
           className={`flex flex-col flex-grow overflow-y-auto p-4 transition-transform duration-1000 ease-in-out ${
             showCart ? "-translate-x-full" : "translate-x-0"
           }`}
-        >
-          <CategoryTabs 
-            menu={menu} 
-            selectedCategory={selectedCategory} 
-            changeCategory={changeCategory} 
-          />
+          >
+          <CategoryTabs menu={menu}  selectedCategory={selectedCategory}  changeCategory={changeCategory} />
 
           <div className={`${showCart ? "hidden":"block mb-6"}`}>
-          <MenuItemsList
-            items={itemsOfSelectedCategory}
-            userRole={userRole}
-            enableAdd={enableAdd}
-            />
+            <MenuItemsList items={itemsOfSelectedCategory} userRole={userRole} enableAdd={enableAdd} />
           </div>
         </section>
 
 
-        <section
-          id="cart"
+        <section id="cart"
           className={`absolute top-0 left-0 w-full h-content min-h-[80vh] p-4 overflow-y-auto transition-transform duration-1000 ease-in-out ${
             showCart ? "translate-x-0" : "translate-x-full"
           }`}
@@ -100,10 +89,7 @@ export function Menu() {
           <Cart />
 
           <div className="mt-4">
-            <button
-              onClick={() => setShowCart(false)}
-              className="text-white bg-mocha-600 font-semibold flex gap-3 flex-row max-w-[250px] py-2 px-10 rounded-[50px] cursor-pointer"
-            >
+            <button onClick={() => setShowCart(false)} className="text-white bg-mocha-600 font-semibold flex gap-3 flex-row max-w-[250px] py-2 px-10 rounded-[50px] cursor-pointer" >
               <img  src="/assets/images/arrow.svg" alt="back_arrow"/>{t("menu_text")}
             </button>
           </div>
@@ -112,11 +98,8 @@ export function Menu() {
       {
         !showCart && userRole === UserRole.guest && enableAdd && (
           <div className="fixed bottom-0 left-0 w-full p-4 text-center z-50">
-            <button
-              onClick={() => {if(totalPrice > 0) setShowCart(true);}}
-              className="text-white bg-mocha-600 font-semibold max-w-[250px] py-2 px-10 rounded-[50px] cursor-pointer"
-            >
-              Total {totalPrice.toFixed(2)}€ next
+            <button onClick={() => {if(totalPrice > 0) setShowCart(true);}} className="text-white bg-mocha-600 w-full font-semibold max-w-[350px] py-2 px-10 rounded-[50px] cursor-pointer flex justify-center">
+              <span>{t("total")} {totalPrice.toFixed(2)}€ </span><img className="rotate-180 ml-8" src="/assets/images/arrow.svg" alt="back_arrow"/>
             </button>
           </div>
         ) 

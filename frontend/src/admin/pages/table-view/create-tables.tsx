@@ -18,7 +18,7 @@ function CreateTables() {
   const [newTableName, setNewTableName] = useState<string>("");
   const [newSeats, setNewSeats] = useState<number>(4);
   const [labelMessage, setLabelMessage] = useState<string>("");
-  const [blueprint, setBlueprint] = useState<string>(blueprintDefault);
+  const [blueprint, setBlueprint] = useState<string | null>(null);
   
   const addTable = () => {
     if (!newTableName.trim()) return;
