@@ -226,10 +226,9 @@ public class OrderService(
         return result;
     }
 
-    //TODO: troubleshoot validation...
     public async Task<OrderDto?> GetByIdAsync(int id, bool skipValidation)
     {
-        var order = await repository.getOrderById(id) ?? throw new OrderNotFoundException(id); //TODO: should fetching be done after validation?
+        var order = await repository.getOrderById(id) ?? throw new OrderNotFoundException(id); // should fetching be done after validation?
 
         if (!skipValidation)
         {
@@ -242,9 +241,9 @@ public class OrderService(
         return dto;
     }
 
-    public async Task<List<OrderDto>> GetCurrentOrdersByTableLabelAsync(string tableLabel) //staff only?
+    public async Task<List<OrderDto>> GetCurrentOrdersByTableLabelAsync(string tableLabel)
     {
-        var orders = await repository.GetCurrentOrdersByTableLabelAsync(tableLabel); //TODO: should fetching be done after validation?
+        var orders = await repository.GetCurrentOrdersByTableLabelAsync(tableLabel); // should fetching be done after validation?
         if(orders == null || orders.Count == 0)
             return [];
 

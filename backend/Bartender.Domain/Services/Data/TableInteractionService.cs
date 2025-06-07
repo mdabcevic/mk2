@@ -110,7 +110,7 @@ public class TableInteractionService(
             return;
         }
 
-        await ApplyEmptyStatusAsync(table); //TODO: look into applying orders as complete
+        await ApplyEmptyStatusAsync(table);
     }
 
     private async Task HandleStaffStatusChangeAsync(Table table, TableStatus newStatus)
@@ -151,7 +151,7 @@ public class TableInteractionService(
 
     private async Task<TableScanDto> StartFirstSession(Table table)
     {
-        table.Status = TableStatus.occupied; //TODO: background job that empties tables with no active group sessions? Or wrap into transaction?
+        table.Status = TableStatus.occupied;
         await repository.UpdateAsync(table);
 
         var passphrase = GeneratePassphrase(); // 6-char alphanum
@@ -176,7 +176,7 @@ public class TableInteractionService(
             var dto = mapper.Map<TableScanDto>(table);
             dto.Message = "This table is currently occupied. Enter the passphrase to join.";
             dto.IsSessionEstablished = false;
-            return dto; //Token should be null / empty here i think.
+            return dto;
         }
            
         try

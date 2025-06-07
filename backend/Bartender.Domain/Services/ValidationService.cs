@@ -89,7 +89,7 @@ public class ValidationService(
 
         return businessId == user.Place.BusinessId;
     }
-     // TODO - throw exceptions instead of returning ServiceResult
+
     public async Task EnsurePlaceExistsAsync(int placeId)
     {
         var exists = await placeRepository.ExistsAsync(p => p.Id == placeId);

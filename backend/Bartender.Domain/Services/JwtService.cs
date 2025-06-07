@@ -10,7 +10,6 @@ namespace Bartender.Domain.Services;
 
 public class JwtService(IConfiguration config) : IJwtService
 {
-    //TODO: move to .env?
     private readonly string _key = config["Jwt:Key"]!;
     private readonly string _issuer = config["Jwt:Issuer"]!;
     private readonly string _audience = config["Jwt:Audience"]!;
