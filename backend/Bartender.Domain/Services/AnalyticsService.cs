@@ -215,6 +215,74 @@ public class AnalyticsService(
         return businessId.Value;
     }
 
+    public async Task<List<OrdersByWeatherDto>> GetOrderWeatherAnalytics(int placeId, int? month = null, int? year = null)
+    {
+        int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
+
+        var orders = await repository.GetOrdersWithWeather(businessId, placeId, month, year);
+        var groupedByHour = orders
+            .Where(o => o.weather != null && o.weather.WeatherType != WeatherType.unknown)
+            .GroupBy(o => new
+            {
+                WeekGroup = (o.weather!.DateTime.DayOfWeek == DayOfWeek.Saturday || o.weather!.DateTime.DayOfWeek == DayOfWeek.Sunday) ? "Weekend" : "Weekday",
+                Hour = o.weather.DateTime.Hour,
+                Date = o.weather.DateTime.Date,
+                WeatherType = o.weather.WeatherType
+            })
+            .Select(g => new
+            {
+                g.Key.WeekGroup,
+                g.Key.WeatherType,
+                g.Key.Hour,
+                g.Key.Date,
+                NumOfOrders = g.Count()
+            })
+            .ToList();
+
+        var grouped = groupedByHour
+            .GroupBy(x => new { x.WeekGroup, x.WeatherType })
+            .Select(g => new
+            {
+                g.Key.WeekGroup,
+                g.Key.WeatherType,
+                TotalOrders = g.Sum(x => x.NumOfOrders),
+                TotalDistinctHours = g.Select(x => new { x.Date, x.Hour }).Distinct().Count()
+            })
+            .Select(x => new OrdersByWeatherDto
+            {
+                WeekGroup = x.WeekGroup,
+                WeatherType = x.WeatherType,
+                AverageOrdersPerHour = x.TotalDistinctHours > 0 ? (double)x.TotalOrders / x.TotalDistinctHours : 0
+            })
+            .ToList();
+
+
+        return grouped;
+    }
+
+    public async Task<AllAnalyticsDataDto> GetAllAnalyticsData(int? placeId, int? month, int? year)
+    {
+        int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
+
+        var orders = await GetOrdersCached(businessId, placeId, month, year);
+
+        var popularProducts = await GetPopularProductsByDayOfWeek(placeId, month, year);
+        var dailyTraffic = await GetTrafficByDayOfWeek(placeId, month, year);
+        var hourlyTraffic = await GetHourlyTraffic(placeId, month, year);
+        var placeTraffic = await GetAllPlacesTraffic(month, year);
+        var keyValues = await GetAllInfo(placeId, month, year);
+
+        return new AllAnalyticsDataDto
+        {
+            PopularProducts = popularProducts,
+            DailyTraffic = dailyTraffic,
+            HourlyTraffic = hourlyTraffic,
+            PlaceTraffic = placeTraffic,
+            KeyValues = keyValues
+        };
+    }
+
+
     private int GetDayOfWeekOrder(string day)
     {
         return day switch

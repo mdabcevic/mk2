@@ -109,4 +109,35 @@ public class AnalyticsRepository : IAnalyticsRepository
 
         return await query.ToListAsync();
     }
+
+    public async Task<List<(Order order, WeatherData? weather)>> GetOrdersWithWeather(int businessId, int? placeId = null, int? month = null, int? year = null)
+    {
+        var query = context.Orders
+            .Include(o => o.Table)
+                .ThenInclude(t => t.Place)
+                    .ThenInclude(p => p.City)
+            .Where(o => o.Status == OrderStatus.closed);
+
+        if (placeId != null)
+            query = query.Where(o => o.Table.PlaceId == placeId);
+
+        else
+            query = query.Where(o => o.Table.Place.BusinessId == businessId);
+
+        if (month != null)
+            query = query.Where(o => o.CreatedAt.Month == month);
+
+        if (year != null)
+            query = query.Where(o => o.CreatedAt.Year == year);
+
+        var result = from o in query 
+                     join w in context.WeatherDatas 
+                     on new { CityId = o.Table.Place.CityId, Date = o.CreatedAt.Date, Hour = o.CreatedAt.Hour} 
+                     equals new {CityId = w.CityId, Date = w.DateTime.Date, Hour = w.DateTime.Hour}
+                     select new { order = o, weather = w };
+
+        var list = await result.ToListAsync();
+
+        return list.Select(x => (x.order, x.weather)).ToList();
+    }
 }
