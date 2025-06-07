@@ -20,6 +20,8 @@ public class Place : BaseEntity
 
     public string? Description { get; set; }
 
+    public string? GoogleMapIframeLink { get; set; }
+
     public TimeOnly OpensAt { get; set; } = TimeOnly.FromDateTime(DateTime.Now);
 
     public TimeOnly ClosesAt { get; set; } = TimeOnly.FromDateTime(DateTime.Now);

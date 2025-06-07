@@ -65,7 +65,7 @@ const PlaceDetails = () => {
             </p>
           </article>
 
-          <iframe className="mt-20 rounded-[16px] mb-10" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d177883.6367772199!2d15.799556012676435!3d45.84265628595503!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4765d692c902cc39%3A0x3a45249628fbc28a!2sZagreb!5e0!3m2!1sen!2shr!4v1745679320079!5m2!1sen!2shr" width="100%" height="200"  loading="lazy" referrerPolicy={"no-referrer-when-downgrade"}></iframe>
+          <iframe className="mt-20 rounded-[16px] mb-10" src={place?.googleMapIframeLink} width="100%" height="200"  loading="lazy" referrerPolicy={"no-referrer-when-downgrade"}></iframe>
         </section>
       )}
     </div>

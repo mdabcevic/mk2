@@ -15,7 +15,7 @@ import Subscription from "../../pages/subscription/subscription.tsx";
 import { NotificationScreen } from "../../admin/pages/table-view/notifications.tsx";
 import ManagementView from "../../admin/pages/management/management.tsx";
 import HomePage from "../../pages/home/home.tsx";
-import MyOrders from "../../pages/places/place-details/my-orders.tsx";
+import MyOrders from "../../pages/places/place-details/myOrders/my-orders.tsx";
 import Analytics from "../../admin/pages/analytics/analytics";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));

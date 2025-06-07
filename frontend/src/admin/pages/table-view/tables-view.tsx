@@ -29,7 +29,7 @@ const TablesView = () => {
   const [rerenderOrdersFlag, setRerenderOrdersFlag] = useState<number>(1);
   const [ordersByTable, setOrdersByTables] = useState<Order[] |null>(null);
   const [manageTables, setManageTables] = useState<boolean>(false);
-  const [blueprint, setBlueprint] = useState<string>(blueprintDefault);
+  const [blueprint, setBlueprint] = useState<string | null>(null);
 
   const fetchTables = async (notification?:Notification) => {
     setTables([]);
@@ -172,7 +172,7 @@ const TablesView = () => {
                 top: table.y,
                 width: table.width,
                 height: table.height,
-                backgroundColor: ((table?.requestType ?? -1) >=0) ? getBgColorByNotificationStatus(table.requestType!): getTableColor(table.status)  ,
+                backgroundColor: ((table?.requestType ?? -1) >=0) ? getBgColorByNotificationStatus(table.requestType!): getTableColor(table.status, "admin")  ,
                 borderRadius: `${Math.min(table.width, table.height) / 2}px`,             
               }}
               onClick={() => {setSelectedTable(table); fetchOrdersByTable(table.label); }}

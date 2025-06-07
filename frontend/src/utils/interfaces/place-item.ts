@@ -6,6 +6,7 @@ export interface IPlaceItem{
     cityName:string,
     workHours?:string,
     banner:string;
+    googleMapIframeLink:string,
     description:string,
     freeTablesCount:number;
     images: PlaceImages[]

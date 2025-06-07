@@ -4,6 +4,7 @@ using Bartender.Data;
 using Bartender.Data.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Bartender.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250605214344_googleMapIframeLink")]
+    partial class googleMapIframeLink
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -27,7 +30,6 @@ namespace Bartender.Data.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "picturetype", new[] { "banner", "blueprints", "events", "gallery", "logo", "promotion" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "subscriptiontier", new[] { "basic", "enterprise", "none", "premium", "standard", "trial" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "tablestatus", new[] { "empty", "occupied", "reserved" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "weathertype", new[] { "clear", "cloudy", "rainy", "severe_weather", "snowy", "unknown" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Bartender.Data.Models.Business", b =>
@@ -90,14 +92,6 @@ namespace Bartender.Data.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
-
-                    b.Property<decimal>("Latitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("latitude");
-
-                    b.Property<decimal>("Longitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("longitude");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -369,14 +363,6 @@ namespace Bartender.Data.Migrations
                     b.Property<string>("GoogleMapIframeLink")
                         .HasColumnType("text")
                         .HasColumnName("google_map_iframe_link");
-
-                    b.Property<decimal>("Latitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("latitude");
-
-                    b.Property<decimal>("Longitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("longitude");
 
                     b.Property<TimeOnly>("OpensAt")
                         .HasColumnType("time without time zone")
@@ -707,38 +693,6 @@ namespace Bartender.Data.Migrations
                     b.ToTable("tables");
                 });
 
-            modelBuilder.Entity("Bartender.Data.Models.WeatherData", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CityId")
-                        .HasColumnType("integer")
-                        .HasColumnName("city_id");
-
-                    b.Property<DateTime>("DateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("date_time");
-
-                    b.Property<double?>("Temperature")
-                        .HasColumnType("double precision")
-                        .HasColumnName("temperature");
-
-                    b.Property<WeatherType>("WeatherType")
-                        .HasColumnType("weathertype")
-                        .HasColumnName("weather_type");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CityId");
-
-                    b.ToTable("weather_datas");
-                });
-
             modelBuilder.Entity("Bartender.Data.Models.GuestSession", b =>
                 {
                     b.HasOne("Bartender.Data.Models.GuestSessionGroup", "Group")
@@ -923,17 +877,6 @@ namespace Bartender.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Place");
-                });
-
-            modelBuilder.Entity("Bartender.Data.Models.WeatherData", b =>
-                {
-                    b.HasOne("Bartender.Data.Models.City", "City")
-                        .WithMany()
-                        .HasForeignKey("CityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("City");
                 });
 
             modelBuilder.Entity("Bartender.Data.Models.Business", b =>

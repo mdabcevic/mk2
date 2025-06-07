@@ -20,7 +20,7 @@ const PlaceTablesViewPublic = () => {
   const { placeId } = useParams();
   const [tables, setTables] = useState<Table[]>([]);
   const [scale, setScale] = useState<number>();
-  const [blueprint, setBlueprint] = useState<string>(blueprintDefault);
+  const [blueprint, setBlueprint] = useState<string | null>(null);
   const { t } = useTranslation("public");
   const fetchTables = async () => {
     const response = authService.userRole() === UserRole.admin || 
@@ -60,9 +60,7 @@ const PlaceTablesViewPublic = () => {
 
   return (
     <div>
-      <div
-      className="flex flex-col w-full h-full min-h-[95vh] items-center"
-    >
+      <div className="flex flex-col w-full h-full min-h-[95vh] items-center">
       <div className="max-w-[1500px] w-full mt-30">
         <Link to={AppPaths.public.placeDetails.replace(":id",placeId!)} className="ml-4 mt-4 mb-4 w-full">{t("go_back")}</Link>
       </div>
@@ -95,7 +93,7 @@ const PlaceTablesViewPublic = () => {
                 top: table.y * scale!,
                 width: table.width * scale!,
                 height: table.height * scale!,
-                backgroundColor: getTableColor(table.status),
+                backgroundColor: getTableColor(table.status,"public"),
                 borderRadius: `${(Math.min(table.width, table.height) * scale!) / 2}px`,
               }}
               >

@@ -1,7 +1,7 @@
 {
     "header":{
         "login":"Login",
-        "my_orders":"My orders"
+        "my_orders":"My Table"
     },
     "go_back":"Back",
     "passcode_required":"Passcode required",
@@ -73,6 +73,15 @@
     "free_tables": "Number of Free tables",
     "empty":"Empty",
     "occupied":"Occupied",
+    "call_bartender_message":"The Bartender is coming",
+    "request_payment_message":"Payment requested",
+    "generate_qr":"Generate QR",
+    "set_as_empty":"Set as Empty",
+    "set_as_occupied":"Set as Occupied",
+    "set_as_reserved":"Set as Reserved",
+    "enable":"Enable",
+    "disable":"Disable",
+    "my_passcode":"MY PASSCODE",
     "home": {
         "explore":"Explore cafés that make ordering simple",
         "explore_desc":"See where you can skip the wait, order with a scan, and enjoy a smoother dining experience.",
