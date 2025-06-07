@@ -32,7 +32,7 @@ function AdminRouteGuard() {
 
 function AppRoutes(){
   return (
-    <Router>
+
       <Routes>
       
         {/* Public routes */}
@@ -71,7 +71,7 @@ function AppRoutes(){
           </Route>
           
       </Routes>
-    </Router>
+
   );
 };
 

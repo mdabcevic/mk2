@@ -6,9 +6,9 @@ function PlaceCard( { place }: { place: IPlaceItem }) {
   const navigate = useNavigate();
 
     return (
-      <div 
+      <div role="button"
         className="relative flex md:block items-center w-full h-[200px] bg-white rounded-[12px] py-1 shadow-[0px_4px_10px_rgb(0,0,0,0.1)] overflow-hidden cursor-pointer"
-        onClick={() => navigate(AppPaths.public.placeDetails.replace(":id", place.id.toString()))}
+        onClick={() => {navigate(AppPaths.public.placeDetails.replace(":id", place.id.toString())); }}
       >
         <img 
           src={place.banner ?? "https://postmeridiemspirits.com/wp-content/uploads/cocktail-glasses-1024x683.jpg.webp"} 
