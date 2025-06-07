@@ -1,7 +1,6 @@
 ﻿using Bartender.Data;
 using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Utility.Exceptions;
 using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
 using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using Microsoft.AspNetCore.SignalR;

@@ -73,7 +73,7 @@ internal class BusinessControllerIntegrationTests : IntegrationTestBase
     {
         using var scope = Factory.Services.CreateScope();
         var mockUser = scope.ServiceProvider.GetRequiredService<MockCurrentUser>();
-        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.manager, businessid: 1, placeid: 1);
+        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.owner, businessid: 1, placeid: 1);
         mockUser.Override(staff);
 
         var dto = new UpsertBusinessDto
