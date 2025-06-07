@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using System.Net;
 
-namespace BartenderTests.IntegrationTests;
+namespace BartenderTests.IntegrationTests.Controllers;
 
 [TestFixture]
 public class StaffControllerIntegrationTests : IntegrationTestBase
