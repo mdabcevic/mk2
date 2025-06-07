@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Bartender.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250607070714_AddWeatherDataTable")]
+    [Migration("20250607203401_AddWeatherDataTable")]
     partial class AddWeatherDataTable
     {
         /// <inheritdoc />
@@ -30,7 +30,7 @@ namespace Bartender.Data.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "picturetype", new[] { "banner", "blueprints", "events", "gallery", "logo", "promotion" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "subscriptiontier", new[] { "basic", "enterprise", "none", "premium", "standard", "trial" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "tablestatus", new[] { "empty", "occupied", "reserved" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "weathertype", new[] { "clear", "cloudy", "rainy", "severe_weather", "snowy", "unknown" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "weathertype", new[] { "dry", "rainy", "severe_weather", "snowy", "unknown" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Bartender.Data.Models.Business", b =>
@@ -368,6 +368,10 @@ namespace Bartender.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text")
                         .HasColumnName("description");
+
+                    b.Property<string>("GoogleMapIframeLink")
+                        .HasColumnType("text")
+                        .HasColumnName("google_map_iframe_link");
 
                     b.Property<decimal>("Latitude")
                         .HasColumnType("numeric")

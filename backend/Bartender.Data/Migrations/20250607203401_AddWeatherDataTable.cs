@@ -20,13 +20,14 @@ namespace Bartender.Data.Migrations
                 .Annotation("Npgsql:Enum:picturetype", "banner,blueprints,events,gallery,logo,promotion")
                 .Annotation("Npgsql:Enum:subscriptiontier", "basic,enterprise,none,premium,standard,trial")
                 .Annotation("Npgsql:Enum:tablestatus", "empty,occupied,reserved")
-                .Annotation("Npgsql:Enum:weathertype", "clear,cloudy,rainy,severe_weather,snowy,unknown")
+                .Annotation("Npgsql:Enum:weathertype", "dry,rainy,severe_weather,snowy,unknown")
                 .OldAnnotation("Npgsql:Enum:employeerole", "admin,manager,owner,regular")
                 .OldAnnotation("Npgsql:Enum:orderstatus", "approved,cancelled,closed,created,delivered,paid,payment_requested")
                 .OldAnnotation("Npgsql:Enum:paymenttype", "cash,creditcard,other")
                 .OldAnnotation("Npgsql:Enum:picturetype", "banner,blueprints,events,gallery,logo,promotion")
                 .OldAnnotation("Npgsql:Enum:subscriptiontier", "basic,enterprise,none,premium,standard,trial")
                 .OldAnnotation("Npgsql:Enum:tablestatus", "empty,occupied,reserved");
+
 
             migrationBuilder.CreateTable(
                 name: "weather_datas",
@@ -75,7 +76,7 @@ namespace Bartender.Data.Migrations
                 .OldAnnotation("Npgsql:Enum:picturetype", "banner,blueprints,events,gallery,logo,promotion")
                 .OldAnnotation("Npgsql:Enum:subscriptiontier", "basic,enterprise,none,premium,standard,trial")
                 .OldAnnotation("Npgsql:Enum:tablestatus", "empty,occupied,reserved")
-                .OldAnnotation("Npgsql:Enum:weathertype", "clear,cloudy,rainy,severe_weather,snowy,unknown");
+                .OldAnnotation("Npgsql:Enum:weathertype", "dry,rainy,severe_weather,snowy,unknown");
         }
     }
 }

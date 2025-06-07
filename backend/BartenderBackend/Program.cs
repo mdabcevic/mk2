@@ -1,5 +1,6 @@
 using Bartender.Data;
 using Bartender.Data.Enums;
+using Bartender.Data.Models;
 using Bartender.Domain;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Mappings;
