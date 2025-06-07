@@ -6,6 +6,9 @@ using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.DTO.PlaceImage;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
 
 namespace Bartender.Domain.Services.Data;
 

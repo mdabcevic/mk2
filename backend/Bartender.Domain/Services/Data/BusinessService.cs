@@ -4,6 +4,8 @@ using Bartender.Data.Models;
 using Bartender.Domain.DTO.Business;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;

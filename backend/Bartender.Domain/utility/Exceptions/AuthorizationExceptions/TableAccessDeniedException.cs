@@ -1,4 +1,4 @@
-﻿namespace Bartender.Domain.Utility.Exceptions;
+﻿namespace Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
 
 public class TableAccessDeniedException : AuthorizationException
 {

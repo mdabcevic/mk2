@@ -1,4 +1,5 @@
-﻿using Bartender.Domain.Utility.Exceptions;
+﻿using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
+using BartenderBackend.ExceptionHandlers;
 using Microsoft.AspNetCore.Diagnostics;
 
 namespace Bartender.Domain.utility.ExceptionHandlers;

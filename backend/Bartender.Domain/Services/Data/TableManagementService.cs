@@ -3,6 +3,7 @@ using Bartender.Data.Models;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using Microsoft.Extensions.Logging;
 
 namespace Bartender.Domain.Services.Data;

@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO.Table;
 using Bartender.Data;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
 
 namespace Bartender.Domain.Services.Data;
 

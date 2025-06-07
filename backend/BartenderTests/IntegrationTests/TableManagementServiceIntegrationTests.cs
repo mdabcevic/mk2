@@ -2,6 +2,7 @@
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using BartenderTests.Utility;
 using Microsoft.Extensions.DependencyInjection;
 

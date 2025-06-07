@@ -1,8 +1,11 @@
 ﻿using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Picture;
+using Bartender.Domain.DTO.PlaceImage;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using BartenderTests.Utility;
 using Microsoft.Extensions.DependencyInjection;
 

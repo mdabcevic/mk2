@@ -1,7 +1,7 @@
 ﻿using Bartender.Data.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace Bartender.Domain.DTO.Picture;
+namespace Bartender.Domain.DTO.PlaceImage;
 
 public class UpsertImageDto
 {

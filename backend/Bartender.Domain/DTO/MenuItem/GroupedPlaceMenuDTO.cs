@@ -1,5 +1,4 @@
-﻿
-using Bartender.Domain.DTO.Place;
+﻿using Bartender.Domain.DTO.Place;
 
 namespace Bartender.Domain.DTO.MenuItem;
 

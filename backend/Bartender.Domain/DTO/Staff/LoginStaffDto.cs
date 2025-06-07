@@ -1,5 +1,4 @@
-﻿
-namespace Bartender.Domain.DTO.Staff;
+﻿namespace Bartender.Domain.DTO.Staff;
 
 public class LoginStaffDto
 {

@@ -6,8 +6,8 @@ using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Services.Data;
-using Bartender.Domain.Utility.Exceptions;
 using BartenderTests.Utility;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 
 namespace BartenderTests.UnitTests;
 

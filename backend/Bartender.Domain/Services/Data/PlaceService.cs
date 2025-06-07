@@ -8,6 +8,8 @@ using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 
 namespace Bartender.Domain.Services.Data;
 

@@ -1,5 +1,4 @@
-﻿
-using Bartender.Data;
+﻿using Bartender.Data;
 using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;

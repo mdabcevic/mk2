@@ -1,13 +1,11 @@
-﻿using Bartender.Data;
-using Bartender.Data.Enums;
+﻿using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Services;
-using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using BartenderTests.Utility;
 using Microsoft.Extensions.DependencyInjection;
-using NSubstitute;
 
 namespace BartenderTests.IntegrationTests;
 

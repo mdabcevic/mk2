@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.DTO.MenuItem;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Services;
 using Bartender.Domain.Services.Data;
-using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using BartenderTests.Utility;
 using Microsoft.Extensions.Logging;
 using NSubstitute;

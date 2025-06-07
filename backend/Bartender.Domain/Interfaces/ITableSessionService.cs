@@ -1,5 +1,4 @@
-﻿
-using Bartender.Data.Models;
+﻿using Bartender.Data.Models;
 
 namespace Bartender.Domain.Interfaces;
 

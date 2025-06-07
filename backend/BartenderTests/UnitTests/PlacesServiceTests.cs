@@ -2,11 +2,11 @@
 using Bartender.Data;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
-using Bartender.Domain.DTO;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Mappings;
 using Bartender.Domain.Services.Data;
-using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using BartenderTests.Utility;
 using Microsoft.Extensions.Logging;
 using NSubstitute;

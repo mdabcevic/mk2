@@ -8,6 +8,8 @@ using Bartender.Domain.DTO;
 using Bartender.Data;
 using Bartender.Domain.DTO.Place;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 
 namespace Bartender.Domain.Services.Data;
 
@@ -46,6 +48,7 @@ public class OrderService(
         if (currentUser.IsGuest)
         {
             var guest = await guestSessionRepo.GetByKeyAsync(g => g.Token == currentUser.GetRawToken());
+
             if (guest == null)
                 throw new NoActiveSessionFoundException();
 
