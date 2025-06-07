@@ -7,8 +7,8 @@ using Bartender.Domain.Mappings;
 using Bartender.Domain.Repositories;
 using Bartender.Domain.Services;
 using Bartender.Domain.Services.Data;
-using Bartender.Domain.utility.ExceptionHandlers;
 using Bartender.Domain.Utility;
+using BartenderBackend.ExceptionHandlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,7 +17,7 @@ using Serilog;
 using StackExchange.Redis;
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json.Serialization; // <-- ensure this namespace is included
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -168,6 +168,7 @@ builder.Services.AddSignalR();
 
 builder.Services.AddAutoMapper(
     typeof(BusinessProfile).Assembly,
+    typeof(StaffProfile).Assembly,
     typeof(ProductProfile).Assembly,
     typeof(MenuItemProfile).Assembly,
     typeof(PlaceProfile).Assembly,
@@ -249,3 +250,6 @@ app.MapGet("/health", () => Results.Ok("Application is healthy."))
    .WithTags("System");
 
 await app.RunAsync();
+#pragma warning disable S1118 // Utility classes should not have public constructors
+public partial class Program { }
+#pragma warning restore S1118 // Utility classes should not have public constructors

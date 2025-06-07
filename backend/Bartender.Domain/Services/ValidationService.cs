@@ -1,7 +1,7 @@
 ﻿using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
-using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using Microsoft.Extensions.Logging;
 
 namespace Bartender.Domain.Services;
@@ -16,14 +16,11 @@ public class ValidationService(
 {
     public async Task<bool> VerifyUserGuestAccess(int orderTableId)
     {
-        if (currentUser == null) { 
+        if (currentUser == null)
             return false;
-        }
 
         if (currentUser.IsGuest && await tableSessionService.HasActiveSessionAsync(orderTableId, currentUser.GetRawToken()))
-        {
             return true;
-        }
 
         else if (!currentUser.IsGuest)
         {
@@ -34,9 +31,7 @@ public class ValidationService(
                 return false;
 
             if (await VerifyUserPlaceAccess(table.PlaceId, user))
-            {
                 return true;
-            }
         }
         return false;
     }
@@ -59,10 +54,8 @@ public class ValidationService(
 
     public async Task<bool> VerifyUserPlaceAccess(int targetPlaceId, Staff? user = null)
     {
-        if (user == null)
-        {
-            user = await currentUser.GetCurrentUserAsync();
-        }
+        user ??= await currentUser.GetCurrentUserAsync();
+
         if (user!.Role == EmployeeRole.admin)
             return true;
 
@@ -89,7 +82,7 @@ public class ValidationService(
 
         return businessId == user.Place.BusinessId;
     }
-     // TODO - throw exceptions instead of returning ServiceResult
+
     public async Task EnsurePlaceExistsAsync(int placeId)
     {
         var exists = await placeRepository.ExistsAsync(p => p.Id == placeId);
@@ -100,18 +93,16 @@ public class ValidationService(
     public async Task EnsureBusinessExistsAsync(int businessId)
     {
         var exists = await businessRepository.ExistsAsync(b => b.Id == businessId);
+
         if (!exists)
-        {
             throw new BusinessNotFoundException(businessId);
-        }
     }
 
     public async Task EnsureTableExistsAsync(int tableId)
     {
         var exists = await tableRepository.ExistsAsync(b => b.Id == tableId);
+
         if (!exists)
-        {
             throw new TableNotFoundException(tableId);
-        }
     }
 }

@@ -74,8 +74,8 @@ export default function Dropdown<T = string>({
       {isOpen && (
         <ul className={`absolute mt-2 w-full z-10 rounded border shadow-lg bg-white overflow-hidden ${menuClassName}`}>
           {items.map((item) => (
-            <li key={item.id} onClick={() => handleSelect(item)} className={`px-4 py-2 cursor-pointer hover:bg-gray-200 ${itemClassName}`}>
-              {(typeof selectedItem?.label === "string" || typeof selectedItem?.label === "number") ? item.label : String(item?.value ?? "")}
+            <li key={item.id} role="button" onClick={() => handleSelect(item)} className={`px-4 py-2 cursor-pointer hover:bg-gray-200 ${itemClassName}`} > 
+            {(typeof item.label === "string" || typeof item.label === "number") ? item.label : String(item.value ?? "")} 
             </li>
           ))}
         </ul>

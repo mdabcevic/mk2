@@ -61,6 +61,7 @@
     "unlimited": "Unlimited",
     "choose_subscription": "Choose Your Plan",
     "contact": "Contact",
+    "contact_info_text": "We’d love to hear from you!",
     "subject": "Subject",
     "sender": "Sender",
     "message": "Message",
@@ -82,6 +83,7 @@
     "enable":"Enable",
     "disable":"Disable",
     "my_passcode":"MY PASSCODE",
+    "places_title":"Browse places near you",
     "home": {
         "explore":"Explore cafés that make ordering simple",
         "explore_desc":"See where you can skip the wait, order with a scan, and enjoy a smoother dining experience.",

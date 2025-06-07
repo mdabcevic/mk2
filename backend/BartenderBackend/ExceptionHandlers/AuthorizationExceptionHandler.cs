@@ -1,7 +1,7 @@
-﻿using Bartender.Domain.Utility.Exceptions;
+﻿using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
 using Microsoft.AspNetCore.Diagnostics;
 
-namespace Bartender.Domain.utility.ExceptionHandlers;
+namespace BartenderBackend.ExceptionHandlers;
 
 public class AuthorizationExceptionHandler(ILogger<AuthorizationExceptionHandler> logger) : IExceptionHandler
 {

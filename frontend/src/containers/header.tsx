@@ -25,13 +25,14 @@ const HeaderComponent = () => {
 
 
   return (
-    <header className="">
+    <header className="transition-all duration-1000 ease-in-out">
 
-      <nav className="flex justify-between items-center bg-brown-500 text-light text-[1.2rem] p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2 z-100000">
-      <h1 className="cursor-pointer" onClick={()=> window.location.href = AppPaths.public.home}><img src="/assets/images/icons/logo.svg" width={"100px"} height={"100px"} className="rounded-[30px]" /></h1>
+      <nav className="transition-all duration-1000 ease-in-out flex justify-between items-center bg-brown-500 text-light text-[1.2rem] p-5 w-full fixed top-0 left-1/2 transform -translate-x-1/2 z-100000">
+      <Link className="cursor-pointer" to={AppPaths.public.home} ><h1><img src="/assets/images/icons/logo.svg" width={"100px"} height={"100px"} className="rounded-[30px]" /></h1></Link>
 
       <ul className={open ? "menu-items active" : "menu-items"}>
       <Link
+        role="button"
         to={AppPaths.public.login}
         onClick={()=> setOpen(!open)}
         className={`nav-links text-light ${
@@ -43,6 +44,7 @@ const HeaderComponent = () => {
 
       {authService.userRole() === UserRole.guest && (
         <Link
+          role="button"
           to={AppPaths.public.myOrders.replace(":placeId",authService.placeId().toString())}
           onClick={()=> {if(location.pathname.includes(myOrdersSubstringUrl)) updateShowOrders(null); else setOpen(!open)} }
           className={`nav-links text-light ${(authService.placeId() > 0) ? "block" : "hidden"}`}

@@ -1,5 +1,4 @@
-﻿using Bartender.Domain.DTO;
-using Bartender.Domain.DTO.Product;
+﻿using Bartender.Domain.DTO.Product;
 
 namespace Bartender.Domain.Interfaces
 {

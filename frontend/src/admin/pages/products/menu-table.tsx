@@ -69,7 +69,7 @@ export const MenuTable = forwardRef(({ placeId }: { placeId: number }, ref) => {
       placeId: placeId,
       description: editableProduct.description ?? "",
       isAvailable: editableProduct.isAvailable ?? false,
-      price: Number(editableProduct?.price) ?? 0,
+      price: Number(editableProduct?.price ?? 0),
     };
     
     

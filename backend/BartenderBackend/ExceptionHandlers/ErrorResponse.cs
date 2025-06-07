@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Bartender.Domain.utility.ExceptionHandlers;
+namespace BartenderBackend.ExceptionHandlers;
 
 public class ErrorResponse
 {

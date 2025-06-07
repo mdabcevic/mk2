@@ -10,7 +10,7 @@ public interface IOrderService
     Task<List<BusinessOrdersDto>> GetAllByBusinessIdAsync(int businessId);
     Task<ListResponse<OrderDto>> GetAllClosedOrdersByPlaceIdAsync(int placeId,int page,int size);
     Task<List<OrderDto>> GetAllActiveOrdersByPlaceIdAsync(int placeId,bool onlyWaitingForStaff = false);
-    Task<ListResponse<GroupedOrderStatusDto>> GetAllActiveOrdersByPlaceIdGroupedAsync(int placeId, int page, int size,bool onlyWaitingForStaff = false);
+    Task<ListResponse<GroupedOrderStatusDto>> GetAllActiveOrdersByPlaceIdGroupedAsync(int placeId, int page, int size, bool onlyWaitingForStaff = false);
     Task<List<OrderDto>> GetActiveTableOrdersForUserAsync(bool userSpecific = true);
     Task AddAsync(UpsertOrderDto order);
     Task UpdateAsync(int id, UpsertOrderDto order);

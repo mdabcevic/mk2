@@ -8,6 +8,8 @@ using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 
 namespace Bartender.Domain.Services.Data;
 
@@ -42,9 +44,7 @@ public class PlaceService(
 
     public async Task DeleteAsync(int id)
     {
-        var place = await repository.GetByIdAsync(id);
-        if (place == null)
-            throw new PlaceNotFoundException(id);
+        var place = await repository.GetByIdAsync(id) ?? throw new PlaceNotFoundException(id);
 
         if (!await IsSameBusinessAsync(place.BusinessId))
             throw new UnauthorizedPlaceAccessException(id);
@@ -109,9 +109,7 @@ public class PlaceService(
 
     public async Task UpdateAsync(int id, UpdatePlaceDto dto)
     {
-        var place = await repository.GetByIdAsync(id);
-        if (place == null)
-            throw new PlaceNotFoundException(id);
+        var place = await repository.GetByIdAsync(id) ?? throw new PlaceNotFoundException(id);
 
         if (!await IsSameBusinessAsync(place.BusinessId))
             throw new UnauthorizedPlaceAccessException(id);
@@ -123,12 +121,7 @@ public class PlaceService(
 
     public async Task NotifyStaffAsync(string salt)
     {
-        var table = await tableRepository.GetBySaltAsync(salt);
-
-        if (table is null)
-        {
-            throw new TableNotFoundException(salt);
-        }
+        var table = await tableRepository.GetBySaltAsync(salt) ?? throw new TableNotFoundException(salt);
 
         await notificationService.AddNotificationAsync(table, 
             NotificationFactory.ForTableStatus(table, $"Waiter requested at table {table.Label}.", NotificationType.StaffNeeded));
@@ -140,6 +133,6 @@ public class PlaceService(
     private async Task<bool> IsSameBusinessAsync(int targetPlaceId)
     {
         var user = await currentUser.GetCurrentUserAsync();
-        return targetPlaceId == user.PlaceId;
+        return targetPlaceId == user!.Place?.BusinessId;
     }
 }

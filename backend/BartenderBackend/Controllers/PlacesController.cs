@@ -25,7 +25,7 @@ public class PlacesController(IPlaceService placesService,IOrderService orderSer
         return NoContent();
     }
 
-    [Authorize(Roles = "manager")] //switch to admin/owner maybe
+    [Authorize(Roles = "admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] InsertPlaceDto dto)
     {

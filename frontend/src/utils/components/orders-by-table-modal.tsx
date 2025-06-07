@@ -39,8 +39,9 @@ const OrdersByTableModal = ({ orders, onClose }: OrdersByTable) => {
 
   return (
     <div className="absolute z-50 text-sm rounded-[40px] shadow p-3 right-20 bottom-50 w-[375px]">
-      <div className="absolute flex items-center justify-center z-50 w-full" onClick={onClose}>
+      <div className="absolute flex items-center justify-center z-50 w-full" role="button" onClick={onClose}>
       <div
+        role="button"
         className="bg-white rounded-[20px] shadow-lg w-full border border-[#A3A3A3]"
         onClick={(e) => e.stopPropagation()}
       >

@@ -1,8 +1,7 @@
-﻿
-using Bartender.Domain.Utility.Exceptions;
+﻿using Bartender.Domain.Utility.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 
-namespace Bartender.Domain.utility.ExceptionHandlers;
+namespace BartenderBackend.ExceptionHandlers;
 
 public class ConflictExceptionHandler(ILogger<ConflictExceptionHandler> logger) : IExceptionHandler
 {
