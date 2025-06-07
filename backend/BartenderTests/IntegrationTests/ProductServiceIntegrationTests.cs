@@ -1,4 +1,5 @@
-﻿using Bartender.Data.Models;
+﻿using Bartender.Data.Enums;
+using Bartender.Data.Models;
 using Bartender.Domain.DTO.Product;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Utility.Exceptions;
@@ -175,19 +176,17 @@ public class ProductServiceIntegrationTests : IntegrationTestBase
         var category = new ProductCategory { Name = "Beer" };
         await _categoryRepo.AddAsync(category);
 
-        var business = new Business { Name = "BarCo", OIB = "88888888888" };
-        await _businessRepo.AddAsync(business);
 
         var product = new Product
         {
             Name = "Lager",
             Volume = "500ml",
             CategoryId = category.Id,
-            BusinessId = business.Id
+            BusinessId = 1
         };
         await _productRepo.AddAsync(product);
 
-        _mockUser.Override(TestDataFactory.CreateValidStaff(businessid: business.Id));
+        _mockUser.Override(TestDataFactory.CreateValidStaff(businessid: 1, placeid: 1, role: EmployeeRole.admin ));
 
         await _service.DeleteAsync(product.Id);
 
@@ -307,7 +306,7 @@ public class ProductServiceIntegrationTests : IntegrationTestBase
         await _productRepo.AddAsync(sharedProduct);
         await _productRepo.AddAsync(ownedProduct);
 
-        _mockUser.Override(TestDataFactory.CreateValidStaff(businessid: business.Id));
+        _mockUser.Override(TestDataFactory.CreateValidStaff(businessid: business.Id, role: Bartender.Data.Enums.EmployeeRole.regular));
 
         var result = await _service.GetAllAsync();
         var names = result.Select(p => p.Name).ToList();
