@@ -226,4 +226,34 @@ public class TableManagementServiceIntegrationTests : IntegrationTestBase
 
         Assert.That(ex, Is.Not.Null);
     }
+
+    [Test]
+    public async Task BulkUpsertAsync_ShouldBeIdempotent_WhenSameInputIsUsedTwice()
+    {
+        _mockUser.Override(TestDataFactory.CreateValidStaff(placeid: 1, businessid: 1));
+        var dtoList = new List<UpsertTableDto>
+    {
+        new() { Label = "TABLE1", Width = 100, Height = 100, X = 10, Y = 10 }
+    };
+
+        await _service.BulkUpsertAsync(dtoList);
+        await _service.BulkUpsertAsync(dtoList); // Should update, not insert again
+
+        var all = await _tableRepo.GetAllByPlaceAsync(1);
+        Assert.That(all, Has.Count.GreaterThanOrEqualTo(1));
+        Assert.That(all.Last().Label, Is.EqualTo("TABLE1"));
+    }
+
+    [Test]
+    public void RegenerateSaltAsync_ShouldThrow_WhenTableMissing()
+    {
+        _mockUser.Override(TestDataFactory.CreateValidStaff(placeid: 1, businessid: 1));
+
+        var ex = Assert.ThrowsAsync<TableNotFoundException>(() =>
+            _service.RegenerateSaltAsync("MISSING"));
+
+        Assert.That(ex, Is.Not.Null);
+        Assert.That(ex!.Message, Does.Contain("not found"));
+    }
+
 }
