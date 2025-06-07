@@ -33,6 +33,17 @@ jobs:
       - name: Restore backend deps
         run: dotnet restore ./backend
 
+      - name: Wait for Redis to be ready
+        run: |
+          for i in {1..10}; do
+            if redis-cli -h localhost ping | grep PONG; then
+              echo "Redis is ready!"
+              break
+            fi
+            echo "Waiting for Redis..."
+            sleep 1
+          done
+
       - name: Run backend unit tests
         run: dotnet test ./backend/BartenderTests/BartenderTests.csproj --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
