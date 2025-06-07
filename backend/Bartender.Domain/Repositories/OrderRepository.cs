@@ -3,7 +3,6 @@ using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace Bartender.Domain.Repositories;
@@ -115,7 +114,6 @@ public class OrderRepository(AppDbContext context) : Repository<Order>(context),
         return await GetOrdersAsync(o => o.TableId == tableId && o.Status != OrderStatus.closed && o.Status != OrderStatus.cancelled);
     }
 
-    //TODO: does order have guest session if employee creates it on behalf of guest?
     public async Task<List<Order>?> GetCurrentOrdersByTableLabelAsync(string tableLabel)
     {
         return await _dbSet

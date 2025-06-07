@@ -1,5 +1,4 @@
-﻿
-using Bartender.Data.Enums;
+﻿using Bartender.Data.Enums;
 
 namespace Bartender.Domain.DTO.Order;
 

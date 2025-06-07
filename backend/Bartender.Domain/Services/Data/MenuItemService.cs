@@ -8,6 +8,8 @@ using Bartender.Data.Enums;
 using System.ComponentModel.DataAnnotations;
 using Bartender.Domain.DTO.Place;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
 
 namespace Bartender.Domain.Services.Data;
 public class MenuItemService(

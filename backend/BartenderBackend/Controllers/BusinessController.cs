@@ -48,12 +48,4 @@ public class BusinessController(IBusinessService businessService) : ControllerBa
         await businessService.UpdateSubscriptionAsync(tier);
         return NoContent();
     }
-
-    //[HttpDelete("{id}")]
-    //[Authorize(Roles = "owner")]
-    //public async Task<IActionResult> Delete(int id)
-    //{
-    //    var result = await businessService.DeleteAsync(id);
-    //    return result.ToActionResult();
-    //}
 }

@@ -4,6 +4,8 @@ using Bartender.Data.Models;
 using Bartender.Domain.DTO.Business;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
@@ -27,9 +29,7 @@ public class BusinessService(
     public async Task<BusinessDto> GetByIdAsync(int id)
     {
         if (!await IsAccessAllowedAsync(id))
-        {
             throw new UnauthorizedBusinessAccessException();
-        }
 
         var business = await repository.GetByIdAsync(id, true) ?? throw new BusinessNotFoundException(id);
         var dto = mapper.Map<BusinessDto>(business);
@@ -52,10 +52,7 @@ public class BusinessService(
 
     public async Task UpdateAsync(int id, UpsertBusinessDto dto)
     {
-        var business = await repository.GetByIdAsync(id);
-        if (business is null)
-            throw new BusinessNotFoundException(id);
-
+        var business = await repository.GetByIdAsync(id) ?? throw new BusinessNotFoundException(id);
         mapper.Map(dto, business);
         await repository.UpdateAsync(business);
         logger.LogInformation("Business updated with ID: {BusinessId}", id);
@@ -65,15 +62,9 @@ public class BusinessService(
     {
         var user = await currentUser.GetCurrentUserAsync();
         if (user?.Place == null)
-        {
             throw new UserPlaceAssignmentException(user?.Id);
-        }
 
-        var business = await repository.GetByIdAsync(user.Place.BusinessId);
-        if (business is null)
-        {
-            throw new BusinessNotFoundException(user.Place.BusinessId);
-        }
+        var business = await repository.GetByIdAsync(user.Place.BusinessId) ?? throw new BusinessNotFoundException(user.Place.BusinessId);
 
         business.SubscriptionTier = tier;
         await repository.UpdateAsync(business);
@@ -83,10 +74,7 @@ public class BusinessService(
 
     public async Task DeleteAsync(int id)
     {
-        var business = await repository.GetByIdAsync(id);
-        if (business is null)
-            throw new BusinessNotFoundException(id);
-
+        var business = await repository.GetByIdAsync(id) ?? throw new BusinessNotFoundException(id);
         await repository.DeleteAsync(business);
         logger.LogInformation("Business deleted with ID: {BusinessId}", id);
     }

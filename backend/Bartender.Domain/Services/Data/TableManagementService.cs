@@ -3,6 +3,7 @@ using Bartender.Data.Models;
 using Bartender.Domain.DTO.Table;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using Microsoft.Extensions.Logging;
 
 namespace Bartender.Domain.Services.Data;
@@ -37,12 +38,7 @@ public class TableManagementService(
     public async Task<TableDto> GetByLabelAsync(string label)
     {
         var user = await currentUser.GetCurrentUserAsync();
-        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
-
-        if (table is null)
-        {
-            throw new TableNotFoundException(label: label);
-        }
+        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label) ?? throw new TableNotFoundException(label: label);
         return mapper.Map<TableDto>(table);
     }
 
@@ -55,9 +51,7 @@ public class TableManagementService(
             .ToList();
 
         if (duplicatesInInput.Count != 0)
-        {
             throw new ConflictException("Duplicate labels found in input: " + string.Join(", ", duplicatesInInput));
-        }
 
         var user = await currentUser.GetCurrentUserAsync();
         var existing = await repository.GetByPlaceAsLabelDictionaryAsync(user!.PlaceId);
@@ -86,6 +80,7 @@ public class TableManagementService(
 
         if (toInsert.Count != 0)
             await repository.AddMultipleAsync(toInsert);
+
         logger.LogInformation("Bulk updated {Count} tables for place {PlaceId}", toUpdate.Count, user!.PlaceId);
         logger.LogInformation("Bulk inserted {Count} tables for place {PlaceId}", toInsert.Count, user!.PlaceId);
         return;
@@ -94,12 +89,8 @@ public class TableManagementService(
     public async Task DeleteAsync(string label)
     {
         var user = await currentUser.GetCurrentUserAsync();
-        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
+        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label) ?? throw new TableNotFoundException(label: label);
 
-        if (table is null)
-        {
-            throw new TableNotFoundException(label: label);
-        }
         await repository.DeleteAsync(table);
         logger.LogInformation("Table '{Label}' deleted by User {UserId}", label, user!.Id);
         return;
@@ -108,13 +99,8 @@ public class TableManagementService(
     public async Task<string> RegenerateSaltAsync(string label)
     {
         var user = await currentUser.GetCurrentUserAsync();
-        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
-
-        if (table is null)
-        {
-            throw new TableNotFoundException(label: label)
+        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label) ?? throw new TableNotFoundException(label: label)
                 .WithLogMessage($"Resalt failed: Table '{label}' not found for Place {user!.PlaceId}");
-        }
 
         table.QrSalt = Guid.NewGuid().ToString("N");
         await repository.UpdateAsync(table);
@@ -125,13 +111,8 @@ public class TableManagementService(
     public async Task SwitchDisabledAsync(string label, bool flag)
     {
         var user = await currentUser.GetCurrentUserAsync();
-        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label);
-
-        if (table is null)
-        {
-            throw new TableNotFoundException(label: label)
+        var table = await repository.GetByPlaceLabelAsync(user!.PlaceId, label) ?? throw new TableNotFoundException(label: label)
                 .WithLogMessage($"Disable toggle failed: Table '{label}' not found for Place {user!.PlaceId}");
-        }
 
         table.IsDisabled = flag;
         await repository.UpdateAsync(table);
