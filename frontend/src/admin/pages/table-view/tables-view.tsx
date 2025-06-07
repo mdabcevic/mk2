@@ -141,6 +141,7 @@ const TablesView = () => {
       <div className="flex flex-col items-center space-x-4 absolute right-0 top-0">
         <span>{t("manage_tables")}:</span>
         <div
+          role="button"
           onClick={() => setManageTables(!manageTables)}
           className="relative mt-2 w-14 h-6 bg-[#DFD8CD] rounded-full cursor-pointer transition-colors duration-300"
           style={{ backgroundColor: manageTables ? "#7E5E44" : "#DFD8CD" }}
