@@ -34,7 +34,7 @@ public class BusinessController(IBusinessService businessService) : ControllerBa
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "manager,owner")]
+    [Authorize(Roles = "manager, owner")]
     public async Task<IActionResult> Update(int id, [FromBody] UpsertBusinessDto dto)
     {
         await businessService.UpdateAsync(id, dto);
