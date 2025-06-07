@@ -8,7 +8,7 @@ using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using BartenderTests.Utility;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BartenderTests.IntegrationTests;
+namespace BartenderTests.IntegrationTests.Services;
 
 [TestFixture]
 public class OrderServiceIntegrationTests : IntegrationTestBase

@@ -4,7 +4,7 @@ using Bartender.Domain.DTO.Staff;
 using Bartender.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BartenderTests.IntegrationTests;
+namespace BartenderTests.IntegrationTests.Repositories;
 
 [TestFixture]
 public class StaffRepositoryIntegrationTests : IntegrationTestBase
