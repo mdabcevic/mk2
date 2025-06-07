@@ -1,7 +1,8 @@
 {
   "header":{
         "login":"Prijava",
-        "coffee_shop":"Kafići"
+        "coffee_shop":"Kafići",
+        "my_orders":"Moj stol"
     },
     "go_back":"Nazad",
     "passcode_required":"Potreban kod",
@@ -66,11 +67,21 @@
     "message": "Poruka",
     "close": "Zatvori",
     "send": "Pošalji",
+    "pricing":"Cijene",
+    "terms":"Uvjeti korištenja",
     "inquire_plan": "Želio bih se informirati o {{sub}} planu.",
     "view_tables":"Popunjenost objekta",
     "free_tables": "Broj slobodnih stolova",
     "empty":"Prazno",
     "occupied":"Zauzeto",
+    "call_bartender_message":"Konobar dolazi",
+    "request_payment_message":"Plaćanje zatraženo",
+    "generate_qr":"Generiraj QR",
+    "set_as_empty":"Označio kao slobodno",
+    "set_as_occupied":"Označio kao zauzeto",
+    "set_as_reserved":"Označi kao rezervirano",
+    "enable":"Uključi stol",
+    "disable":"Isključi stol",
     "home": {
         "explore":"Istraži kafiće u kojima je naručivanje jednostavno.",
         "explore_desc":"Vidi gdje možeš preskočiti čekanje, naručiti skeniranjem i uživati u ugodnijem iskustvu objedovanja.",

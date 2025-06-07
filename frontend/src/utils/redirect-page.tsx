@@ -3,9 +3,11 @@ import { authService } from "./auth/auth.service";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { AppPaths } from "./routing/routes";
 
 function RedirectPage(){
-
+    const navigate = useNavigate();
     const { placeId,salt } = useParams();
     const [paramsValid, setParamsValid] = useState<boolean | null>(null);
     const [passCodeRequired, setPassCodeRequired] = useState<boolean>(false);
@@ -14,18 +16,28 @@ function RedirectPage(){
     const { t } = useTranslation("public");
     const hasRun = useRef(false);
     
+    
     const checkAndGetToken = async () => {
         if (isNaN(Number(placeId)) || salt?.length !== 32) {
             setParamsValid(false);
             return;
         }
-        const response = await authService.getGuestToken(salt!);
+
+        if(authService.getLastSessionCheckTime()){
+            const secondsSinceLastCall = ((new Date()).getTime() - authService.getLastSessionCheckTime()!.getTime()) / 1000;
+            if(secondsSinceLastCall < 5){ return;}
+        }
+
+        const response = await authService.getGuestToken(salt!,false);
 
         if (!response.isSessionEstablished) {
             setPassCodeRequired(true);
         }
-        else
+        else{
             authService.setGuestToken(response.guestToken,placeId!);
+            setTimeout(()=>{navigate(AppPaths.public.myOrders.replace(":placeId", placeId!));},100)
+        }
+            
     }
 
     const joinTable = async(e:any) => {
@@ -38,8 +50,12 @@ function RedirectPage(){
                 setPassCodeRequired(true);
                 setMessage(t("invalid_passcode_message"))
             }
-            else
+            else{
                 authService.setGuestToken(response.guestToken,placeId!);
+                console.log("redirect redirectPage ");
+                navigate(AppPaths.public.myOrders.replace(":placeId",placeId!.toString()));
+            }
+                
         }
         catch(error:any){
             setPassCodeRequired(true);

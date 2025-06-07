@@ -1,26 +1,11 @@
 import { useEffect, useState } from "react";
 import { placeOrderService } from "./place-orders.service";
 import { OrderStatusValue, getStatusColor, orderStatusIndex } from "../../../utils/table-color";
-
-type OrderItem = {
-  menuItem: string;
-  price: number;
-  discount: number;
-  count: number;
-};
-
-type Order = {
-  id: number;
-  items: OrderItem[];
-  table: string;
-  note: string;
-  paymentType: string;
-  totalPrice: number;
-  status: OrderStatusValue;
-  customer: string | null;
-  createdAt: string;
-};
-
+import Dropdown from "../../../utils/components/dropdown";
+import { Order } from "../../../utils/interfaces/order";
+import OrderDetailsModal from "../../../utils/components/order-details-modal";
+import PaginationControls from "../../../utils/components/pagination-controlls";
+import { useTranslation } from "react-i18next";
 
 const statusOptions: OrderStatusValue[] = [
   OrderStatusValue.created,
@@ -37,7 +22,7 @@ enum OrderTabs{
   inactiveOrders=1,
 }
 
-const tablePageSize = 30;
+const tablePageSize = 15;
 
 const OrdersTable:React.FC<{rerender:number,showStatus:boolean}> = ({rerender,showStatus}) => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -46,18 +31,14 @@ const OrdersTable:React.FC<{rerender:number,showStatus:boolean}> = ({rerender,sh
   const [activeTab, setActiveTab] = useState<OrderTabs>(OrderTabs.activeOrders);
   const [total,setTotal] = useState<number>(0);
   const [page, setPage] = useState(1);
+  const { t } = useTranslation("admin");
 
   useEffect(() => {
     fetchOrders();
   }, [activeTab,rerender,page]);
 
   const fetchOrders = async () => {
-    const response = await placeOrderService.getOrders(
-      activeTab == OrderTabs.activeOrders,
-      page,
-      tablePageSize
-    );
-  
+    const response = await placeOrderService.getOrders(activeTab == OrderTabs.activeOrders,page,tablePageSize);
     let allOrders: Order[] = [];
   
     if (activeTab === OrderTabs.activeOrders) {
@@ -65,19 +46,13 @@ const OrdersTable:React.FC<{rerender:number,showStatus:boolean}> = ({rerender,sh
     } else {
       allOrders = response?.items ?? [];
     }
-  
     setOrders(allOrders);
     setTotal(response?.total ?? 0);
   };
 
   const updateStatus = async (id: number, newStatus: OrderStatusValue) => {
-    
     await placeOrderService.updateOrderStatus(id, orderStatusIndex[newStatus]);
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === id ? { ...order, status: newStatus } : order
-      )
-    );
+    setOrders((prev) => prev.map((order) => order.id === id ? { ...order, status: newStatus } : order));
   };
 
   const openModal = (order: Order) => {
@@ -93,67 +68,62 @@ const OrdersTable:React.FC<{rerender:number,showStatus:boolean}> = ({rerender,sh
   return (
     <div className="bg-white rounded-md shadow-md p-4 overflow-x-auto">
       <div className="flex gap-4 border-b mb-4 border-white">
-        <button
-          className={`pb-2 px-4  ${activeTab === OrderTabs.activeOrders ? " text-brown-500 font-semibold" : "text-brown-500 font-thin"}`}
-          onClick={() => setActiveTab(OrderTabs.activeOrders)}
+        <button onClick={() => setActiveTab(OrderTabs.activeOrders)}
+          className={`pb-2 px-4  ${activeTab === OrderTabs.activeOrders ? " text-brown-500 font-semibold" : "text-brown-500 font-thin"}`}        
         >
-          Active orders
+          {t("active_orders")}
         </button>
-        <button
-          className={`pb-2 px-4 ${activeTab === OrderTabs.inactiveOrders ? "text-brown-500 font-semibold" : "text-brown-500 font-thin"}`}
-          onClick={() => setActiveTab(OrderTabs.inactiveOrders)}
+        <button onClick={() => setActiveTab(OrderTabs.inactiveOrders)}
+          className={`pb-2 px-4 ${activeTab === OrderTabs.inactiveOrders ? "text-brown-500 font-semibold" : "text-brown-500 font-thin"}`}       
         >
-          Closed orders
+          {t("closed_orders")}
         </button>
       </div>
       <div>
       </div>
-      <span>Total:{total}</span>
+      <span>{t("orderStatus.total")}:{total}</span>
       <table className="w-full table-auto border-separate border-spacing-y-2">
         <thead>
           <tr className="text-left border-b border-gray-200">
-            <th>Date & Time</th>
-            <th>Table</th>  
-            <th className="text-center">{showStatus ? (<span>Status</span>) : (<span>Payment Type</span>) }</th>
-            <th>Total</th>
-            <th></th>
+            <th className="border-b border-[#D4D4D4]">{t("orderStatus.date_time")}</th>
+            <th className="text-center border-b border-[#D4D4D4]">{t("orderStatus.table")}</th>  
+            <th className="text-center border-b border-[#D4D4D4]">{showStatus ? (<span>{t("orderStatus.status")}</span>) : (<span>{t("orderStatus.payment_type")}</span>) }</th>
+            <th className="text-center border-b border-[#D4D4D4]">{t("orderStatus.total")}</th>
+            <th className=" border-b border-[#D4D4D4]"></th>
           </tr>
         </thead>
         <tbody>
           { orders?.length > 0 && (orders?.map((order,index) => (
             <tr
               key={index}
-              className="text-sm hover:bg-gray-50 py-4"
+              className="text-sm hover:bg-gray-50 py-4 border-b border-[#D4D4D4]"
             >
-              <td>{order?.createdAt}</td>
-              <td>{order?.table}</td>
-              <td className="text-center">
+              <td className="border-b border-[#D4D4D4]">{order?.createdAt}</td>
+              <td className="text-center border-b border-[#D4D4D4]">{order?.table}</td>
+              <td className="text-center border-b border-[#D4D4D4] ">
                 {showStatus ? (
-                    <select
-                    value={order?.status}
-                    onChange={(e) =>
-                      updateStatus(order?.id, e.target.value as OrderStatusValue)
+                  <Dropdown
+                    items={statusOptions.map((s) => ({
+                      id: s,
+                      value: s,
+                      label: s.replace("_", " "),
+                    }))}
+                    value={order.status}
+                    onChange={(item) =>
+                      updateStatus(order.id, item.value as OrderStatusValue)
                     }
-                    style={{ backgroundColor: getStatusColor(order?.status), color: order?.status == OrderStatusValue.payment_requested ? "black" : "white" }}
-                    className="border border-gray-300 rounded-[30px] py-[10px] pl-[40px]"
-                  >
-                    {statusOptions.map((status) => (
-                      <option key={status} value={status} className="bg-white text-black">
-                        {status.replace("_", " ")}
-                      </option>
-                    ))}
-                  </select>
+                    type="custom"
+                    className={`w-[200px]`}
+                    buttonClassName={`rounded-[30px] py-[10px] pl-[40px] bg-[${getStatusColor(order?.status)}] text-black ${activeTab === OrderTabs.activeOrders ? "border-none" : "border" }`}
+                  />
                 ) : (
                   <span>{order.paymentType}</span>
                 )}
                 
               </td>
-              <td>{order?.totalPrice.toFixed(2)}€</td>
-              <td>
-                <button
-                  onClick={() => openModal(order)}
-                  className="cursor-pointer"
-                >
+              <td className="text-center border-b border-[#D4D4D4]">{order?.totalPrice.toFixed(2)}€</td>
+              <td className="text-center border-b border-[#D4D4D4]">
+                <button onClick={() => openModal(order)} className="cursor-pointer ">
                   <img src="/assets/images/icons/search_showmore_icon.svg" alt="show"/>
                 </button>
               </td>
@@ -161,60 +131,19 @@ const OrdersTable:React.FC<{rerender:number,showStatus:boolean}> = ({rerender,sh
           ))}
         </tbody>
       </table>
-      <div className="flex justify-between items-center mt-4">
-  <p className="text-sm text-gray-600">
-    {(page - 1) * tablePageSize + 1}–{Math.min(page * tablePageSize, total)} of {total}
-  </p>
+      <PaginationControls
+        currentPage={page}
+        totalItems={total}
+        itemsPerPage={tablePageSize}
+        onPageChange={setPage}
+      />
 
-  <div className="flex gap-2">
-    <button
-      onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-      disabled={page === 1}
-      className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
-    >
-      Previous
-    </button>
-    <span className="px-3 py-1 text-sm rounded-[12px] border">
-      {page} / {Math.ceil(total / tablePageSize)}
-    </span>
-    <button
-      onClick={() => setPage((prev) => Math.min(prev + 1, Math.ceil(total / tablePageSize)))}
-      disabled={page === Math.ceil(total / tablePageSize)}
-      className="px-3 py-1 border rounded-[12px] disabled:opacity-50"
-    >
-      Next
-    </button>
-  </div>
-</div>
       {modalOpen && selectedOrder && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-[20px] shadow-lg w-full max-w-[375px] border border-[#A3A3A3]">
-            <div className="relative bg-[#FAFAFA] rounded-[20px] text-[#A3A3A3] flex justify-between items-start flex-start flew-row w-full pl-4 pt-4 pb-0 pr-4">
-              <h3 className="text-lg font-bold mb-4 flex flex-col"><span>Order #{selectedOrder.id}</span><span className="text-sm">Table: {selectedOrder.table}</span></h3>
-              
-              <button onClick={closeModal} className="">
-                <img src="/assets/images/icons/close_icon.svg" alt="close" />
-              </button>
-            </div>
-            <div className="pl-7 pb-3 mt-8">
-            <p className="mt-2 "><span className="font-bold">Total price:</span> €{selectedOrder.totalPrice.toFixed(2)}</p>
-            <p className="mt-2 "><span className="font-bold">Payment type:</span> {selectedOrder.paymentType}</p>
-            <p className=" mt-2 mb-2"><span className="font-bold">Status:</span> {selectedOrder.status.replace("_", " ")}</p>
-              <div>
-                <h4 className="font-semibold">Items:</h4>
-                <ul className="list-disc list-inside text-[14px] pl-2">
-                  {selectedOrder.items.map((item, i) => (
-                    <li key={i}>
-                      {item.count} × {item.menuItem} - €{(item.price * item.count).toFixed(2)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <p className=" mt-2"><span className="font-bold">Note:</span> {selectedOrder.note}</p>
-            </div>
-            
-          </div>
-        </div>
+        <OrderDetailsModal
+          open={modalOpen}
+          order={selectedOrder}
+          onClose={closeModal}
+        />
       )}
     </div>
   );

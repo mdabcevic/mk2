@@ -7,7 +7,7 @@ namespace BartenderBackend.Controllers;
 
 [Route("api/places")]
 [ApiController]
-public class PlacesController(IPlaceService placesService) : ControllerBase
+public class PlacesController(IPlaceService placesService,IOrderService orderService) : ControllerBase
 {
     [HttpGet("{id?}")]
     public async Task<IActionResult> Get(int? id)
@@ -47,5 +47,22 @@ public class PlacesController(IPlaceService placesService) : ControllerBase
     {
         await placesService.DeleteAsync(id);
         return NoContent();
+    }
+
+    [Authorize(Roles = "manager")]
+    [HttpGet("dashboard/{id}")]
+    public async Task<IActionResult> GetPlaceStatus(int id)
+    {
+        var activeOrders = await orderService.GetAllActiveOrdersByPlaceIdGroupedAsync(id,1,1,false);
+        var closedOrders = await orderService.GetAllClosedOrdersByPlaceIdAsync(id, 1, 1);
+        var place = await placesService.GetByIdAsync(id);
+
+        var response = new
+        {
+            activeOrders = activeOrders?.Total ?? 0,
+            closedOrders = closedOrders?.Total ?? 0,
+            freeTablesCount = place?.FreeTablesCount ?? 0,
+        };
+        return Ok(response);
     }
 }

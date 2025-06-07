@@ -3,13 +3,14 @@ using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Bartender.Domain.Repositories;
 
 public class OrderRepository(AppDbContext context) : Repository<Order>(context), IOrderRepository
 {
-    private const int pageSize = 30;
+    private const int pageSize = 15;
     private static Expression<Func<Order, bool>> IsActiveOrderForPlace(int placeId)
     => o => o.Table.PlaceId == placeId &&
         o.Status != OrderStatus.closed &&
@@ -74,8 +75,9 @@ public class OrderRepository(AppDbContext context) : Repository<Order>(context),
 
     private async Task<List<Order>> GetOrdersAsync(
     Expression<Func<Order, bool>> predicate,
-    bool includeCustomer = false, int? page = null)
+    bool includeCustomer = false, int? page = null, int? size = null)
     {
+        int _pageSize = (int)(size != null ? (size > pageSize ? pageSize : size) : pageSize);
         return await _dbSet
             .Include(o => o.Table)
             .Include(o => o.Products)
@@ -84,8 +86,8 @@ public class OrderRepository(AppDbContext context) : Repository<Order>(context),
             .Include(o => o.Customer)
             .Where(predicate)
             .OrderByDescending(o => o.CreatedAt)
-            .Skip((page - 1) ?? 0 * pageSize)
-            .Take(pageSize)
+            .Skip((page - 1) ?? 0 * _pageSize)
+            .Take(_pageSize)
             .ToListAsync();
     }
 
@@ -138,15 +140,15 @@ public class OrderRepository(AppDbContext context) : Repository<Order>(context),
         return await GetOrdersAsync(IsPendingOrderForPlace(placeId));
     }
 
-    public async Task<(List<Order>,int)> GetAllByPlaceIdAsync(int placeId, int page)
+    public async Task<(List<Order>,int)> GetAllByPlaceIdAsync(int placeId, int page, int size)
     {
-        return (await GetOrdersAsync(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed),
+        return (await GetOrdersAsync(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed,false,page,size),
                 await TotalCountAsync(o => o.Table.PlaceId == placeId && o.Status == OrderStatus.closed));
     }
 
     private async Task<(List<Order>,int)> GetOrdersForGroupingAsync(
-    Expression<Func<Order, bool>> predicate, int page)
-    {
+    Expression<Func<Order, bool>> predicate, int page, int? size)
+    {   var _pageSize = (int)(size != null ? (size > pageSize ? pageSize : size) : pageSize);
         var query = _dbSet
         .Include(o => o.Table)
         .Include(o => o.Products)
@@ -158,22 +160,22 @@ public class OrderRepository(AppDbContext context) : Repository<Order>(context),
 
         var items = await query
             .OrderByDescending(o => o.CreatedAt)
-            .Skip((page > 0 ? (page - 1) : 0) * pageSize)
-            .Take(pageSize)
+            .Skip((page > 0 ? (page - 1) : 0) * _pageSize)
+            .Take(_pageSize)
             .ToListAsync();
 
         return (items, totalCount);
     }
 
-    public async Task<(Dictionary<OrderStatus, List<Order>>,int)> GetActiveByPlaceIdGroupedAsync(int placeId,int page)
+    public async Task<(Dictionary<OrderStatus, List<Order>>,int)> GetActiveByPlaceIdGroupedAsync(int placeId,int page, int size)
     {
-        var (orders,total) = await GetOrdersForGroupingAsync(IsActiveOrderForPlace(placeId),page);
+        var (orders,total) = await GetOrdersForGroupingAsync(IsActiveOrderForPlace(placeId),page,size);
         return (orders.GroupBy(o => o.Status).ToDictionary(g => g.Key, g => g.ToList()), total);
     }
 
-    public async Task<(Dictionary<OrderStatus, List<Order>>, int)> GetPendingByPlaceIdGroupedAsync(int placeId, int page)
+    public async Task<(Dictionary<OrderStatus, List<Order>>, int)> GetPendingByPlaceIdGroupedAsync(int placeId, int page, int size)
     {
-        var (orders,total) = await GetOrdersForGroupingAsync(IsPendingOrderForPlace(placeId), page);
+        var (orders,total) = await GetOrdersForGroupingAsync(IsPendingOrderForPlace(placeId), page, size);
         return (orders.GroupBy(o => o.Status)
                     .ToDictionary(g => g.Key, g => g.ToList()) , total);
     }

@@ -32,6 +32,10 @@ export const productMenuService = {
 
     createCustomProduct: async(product:CreateCustomProductReq): Promise<any> => {
         return await api.post(ApiMethods.createCustomProduct,product);
+    },
+
+    deleteMenuItem: async(placeId:Number,productId:Number) =>{
+        return await api.delete(ApiMethods.deleteMenuItem.replace("{placeId}",placeId.toString()).replace("{productId}",productId.toString()));
     }
 
 }

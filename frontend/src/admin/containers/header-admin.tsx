@@ -44,15 +44,13 @@ const HeaderAdminComponent = () => {
         <>
           <Link
             to={AppPaths.admin.management}
-            className={`nav-links transition-all duration-500 ease-in-out ${location.pathname === AppPaths.admin.management ? "text-orange-500" : ""}
-                                  ${location.pathname !== AppPaths.admin.dashboard ? "opacity-100 order-3 cursor-pointer" : "opacity-0 order-2 cursor-default"}`}
+            className={`nav-links transition-all duration-500 ease-in-out cursor-pointer ${location.pathname === AppPaths.admin.management ? "text-orange-500" : ""}`}
           >
             {t("management")}
           </Link>
           <Link
             to={AppPaths.admin.tables}
-            className={`nav-links transition-all duration-500 ease-in-out ${location.pathname === AppPaths.admin.tables ? "text-orange-500" : ""}
-                                  ${location.pathname !== AppPaths.admin.dashboard ? "opacity-100 order-3 cursor-pointer" : "opacity-0 order-2 cursor-default"}`}
+            className={`nav-links transition-all duration-500 cursor-pointer ease-in-out ${location.pathname === AppPaths.admin.tables ? "text-orange-500" : ""}`}
           >
             {t("tables")}
           </Link>

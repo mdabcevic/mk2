@@ -16,7 +16,7 @@ const SubscriptionCard = ({ title, price, textColor, bgColor, hoverColor, featur
                 <h2 className={`${textColor} p-5 pb-10 text-center font-semibold text-3xl`}>
                     {title}
                 </h2>
-                <p className="text-3xl pb-5 border-b border-neutral-400 text-center">
+                <p className="text-3xl pb-5 border-b border-neutral-400 text-center font-bold">
                     {price}
                     <span className="text-base">/{t("month").toLowerCase()}</span>
                 </p>
@@ -28,7 +28,7 @@ const SubscriptionCard = ({ title, price, textColor, bgColor, hoverColor, featur
             </div>
             <button
                 onClick={onSubscribe}
-                className={`${bgColor} text-white rounded-full w-full h-[50px] mb-4 font-semibold tracking-widest ${hoverColor}`}>
+                className={`${bgColor} ${title === "Standard" ? "text-black" : "text-white"} rounded-full w-full h-[50px] mb-4 font-semibold tracking-widest ${hoverColor}`}>
                 {t("get_subscription").toUpperCase()} {title.toUpperCase()}
             </button>
         </div>

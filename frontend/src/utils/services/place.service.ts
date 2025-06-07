@@ -1,22 +1,24 @@
+import { PlaceStatus } from "../../admin/pages/dashboard/models";
 import { TablePublic } from "../constants";
+import { IPlaceItem } from "../interfaces/place-item";
 import { ApiMethods } from "./api-methods"
 import api from "./client";
 
 export const placeService = {
 
-    getPlaces: async () => {
-        const response = await api.get(ApiMethods.getPlaces);
-        return response;
+    getPlaces: async (): Promise<IPlaceItem[]> => {
+        return await api.get(ApiMethods.getPlaces);
     },
 
-    getPlaceDetailsById: async (id:number) =>{
-
-        const response = await api.get(ApiMethods.getPlaceById.replace("{id}",id.toString()));
-        return response;
+    getPlaceDetailsById: async (id:number): Promise<IPlaceItem> =>{
+        return await api.get(ApiMethods.getPlaceById.replace("{id}",id.toString()));
     },
 
     getPlaceTables: async (id:number): Promise<TablePublic[]> => {
-        const response = await api.get(ApiMethods.getPlaceTablesByPlaceId.replace("{id}",id.toString()));
-        return response;
+        return await api.get(ApiMethods.getPlaceTablesByPlaceId.replace("{id}",id.toString()));
     },
+
+    getPlaceStatus: async (id:number): Promise<PlaceStatus> => {
+        return await api.get(ApiMethods.getPlaceStatus.replace("{id}",id.toString()));
+    }
 }

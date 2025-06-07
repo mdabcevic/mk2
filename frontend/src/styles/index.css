@@ -8,7 +8,7 @@
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: light dark;
+  color-scheme: light;
   color: #463426;
   padding:0;
   font-synthesis: none;
@@ -22,7 +22,7 @@ body {
   padding:0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #F6F2EC;
+  background-color: #F6F2EC !important;
   }
 
 h1 {
@@ -42,6 +42,9 @@ button{
 }
 .bg-mocha-600{
   background-color: #463426;
+}
+.bg-mocha-500{
+  background-color: #624935;
 }
 .bg-mocha-300{
   background-color: #7E5E44;
@@ -121,5 +124,12 @@ button{
   }
   50% {
     transform: translateY(-10px);
+  }
+}
+
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #F6F2EC !important;
   }
 }

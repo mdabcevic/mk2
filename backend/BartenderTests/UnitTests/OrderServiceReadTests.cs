@@ -66,14 +66,14 @@ public class OrderServiceReadTests
         _validationService.EnsurePlaceExistsAsync(placeId).Returns(Task.CompletedTask);
         _validationService.VerifyUserPlaceAccess(placeId).Returns(true);
 
-        _orderRepo.GetAllByPlaceIdAsync(placeId, Arg.Any<int>())
+        _orderRepo.GetAllByPlaceIdAsync(placeId, Arg.Any<int>(), Arg.Any<int>())
             .Returns(([order], 1));
 
         _mapper.Map<List<OrderDto>>(Arg.Is<List<Order>>(o => o.Any()))
             .Returns([orderDto]);
 
         // Act
-        var result = await _service.GetAllClosedOrdersByPlaceIdAsync(placeId, page: 1);
+        var result = await _service.GetAllClosedOrdersByPlaceIdAsync(placeId, page: 1, size:15);
 
         // Assert
         Assert.That(result, Is.Not.Null);
@@ -91,7 +91,7 @@ public class OrderServiceReadTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(
-            () => _service.GetAllClosedOrdersByPlaceIdAsync(placeId, page: 1)
+            () => _service.GetAllClosedOrdersByPlaceIdAsync(placeId, page: 1, size: 15)
         );
         Assert.That(ex!.Message, Does.Contain("Access"));
         Assert.That(ex!.Message, Does.Contain("denied"));
@@ -165,6 +165,7 @@ public class OrderServiceReadTests
         // Arrange
         var placeId = 1;
         var page = 1;
+        var size = 15;
 
         var order = TestDataFactory.CreateValidOrder(id: 1, tableId: placeId, status: OrderStatus.created);
         var orderDto = TestDataFactory.CreateValidOrderDto(id: 1, status: OrderStatus.created);
@@ -176,11 +177,11 @@ public class OrderServiceReadTests
 
         _validationService.EnsurePlaceExistsAsync(placeId).Returns(Task.CompletedTask); // Simulate valid place
         _validationService.VerifyUserPlaceAccess(placeId).Returns(true); // User has access
-        _orderRepo.GetActiveByPlaceIdGroupedAsync(placeId, page).Returns((grouped, 1)); // Simulate grouped orders
+        _orderRepo.GetActiveByPlaceIdGroupedAsync(placeId, page,size).Returns((grouped, 1)); // Simulate grouped orders
         _mapper.Map<List<OrderDto>>(grouped[OrderStatus.created]).Returns(new List<OrderDto> { orderDto }); // Map orders to DTOs
 
         // Act
-        var result = await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page);
+        var result = await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page,size);
 
         // Assert
         Assert.Multiple(() =>
@@ -204,6 +205,7 @@ public class OrderServiceReadTests
         // Arrange
         var placeId = 1;
         var page = 1;
+        var size = 15;
 
         var order = TestDataFactory.CreateValidOrder(id: 2, tableId: placeId, status: OrderStatus.payment_requested);
         var orderDto = TestDataFactory.CreateValidOrderDto(id: 2, status: OrderStatus.payment_requested);
@@ -215,11 +217,11 @@ public class OrderServiceReadTests
 
         _validationService.EnsurePlaceExistsAsync(placeId).Returns(Task.CompletedTask); // No ServiceResult, just ensuring no exception is thrown
         _validationService.VerifyUserPlaceAccess(placeId).Returns(true); // Simulating valid access
-        _orderRepo.GetPendingByPlaceIdGroupedAsync(placeId, page).Returns((grouped, 1));
+        _orderRepo.GetPendingByPlaceIdGroupedAsync(placeId, page, size).Returns((grouped, 1));
         _mapper.Map<List<OrderDto>>(grouped[OrderStatus.payment_requested]).Returns([orderDto]);
 
         // Act
-        var result = await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page, onlyWaitingForStaff: true);
+        var result = await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page,size, onlyWaitingForStaff: true);
 
         // Assert
         Assert.That(result.Items, Is.Not.Null); // Accessing Items instead of Data
@@ -243,7 +245,7 @@ public class OrderServiceReadTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<UnauthorizedPlaceAccessException>(async () =>
-            await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page: 1));
+            await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId, page: 1,size: 15));
 
         Assert.That(ex!.Message, Does.Contain("Access"));
         Assert.That(ex!.Message, Does.Contain("denied"));

@@ -8,7 +8,7 @@ type SubscriptionTableBodyProps = {
     benefits: BenefitRow[];
 };
 
-const bgColors = ["bg-gray-100", "bg-blue-100", "bg-orange-100"];
+const bgColors = ["bg-neutral-200", "bg-[#D4C0B0]", "bg-[#60483D] text-white"];
 
 const SubscriptionTableBody = ({ t, benefits }: SubscriptionTableBodyProps) => {
     return (
@@ -21,7 +21,7 @@ const SubscriptionTableBody = ({ t, benefits }: SubscriptionTableBodyProps) => {
                         return (
                             <td key={colIndex} className={`px-4 py-2 text-center ${bg}`}>
                                 {value === true ? (
-                                    <img src="/assets/images/checkmark.svg" className="w-5 h-5 md:w-6 md:h-6 mx-auto" alt="✓" />
+                                    <img src={`/assets/images/${colIndex === 2 ? "checkmark_white.svg" : "checkmark.svg"}`} className="w-5 h-5 md:w-6 md:h-6 mx-auto" alt="✓" />
                                 ) : value === false || value === "" ? null : isNaN(Number(value as string)) ? (
                                     t(value as string)
                                 ) : (

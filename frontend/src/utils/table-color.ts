@@ -2,15 +2,16 @@ import {  TableStatusString } from "./constants";
 
 export enum TableColor {
   empty = "#ffffff",
-  occupied = "#A3A3A3",
+  occupied = "#60A5FA",
+  occupiedPublic = "#A3A3A3",
   reserved = "#c8c8c8",
   bartenderRequired = "#eebd66",
   billRequested = "#7e96c2"
 }
-export function getTableColor(status: string){
+export function getTableColor(status: string, view: "admin" | "public"){
     switch (status) {
           case TableStatusString.occupied:
-            return TableColor.occupied;
+            return view === "public" ? TableColor.occupiedPublic : TableColor.occupied;
           case TableStatusString.reserved:
             return TableColor.reserved;
           default:
@@ -30,9 +31,8 @@ export enum OrderStatusValue {
 
 
 
-
   const statusColors: Record<OrderStatusValue, string> = {
-    created: "#3B82F6",
+    created: "#FCD34D",
     approved: "#3B82F6",
     delivered: "#10B981",
     paid: "#10B981",
@@ -59,9 +59,10 @@ export function getStatusColor(status: OrderStatusValue): string {
     0: "bg-[#FCD34D] text-black", // StaffNeeded
     1: "bg-[#FCD34D] text-white", // GuestJoinedTable
     2: "bg-[#10B981] text-white", // GuestLeftTable
-    3: "bg-[#10B981] text-black", // OrderCreated
+    3: "bg-[#60A5FA] text-black", // OrderCreated
     4: "bg-[#3B82F6] text-white", // OrderStatusUpdated
     5: "bg-[#3B82F6] text-white", // OrderContentUpdated
+    6: "bg-[#FCD34D] text-black", // PaymentRequested
   };
 
 export function getBgColorByNotificationStatus(type: number){
@@ -79,14 +80,15 @@ export function getBgColorByNotificationStatus(type: number){
     GuestLeftTable=2,
     OrderCreated=3,
     OrderStatusUpdated=4,
-    OrderContentUpdated=5
+    OrderContentUpdated=5,
+    PaymentRequested=6,
   }
 
   const tableIcon: Record<number, string> = {
-    0: "../assets/images/icons/notificationBell.svg", // StaffNeeded
-    3: "../assets/images/icons/newOrder.webp", // OrderCreated
-    4: "../assets/images/icons/euro.svg" // payment requested
+    [NotificationType.StaffNeeded]: "../assets/images/icons/notificationBell.svg", // StaffNeeded
+    [NotificationType.OrderCreated]: "../assets/images/icons/cup.svg", // OrderCreated
+    [NotificationType.PaymentRequested]: "../assets/images/icons/dollar.svg" // payment requested
   };
-  export function getTableIcon(type: number):string{
-    return tableIcon[type] || "";
+  export function getTableIcon(type: number):string | undefined{
+    return tableIcon[type] || undefined;
   }

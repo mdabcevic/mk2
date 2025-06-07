@@ -3,7 +3,11 @@ import { useTranslation } from "react-i18next";
 import { Link, useLocation, } from "react-router-dom";
 import { languages } from "../utils/languages";
 import { AppPaths } from "../utils/routing/routes";
+import { authService } from "../utils/auth/auth.service";
+import { UserRole } from "../utils/constants";
+import { updateShowOrders } from "../pages/places/place-details/myOrders/my-orders";
 
+const myOrdersSubstringUrl = "my-orders";
 
 const HeaderComponent = () => {
   const { t, i18n } = useTranslation("public");
@@ -28,14 +32,25 @@ const HeaderComponent = () => {
 
       <ul className={open ? "menu-items active" : "menu-items"}>
       <Link
-          to={AppPaths.public.login}
-          onClick={()=> setOpen(!open)}
-          className={`nav-links text-light ${
-            location.pathname === AppPaths.public.login ? "text-orange-500" : "text-light"
-          }`}
+        to={AppPaths.public.login}
+        onClick={()=> setOpen(!open)}
+        className={`nav-links text-light ${
+          location.pathname === AppPaths.public.login ? "text-orange-500" : "text-light"
+        } ${authService.tokenValid() ? "hidden" : "block"}`}
+      >
+        {t("header.login")}
+      </Link>
+
+      {authService.userRole() === UserRole.guest && (
+        <Link
+          to={AppPaths.public.myOrders.replace(":placeId",authService.placeId().toString())}
+          onClick={()=> {if(location.pathname.includes(myOrdersSubstringUrl)) updateShowOrders(null); else setOpen(!open)} }
+          className={`nav-links text-light ${(authService.placeId() > 0) ? "block" : "hidden"}`}
         >
-          {t("header.login")}
+          {t("header.my_orders")}
         </Link>
+      )}
+      
         
         <div className="relative">
         <button className="m-0 p-0"

@@ -15,13 +15,13 @@ const TablesPage = () => {
           className={`pb-2 px-4 flex-1 max-w-[150px]  ${activeTab === "view" ? " font-semibold border-b-3" : " font-thin"}`}
           onClick={() => setActiveTab("view")}
         >
-          View
+          {t("view_text")}
         </button>
         <button
           className={`pb-2 px-4 flex-1 max-w-[150px] ${activeTab === "create" ? " font-semibold border-b-3" : " font-thin"}`}
           onClick={() => setActiveTab("create")}
         >
-          Edit
+          {t("edit_text")}
         </button>
       </div>
 

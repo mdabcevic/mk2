@@ -6,6 +6,7 @@ export interface IPlaceItem{
     cityName:string,
     workHours?:string,
     banner:string;
+    googleMapIframeLink:string,
     description:string,
     freeTablesCount:number;
     images: PlaceImages[]
@@ -14,7 +15,8 @@ export interface IPlaceItem{
 export enum ImageType{
     banner="banner", 
     gallery= "gallery",
-    logo= "logo"
+    logo= "logo",
+    blueprint = "blueprints"
 } 
 
 export interface PlaceImages {

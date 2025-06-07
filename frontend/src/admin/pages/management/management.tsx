@@ -5,29 +5,28 @@ import Products from '../products/products';
 import { authService } from '../../../utils/auth/auth.service';
 import OrdersTable from '../table-view/orders-table';
 import { MenuTable } from '../products/menu-table';
+import { useTranslation } from 'react-i18next';
 
-const tabs = ['Menu', 'Products', 'Orders'];
 
 export default function ManagementView() {
-  const [activeTab, setActiveTab] = useState('Menu');
+  const { t } = useTranslation('admin');
+  const [activeTab, setActiveTab] = useState(t("menu_link_text"));
   const menuRef = useRef<any>(null);
   const productsRef = useRef<any>(null);
+  const tabs = [t("menu_link_text"), t("products"), t("orders")];
+
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'Menu':
-        return <MenuTable ref={menuRef} placeId={authService.placeId()} />;
-      case 'Products':
-        return <Products ref={productsRef} />;
-      case 'Orders':
-        return <OrdersTable rerender={0} showStatus={false}/>;
-      default:
-        return null;
+      case t("menu_link_text"): return <MenuTable ref={menuRef} placeId={authService.placeId()} />;
+      case t("products"): return <Products ref={productsRef} />;
+      case t("orders"): return <OrdersTable rerender={0} showStatus={false}/>;
+      default: return null;
     }
   };
   const handleAddClick = () => {
-    if (activeTab === 'Menu' && menuRef.current?.openAddModal) {
+    if (activeTab === t("menu_link_text") && menuRef.current?.openAddModal) {
       menuRef.current.openAddModal();
-    } else if (activeTab === 'Products' && productsRef.current?.openAddModal) {
+    } else if (activeTab === t("products") && productsRef.current?.openAddModal) {
       productsRef.current.openAddModal();
     }
   };
@@ -39,14 +38,14 @@ export default function ManagementView() {
           className={`px-4 py-2 rounded text-white ${activeTab === "Orders" ? "invisible" : "visible"}`}
           style={{ backgroundColor: "#624935" }}
         >
-          {activeTab === "Menu"
-            ? "+ Add Item"
-            : activeTab === "Products"
-            ? "+ Add Product"
-            : "Orders"}
+          {activeTab === t("menu_link_text")
+            ? t('add_item')
+            : activeTab === t("products")
+            ? t('add_product')
+            : t("orders")}
         </button>
       </div>
-      <div className=" border-b">
+      <div className="">
         <div className='w-full max-w-[1500px] flex space-x-6 pl-10'>
             {tabs.map((tab) => (
             <button
@@ -65,10 +64,7 @@ export default function ManagementView() {
       </div>
 
       <div className="mt-6 w-full max-w-[1500px] m-auto">
-
           {renderTabContent()}
-
-        
       </div>
     </div>
   );
