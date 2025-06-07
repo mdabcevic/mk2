@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using System.ComponentModel.DataAnnotations;
 
-namespace Bartender.Domain.utility.ExceptionHandlers;
+namespace BartenderBackend.ExceptionHandlers;
 
 public class ValidationExceptionHandler(ILogger<ValidationExceptionHandler> logger) : IExceptionHandler
 {

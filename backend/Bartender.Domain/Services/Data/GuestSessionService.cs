@@ -26,7 +26,6 @@ public class GuestSessionService(
         return session;
     }
 
-    //TODO: refactor this one a bit
     public async Task<string> CreateSessionAsync(int tableId, string passphrase)
     {
         if (string.IsNullOrEmpty(passphrase))

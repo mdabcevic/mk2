@@ -1,5 +1,4 @@
-﻿
-namespace Bartender.Domain.DTO.Product;
+﻿namespace Bartender.Domain.DTO.Product;
 
 public class GroupedProductsDto
 {

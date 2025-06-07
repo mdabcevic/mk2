@@ -1,5 +1,4 @@
-﻿
-namespace Bartender.Domain.DTO.Order;
+﻿namespace Bartender.Domain.DTO.Order;
 
 public class OrderItemsDto
 {

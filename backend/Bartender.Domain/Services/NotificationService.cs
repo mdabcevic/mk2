@@ -2,6 +2,8 @@
 using Bartender.Data.Models;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Utility.Exceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
@@ -81,7 +83,6 @@ public class NotificationService(
         await _db.HashSetAsync(Key(tableId), notificationId, JsonSerializer.Serialize(notif));
 
         logger.LogInformation("Notification {NotificationId} marked as complete for table {TableId}", notificationId, tableId);
-        return;
     }
 
     public async Task ClearNotificationsAsync(int tableId)
@@ -96,7 +97,6 @@ public class NotificationService(
 
         await _db.KeyDeleteAsync(Key(tableId));
         logger.LogInformation("All notifications cleared for table {TableId}", tableId);
-        return;
     }
 
     private async Task MarkOrderNotificationsAsCompleteAsync(int tableId, int orderId)
