@@ -8,6 +8,8 @@ using Bartender.Domain.DTO.Table;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
 using System.Collections.Concurrent;
+using Bartender.Domain.Utility.Exceptions.NotFoundExceptions;
+using Bartender.Domain.Utility.Exceptions.AuthorizationExceptions;
 
 namespace Bartender.Domain.Services;
 
@@ -174,22 +176,6 @@ public class AnalyticsService(
         return traffic;
     }
 
-    /*public async Task<decimal> GetTotalEarnings(DateTime? dateTime, TimeFilter? timeFilter = TimeFilter.Day, int? placeId = null)
-    {
-        int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
-
-        if (dateTime == null)
-            dateTime = DateTime.UtcNow;
-
-        if (timeFilter == null)
-            timeFilter = TimeFilter.Day;
-
-        var orders = await repository.GetOrdersByTime(dateTime.Value, timeFilter.Value, businessId, placeId);
-        var traffic = orders
-            .Sum(o => o.TotalPrice);
-
-        return traffic;
-    }*/
 
     public async Task<KeyValuesDto> GetAllInfo(int? placeId = null, int? month = null, int? year = null)
     {
