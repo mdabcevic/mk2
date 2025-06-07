@@ -63,17 +63,11 @@ const Cart = () => {
             </div>
 
             <div className="flex items-center gap-2 pr-3">
-              <button
-                onClick={() => removeItem(item)}
-                className="color-mocha-600 hover:bg-red-200 px-2 py-1 rounded-full"
-              >
+              <button onClick={() => removeItem(item)} className="color-mocha-600 hover:bg-red-200 px-2 py-1 rounded-full">
                 <Minus size={16} />
               </button>
               <span className="text-[14px]">{item.quantity}</span>
-              <button
-                onClick={() => addItem(item)}
-                className="color-mocha-600 hover:bg-green-200 px-2 py-1 rounded-full"
-              >
+              <button onClick={() => addItem(item)} className="color-mocha-600 hover:bg-green-200 px-2 py-1 rounded-full">
                 <Plus size={16} />
               </button>
             </div>

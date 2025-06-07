@@ -81,6 +81,7 @@
     "set_as_reserved":"Set as Reserved",
     "enable":"Enable",
     "disable":"Disable",
+    "my_passcode":"MY PASSCODE",
     "home": {
         "explore":"Explore cafés that make ordering simple",
         "explore_desc":"See where you can skip the wait, order with a scan, and enjoy a smoother dining experience.",

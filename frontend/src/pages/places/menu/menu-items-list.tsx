@@ -46,17 +46,17 @@ export function MenuItemsList({ items,userRole, enableAdd }: {items:MenuGroupedI
                       userRole === UserRole.guest && enableAdd && (
                         <div className="">
                           <button
-                            className="p-0 rounded ml-5 relative left-1 top-1 cursor-pointer"
+                            className="p-0 rounded ml-5 relative left-1 top-1 cursor-pointer w-[35px] h-[35px]"
                             onClick={() => {cartStorage.addItem(item); showToast(`${item.product.name} ${t("added")}`,ToastType.info)}}
                           >
-                            <img className="relative right-0 " src="/assets/images/plus.svg" width={"35px"} />
+                            <img className="relative right-0" src="/assets/images/plus.svg" width="35px" />
                           </button>
                         </div>
                       )
                     )}
 
 
-                    {userRole === UserRole.guest && quantity > 0 && (
+                    {userRole === UserRole.guest && enableAdd && quantity > 0 && (
                       <div className="absolute bottom-8 left-4 text-white flex items-center mb-8 p-0 px-2 bg-mocha-600 rounded-full shadow-md test">
                         <span>{quantity} x</span>
                         <button className="px-2 bg-white ml-1 cursor-pointer rounded ml-5" onClick={() => {cartStorage.removeItem(item); showToast(`${item.product.name} ${t("removed")}`,ToastType.info)}}>

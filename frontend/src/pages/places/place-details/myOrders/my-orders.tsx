@@ -97,7 +97,7 @@ function MyOrders() {
         <Link to={AppPaths.public.menu.replace(":placeId", placeId!)} className="px-6 py-3 rounded-[40px] bg-mocha-600 font-bold text-white mb-4 w-64 text-center" >
           {t("order").toUpperCase()}
         </Link>
-        {passCode && (<p className=" mt-16 flex flex-col items-center">MY PASSCODE:<span className="font-bold">{passCode}</span></p>)}
+        {passCode && (<p className=" mt-16 flex flex-col items-center">{t("my_passcode")}:<span className="font-bold">{passCode}</span></p>)}
         {myOrders.length > 0 && (
           <button className=" absolute bottom-25 px-6 py-3 rounded-[40px] bg-white font-bold color-mocha-600 border-mocha w-64"  onClick={() => setShowOrders(true)}>
             {t("my_orders").toUpperCase()}
@@ -106,13 +106,13 @@ function MyOrders() {
       </div>
 
       <div
-        className={`relative top-0 left-0 w-full h-full flex flex-col p-4 pb-28 transition-all duration-700 transform ${
+        className={`relative top-0 left-0 w-full min-h-[85vh] h-full flex flex-col p-4 pb-28 transition-all duration-700 transform ${
           showOrders ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
         }`}
       >
 
         <button onClick={() => setShowOrders(false)} className="self-start mb-4 text-mocha-600 font-semibold underline flex items-center" >
-          {t("back").toUpperCase()}
+          {t("go_back").toUpperCase()}
         </button>
 
         <h4 className="text-md font-bold border-b pb-2 mb-4">
