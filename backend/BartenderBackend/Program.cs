@@ -161,6 +161,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<IAnalyticsServer, AnalyticsService>();
 builder.Services.AddHttpClient<IGeoCodingService, GeoCodingService>();
+builder.Services.AddHttpClient<IWeatherApiService, WeatherApiService>();
 
 builder.Services.AddSignalR();
 
@@ -182,6 +183,36 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+
+// adding weather history into database
+/*using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var weatherService = scope.ServiceProvider.GetRequiredService<IWeatherApiService>();
+        var cityRepository = scope.ServiceProvider.GetRequiredService<IRepository<City>>();
+
+        var city = await cityRepository.GetByKeyAsync(c => c.Id == 1);
+
+        if (city == null)
+        {
+            Console.WriteLine("City not found");
+        }
+        else
+        {
+            await weatherService.SaveWeatherHistory(city, new DateOnly(2025, 01, 01), new DateOnly(2025, 06, 07));
+            Console.WriteLine("Weather history saved.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error saving weather history: {ex.Message}");
+    }
+}*/
+
+
+
 app.UseSerilogRequestLogging(); // Log all HTTP requests automatically
 
 // Configure the HTTP request pipeline.
