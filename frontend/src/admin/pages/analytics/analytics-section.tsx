@@ -24,12 +24,12 @@ const getDataForChart = (
 ): PopularProducts[] => {
     if (!data.length) return [];
 
-    const dayData = data.find((day) => day.dayOfWeek.toLowerCase() === selectedDay.toLowerCase()) || data[0];
+    const dayData = data.find((day) => day.weekGroup.toLowerCase() === selectedDay.toLowerCase()) || data[0];
     return dayData.popularProducts;
 };
 
 const AnalyticsSection = () => {
-    const [filterDayType, setFilterDayType] = useState<DropdownItem["id"]>("monday");
+    const [filterDayType, setFilterDayType] = useState<DropdownItem["id"]>("all");
     const [placeId, setPlaceId] = useState<number | undefined>(undefined);
     const [month, setMonth] = useState<number | undefined>(undefined);
     const [year, setYear] = useState<number | undefined>(undefined);
@@ -56,7 +56,7 @@ const AnalyticsSection = () => {
     const { t } = useTranslation("admin");
     const [activeTab, setActiveTab] = useState('All');
 
-    const tabs = ['All','Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const tabs = ['All','Weekday', 'Weekend'];
 
     const placeOptions: DropdownItem[] = [
         { id: "undefined", value: "All" }, 

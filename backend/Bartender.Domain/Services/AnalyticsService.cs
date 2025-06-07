@@ -45,32 +45,32 @@ public class AnalyticsService(
 
         var products = await repository.GetOrderedProductsByBusinessId(businessId, placeId, month, year);
         var topProducts = products
-            .GroupBy(o => new { weekDay = o.Order.CreatedAt.DayOfWeek, product = o.MenuItem.Product })
+            .GroupBy(o => new { weekGroup = (o.Order.CreatedAt.DayOfWeek == DayOfWeek.Saturday || o.Order.CreatedAt.DayOfWeek == DayOfWeek.Sunday) ? "Weekend" : "Weekday", product = o.MenuItem.Product })
             .Select(g => new PopularProductsDto
             {
-                DayOfWeek = g.Key.weekDay.ToString(),
+                WeekGroup = g.Key.weekGroup,
                 ProductId = g.Key.product.Id,
                 Product = g.Key.product.Name,
                 Count = g.Sum(o => o.Count),
                 Earnings = g.Sum(o => (o.Count * o.Price)/ (1 - o.Discount / 100m))
             })
-            .GroupBy(p => p.DayOfWeek)
+            .GroupBy(p => p.WeekGroup)
             .Select(g => new ProductsByDayOfWeekDto
             {
-                DayOfWeek = g.Key,
+                WeekGroup = g.Key,
                 PopularProducts = g
                     .OrderByDescending(p => p.Count)
                     .Take(5)
                     .ToList()
             })
-            .OrderBy(g => GetDayOfWeekOrder(g.DayOfWeek)) 
+            .OrderBy(g => GetDayOfWeekOrder(g.WeekGroup)) 
             .ToList();
 
         var overallTopProducts = products
             .GroupBy(o => o.MenuItem.Product)
             .Select(g => new PopularProductsDto
             {
-                DayOfWeek = "All",
+                WeekGroup = "All",
                 ProductId = g.Key.Id,
                 Product = g.Key.Name,
                 Count = g.Sum(o => o.Count),
@@ -82,7 +82,7 @@ public class AnalyticsService(
 
         topProducts.Add(new ProductsByDayOfWeekDto
         {
-            DayOfWeek = "All",
+            WeekGroup = "All",
             PopularProducts = overallTopProducts
         });
 

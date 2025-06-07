@@ -2,6 +2,6 @@
 
 public class ProductsByDayOfWeekDto
 {
-    public required string DayOfWeek { get; set; }
+    public required string WeekGroup { get; set; }
     public List<PopularProductsDto> PopularProducts { get; set; } = new List<PopularProductsDto>();
 }

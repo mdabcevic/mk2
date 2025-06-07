@@ -2,7 +2,7 @@ import { Table } from "../../../utils/constants";
 
 export interface PopularProducts {
     date?: string | null;
-    dayOfWeek?: string | null;
+    weekGroup?: string | null;
     productId: number;
     product: string;
     count: number;
@@ -10,7 +10,7 @@ export interface PopularProducts {
 }
 
 export interface ProductsByDayOfWeek {
-    dayOfWeek: string;
+    weekGroup: string;
     popularProducts: PopularProducts[];
 }
 
