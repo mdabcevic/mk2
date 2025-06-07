@@ -616,7 +616,7 @@ public class OrderServiceIntegrationTests : IntegrationTestBase
         await _orderRepo.AddAsync(order1);
         await _orderRepo.AddAsync(order2);
 
-        var result = await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId: 1, page: 1);
+        var result = await _service.GetAllActiveOrdersByPlaceIdGroupedAsync(placeId: 1, page: 1, size: 1);
 
         Assert.That(result.Items, Has.Count.GreaterThanOrEqualTo(1));
         Assert.That(result.Items.SelectMany(g => g.Orders), Has.Some.Matches<OrderDto>(o => o.Id == order1.Id || o.Id == order2.Id));
@@ -688,7 +688,7 @@ public class OrderServiceIntegrationTests : IntegrationTestBase
         };
         await _orderRepo.AddAsync(closedOrder);
 
-        var result = await _service.GetAllClosedOrdersByPlaceIdAsync(placeId: 1, page: 1);
+        var result = await _service.GetAllClosedOrdersByPlaceIdAsync(placeId: 1, page: 1, size: 1);
 
         Assert.Multiple(() =>
         {
