@@ -7,6 +7,7 @@ using AutoMapper;
 using Bartender.Domain.DTO.Table;
 using Bartender.Data.Enums;
 using Bartender.Data.Models;
+using System.Collections.Concurrent;
 
 namespace Bartender.Domain.Services;
 
@@ -18,6 +19,24 @@ public class AnalyticsService(
     IMapper mapper
     ) : IAnalyticsServer
 {
+    private ConcurrentDictionary<(int businessId, int? placeId, int? month, int? year), List<Order>> _ordersCache = new ConcurrentDictionary<(int, int?, int?, int?), List<Order>>();
+
+
+    private async Task<List<Order>> GetOrdersCached(int businessId, int? placeId, int? month, int? year)
+    {
+        var key = (businessId, placeId, month, year);
+
+        if (_ordersCache.TryGetValue(key, out var cachedOrders))
+        {
+            return cachedOrders;
+        }
+
+        var orders = await repository.GetOrdersByBusinessId(businessId, placeId, month, year);
+        _ordersCache.TryAdd(key, orders);
+
+        return orders;
+    }
+
     public async Task<List<ProductsByDayOfWeekDto>> GetPopularProductsByDayOfWeek(int? placeId = null, int? month = null, int? year = null)
     {
         int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
@@ -73,7 +92,7 @@ public class AnalyticsService(
     {
         int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
 
-        var orders = await repository.GetOrdersByBusinessId(businessId, placeId, month, year);
+        var orders = await GetOrdersCached(businessId, placeId, month, year);
         var traffic = orders
             .GroupBy(o => o.CreatedAt.DayOfWeek)
             .Select(g => new TrafficByDayOfWeekDto
@@ -92,7 +111,7 @@ public class AnalyticsService(
     {
         int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
 
-        var orders = await repository.GetOrdersByBusinessId(businessId, placeId, month, year);
+        var orders = await GetOrdersCached(businessId, placeId, month, year);
         var traffic = orders
             .GroupBy(o => o.CreatedAt.DayOfWeek)
             .Select(dayGroup => new HourlyTrafficDto
@@ -119,7 +138,7 @@ public class AnalyticsService(
     {
         int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
 
-        var orders = await repository.GetOrdersByBusinessId(businessId, placeId, month, year);
+        var orders = await GetOrdersCached(businessId, placeId, month, year);
         var traffic = orders
             .GroupBy(o => o.Table)
             .Select(g => new TableTrafficDto
@@ -137,7 +156,7 @@ public class AnalyticsService(
     {
         int businessId = await CheckAuthorizationAndReturnBusinessId();
 
-        var orders = await repository.GetOrdersByBusinessId(businessId, null, month, year);
+        var orders = await GetOrdersCached(businessId, null, month, year);
         var traffic = orders
             .GroupBy(o => o.Table.Place)
             .Select(g => new PlaceTrafficDto
@@ -177,8 +196,8 @@ public class AnalyticsService(
         int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
 
         //var orders = await repository.GetOrdersByTime(dateTime.Value, timeFilter.Value, businessId, placeId);
-        var orders = await repository.GetOrdersByBusinessId(businessId, placeId, month, year);
-        var orders2 = await repository.GetOrdersByBusinessId(businessId, placeId);
+        var orders = await GetOrdersCached(businessId, placeId, month, year);
+        var orders2 = await GetOrdersCached(businessId, placeId, null, null);
 
         var keyValues = new KeyValuesDto
         {

@@ -13,5 +13,6 @@ public interface IAnalyticsServer
     Task<List<PlaceTrafficDto>> GetAllPlacesTraffic(int? month = null, int? year = null);
     //Task<decimal> GetTotalEarnings(DateTime? dateTime, TimeFilter? timeFilter = TimeFilter.Day, int? placeId = null);
     Task<KeyValuesDto> GetAllInfo(int? placeId = null, int? month = null, int? year = null);
+    Task<AllAnalyticsDataDto> GetAllAnalyticsData(int? placeId, int? month, int? year);
 
 }
