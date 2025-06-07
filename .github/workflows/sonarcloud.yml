@@ -10,6 +10,17 @@ jobs:
     name: SonarCloud Scan
     runs-on: ubuntu-latest
 
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -32,6 +43,17 @@ jobs:
 
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Wait for Redis to be ready
+        run: |
+          for i in {1..10}; do
+            if redis-cli -h localhost ping | grep PONG; then
+              echo "Redis is ready!"
+              break
+            fi
+            echo "Waiting for Redis..."
+            sleep 1
+          done
 
       - name: Begin Sonar Analysis
         env:
