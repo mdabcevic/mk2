@@ -16,7 +16,7 @@ using Serilog;
 using StackExchange.Redis;
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json.Serialization; // <-- ensure this namespace is included
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -214,4 +214,6 @@ app.MapGet("/health", () => Results.Ok("Application is healthy."))
    .WithTags("System");
 
 await app.RunAsync();
+#pragma warning disable S1118 // Utility classes should not have public constructors
 public partial class Program { }
+#pragma warning restore S1118 // Utility classes should not have public constructors
