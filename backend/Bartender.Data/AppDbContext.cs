@@ -20,6 +20,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<GuestSession> GuestSessions { get; set; }
     public DbSet<GuestSessionGroup> GuestSessionGroups { get; set; }
     public DbSet<PlaceImage> PlacePictures { get; set; }
+    public DbSet<WeatherData> WeatherDatas { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

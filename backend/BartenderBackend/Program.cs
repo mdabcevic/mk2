@@ -120,6 +120,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             o.MapEnum<OrderStatus>("orderstatus");
             o.MapEnum<PaymentType>("paymenttype");
             o.MapEnum<ImageType>("picturetype");
+            o.MapEnum<WeatherType>("weathertype");
         }));
 
 builder.Services.AddExceptionHandler<AuthorizationExceptionHandler>();
