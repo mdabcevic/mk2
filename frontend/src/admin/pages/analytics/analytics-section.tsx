@@ -66,31 +66,18 @@ const AnalyticsSection = () => {
         }))
     ];
 
-    const fetchProducts = async (placeId?: number, month?: number, year?: number) => {
-        const products = await analyticsService.getPopularProducts(placeId, month, year);
-        setProducts(products);
+    const fetchAll = async (placeId?: number, month?: number, year?: number) => {
+        const data = await analyticsService.getAll(placeId, month, year);
+        setProducts(data.popularProducts);
+        setDailyTraffic(data.dailyTraffic);
+        setHourlyTraffic(data.hourlyTraffic);
+        setPlaceTraffic(data.placeTraffic);
+        setKeyValues(data.keyValues);
     };
 
-    const fetchDailyTraffic = async (placeId?: number, month?: number, year?: number) => {
-        const traffic = await analyticsService.getWeeklyTraffic(placeId, month, year);
-        setDailyTraffic(traffic);
-    };
-    const fetchHourlyTraffic = async (placeId?: number, month?: number, year?: number) => {
-        const traffic = await analyticsService.getHourlyTraffic(placeId, month, year);
-        setHourlyTraffic(traffic);
-    };
     const fetchTableTraffic = async (placeId: number, month?: number, year?: number) => {
         const traffic = await analyticsService.getTableTraffic(placeId, month, year);
         setTableTraffic(traffic);
-    };
-    const fetchPlaceTraffic = async (month?: number, year?: number) => {
-        const traffic = await analyticsService.getAllPlacesTraffic(month, year);
-        setPlaceTraffic(traffic);
-    };
-
-    const fetchKeyValues = async (placeId?: number, month?: number, year?: number) => {
-        const keyValues = await analyticsService.getKeyValues(placeId, month, year);
-        setKeyValues(keyValues);
     };
 
     const dropdownChange = (item: DropdownItem) => {
@@ -150,12 +137,8 @@ const AnalyticsSection = () => {
         const fetchData = async () => {
             setLoading(true);
             await Promise.all([
-                fetchProducts(placeId, month, year),
-                fetchDailyTraffic(placeId, month, year),
-                fetchHourlyTraffic(placeId, month, year),
+                fetchAll(placeId, month, year),
                 fetchTableTraffic(placeId ?? placeIdFromAuth, month, year),
-                fetchPlaceTraffic(),
-                fetchKeyValues(placeId, month, year)
             ]);
             setLoading(false);
         };  

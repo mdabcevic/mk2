@@ -61,3 +61,11 @@ export interface KeyValues {
     firstOrderDate: string,
     lastOrderDate: string;
 }
+
+export interface AllAnayticsData {
+    popularProducts: ProductsByDayOfWeek[];
+    dailyTraffic: TrafficByDayOfWeek[];
+    hourlyTraffic: HourlyTraffic[];
+    placeTraffic: PlaceTraffic[];
+    keyValues: KeyValues;
+}
