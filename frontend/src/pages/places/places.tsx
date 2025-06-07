@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import PlaceCard from "./place-card";
 import { IPlaceItem } from "../../utils/interfaces/place-item";
 import { placeService } from "../../utils/services/place.service";
+import { useTranslation } from "react-i18next";
 
 // const availableOptions = ["Zagreb", "Rijeka", "Karlovac", "Osijek"];
 function Places() {
-  
+  const { t } = useTranslation("public");
   // const [selectedOption, setSelectedOption] = useState(availableOptions[0]);
   // const [isOpen, setIsOpen] = useState(false);
   const [places,setPlaces] = useState<IPlaceItem[]>([]);
@@ -20,7 +21,7 @@ function Places() {
   },[]);
   return (
     <div className="p-4 pt-[100px]">
-      <h1 className="text-center font-bold text-xs">Coffee Shops</h1>
+      <h1 className="text-center font-bold text-xs">{t("places_title")}</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-2 m-auto mt-4 max-w-[1500px]">
         {places.length > 0 && (
