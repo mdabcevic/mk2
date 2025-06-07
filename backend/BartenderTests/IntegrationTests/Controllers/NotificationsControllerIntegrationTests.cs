@@ -1,10 +1,5 @@
 ﻿using System.Net.Http.Headers;
 using System.Net;
-using Bartender.Data;
-using Bartender.Domain.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
-using BartenderTests.Utility;
-
 
 namespace BartenderTests.IntegrationTests.Controllers;
 

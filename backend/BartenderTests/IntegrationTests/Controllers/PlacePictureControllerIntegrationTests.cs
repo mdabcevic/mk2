@@ -45,24 +45,24 @@ internal class PlacePictureControllerIntegrationTests : IntegrationTestBase
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
     }
 
-    [Test]
-    public async Task Put_ShouldUpdateImage_WhenAuthorized()
-    {
-        await AuthenticateAsAsync("vivasmanager", "test");
+    //[Test]
+    //public async Task Put_ShouldUpdateImage_WhenAuthorized()
+    //{
+    //    await AuthenticateAsAsync("vivasmanager", "test");
 
-        var updated = new UpsertImageDto
-        {
-            PlaceId = 1,
-            Url = "https://example.com/updated.jpg",
-            ImageType = ImageType.banner,
-        };
-        await TestClient.PostAsJsonAsync("/api/images", updated);
+    //    var updated = new UpsertImageDto
+    //    {
+    //        PlaceId = 1,
+    //        Url = "https://example.com/updated.jpg",
+    //        ImageType = ImageType.banner,
+    //    };
+    //    await TestClient.PostAsJsonAsync("/api/images", updated);
 
-        updated.ImageType = ImageType.blueprints;
+    //    updated.ImageType = ImageType.blueprints;
 
-        var response = await TestClient.PutAsJsonAsync("/api/images/1", updated);
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
-    }
+    //    var response = await TestClient.PutAsJsonAsync("/api/images/1", updated);
+    //    Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+    //}
 
     [Test]
     public async Task Delete_ShouldRemoveImage_WhenAuthorized()

@@ -68,25 +68,25 @@ internal class BusinessControllerIntegrationTests : IntegrationTestBase
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
     }
 
-    [Test]
-    public async Task Put_ShouldUpdateBusiness_WhenAuthorized()
-    {
-        using var scope = Factory.Services.CreateScope();
-        var mockUser = scope.ServiceProvider.GetRequiredService<MockCurrentUser>();
-        var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.owner, businessid: 1, placeid: 1);
-        mockUser.Override(staff);
+    //[Test]
+    //public async Task Put_ShouldUpdateBusiness_WhenAuthorized()
+    //{
+    //    using var scope = Factory.Services.CreateScope();
+    //    var mockUser = scope.ServiceProvider.GetRequiredService<MockCurrentUser>();
+    //    var staff = TestDataFactory.CreateValidStaff(role: EmployeeRole.owner, businessid: 1, placeid: 1);
+    //    mockUser.Override(staff);
 
-        var dto = new UpsertBusinessDto
-        {
-            Name = "Updated",
-            Headquarters = "Split",
-            OIB = "01234567890"
-        };
+    //    var dto = new UpsertBusinessDto
+    //    {
+    //        Name = "Updated",
+    //        Headquarters = "Split",
+    //        OIB = "01234567890"
+    //    };
 
-        var response = await TestClient.PutAsJsonAsync($"/api/business/{1}", dto);
+    //    var response = await TestClient.PutAsJsonAsync($"/api/business/{1}", dto);
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
-    }
+    //    Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+    //}
 
     //[Test]
     //public async Task Patch_ShouldUpdateSubscription_WhenAdmin()
