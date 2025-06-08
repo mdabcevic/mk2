@@ -168,9 +168,8 @@ const AnalyticsSection = () => {
             ) : (
             <>
             {/* Main Content */}
-            {/* Daily Traffic & Revenue side by side */}
             <div className="space-y-16">
-            <div className="flex space-x-6">
+                <div className="flex space-x-6">
                     <div className="flex-1">
                         <h2 className="text-xl font-semibold mb-2 text-center">{t("analytics.daily_traffic")}</h2>
                         <div className="w-full h-[350px]">
@@ -184,44 +183,39 @@ const AnalyticsSection = () => {
                             <LineChart data={dailyTraffic} count={false} />
                         </div>
                     </div>
-            </div>
+                </div>
 
-            <div className="flex-1 flex space-x-5 items-center">
-                    <StatCard title={t("analytics.total_revenue")} value={keyValues.revenue} suffix="€" />
-                    <StatCard title={t("analytics.avg_order")} value={keyValues.averageOrder} suffix="€" />
-                    <StatCard title={t("analytics.total_orders")} value={keyValues.totalOrders} />
-                    <StatCard title={t("analytics.first_order")} value={keyValues.firstEverOrderDate} />
-                    <StatCard title={t("analytics.popular_product")} value={keyValues.mostPopularProduct} />
-            </div>
+                <div className="flex-1 flex space-x-5 items-center">
+                        <StatCard title={t("analytics.total_revenue")} value={keyValues.revenue} suffix="€" />
+                        <StatCard title={t("analytics.avg_order")} value={keyValues.averageOrder} suffix="€" />
+                        <StatCard title={t("analytics.total_orders")} value={keyValues.totalOrders} />
+                        <StatCard title={t("analytics.first_order")} value={keyValues.firstEverOrderDate} />
+                        <StatCard title={t("analytics.popular_product")} value={keyValues.mostPopularProduct} />
+                </div>
 
-            <div className="flex flex-col space-y-10">
-                <div className="w-full">
-                    <h2 className="text-xl font-semibold mb-4 text-center">{t("analytics.popular_products")}</h2>
-            
-                    {/* Tabs */}
-                    <div className="flex space-x-4 mb-4 pt-5">
-                    {tabs.map((tab) => (
-                        <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`pb-2 text-md px-5 font-medium border-b-2 transition-colors ${
-                            activeTab === tab
-                            ? "text-[#7E5E44] border-[#7E5E44] font-extrabold"
-                            : "text-[#737373] border-transparent"
-                        }`}
-                        >
-                        {tab}
-                        </button>
-                    ))}
-                    </div>
-            
-                    {/* Chart */}
+                <div className="flex flex-col space-y-10">
+                    <div className="w-full">
+                        <h2 className="text-xl font-semibold mb-4 text-center">{t("analytics.popular_products")}</h2>
+                        {/* Tabs */}
+                        <div className="flex space-x-4 mb-4 pt-5">
+                        {tabs.map((tab) => (
+                            <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`pb-2 text-md px-5 font-medium border-b-2 transition-colors ${
+                                activeTab === tab
+                                ? "text-[#7E5E44] border-[#7E5E44] font-extrabold"
+                                : "text-[#737373] border-transparent"
+                            }`}
+                            >
+                            {tab}
+                            </button>
+                        ))}
+                        </div>
                     <div className="w-full h-[400px]">
                     <PopularProductsByDayChart data={productChartData} />
                     </div>
                 </div>
-            
-                
 
                 <div className="flex space-x-6">
                     <div className="flex-1">
@@ -232,7 +226,16 @@ const AnalyticsSection = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-10">
+                <div className="flex space-x-6">
+                    <div className="flex-1">
+                    <h2 className="text-xl font-semibold mb-2 text-center">{t("analytics.weather_analytics")}</h2>
+                    <div className="w-full h-[350px]">
+                        <WeatherChart data={ordersByWeather}/>
+                    </div>
+                    </div>
+                </div> 
+
+                <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-10 pt-16">
                     <div className="flex-1 flex flex-col">
                         <h2 className="text-xl font-semibold mb-2 text-center mb-12">{t("analytics.place_traffic")}</h2>
                         <div className="flex-1 flex justify-center h-[400px] w-full z-1">
@@ -246,15 +249,6 @@ const AnalyticsSection = () => {
                         <div className="w-full h-[500px]">
                         <TableAnalytics data={tableTraffic} count={true}/>
                         </div>
-                    </div>
-                </div>   
-
-                <div className="flex space-x-6">
-                    <div className="flex-1">
-                    <h2 className="text-xl font-semibold mb-2 text-center">{t("analytics.weather_analytics")}</h2>
-                    <div className="w-full h-[400px]">
-                        <WeatherChart data={ordersByWeather}/>
-                    </div>
                     </div>
                 </div>   
             </div>

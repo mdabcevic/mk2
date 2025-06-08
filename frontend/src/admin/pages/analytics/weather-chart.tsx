@@ -9,7 +9,7 @@ interface WeatherOrderChartProps {
 
 const colorsMap: Record<string, string> = {
     dry: '#8C694C',
-    rainy: '#60A5FA',
+    rainy: '#A3A3A3',
     snowy: '#E3DAC9',
     severe_weather: '#D97706',
 };
