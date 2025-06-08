@@ -36,5 +36,10 @@ public class Order : BaseEntity
 
     public string? Note { get; set; }
 
+    public int? WeatherId { get; set; }
+
+    [ForeignKey(nameof(WeatherId))]
+    public WeatherData? Weather { get; set; }
+
     public ICollection<ProductPerOrder> Products { get; set; } = [];
 }

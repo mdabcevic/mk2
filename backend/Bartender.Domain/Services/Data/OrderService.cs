@@ -18,6 +18,7 @@ public class OrderService(
     IRepository<Table> tableRepository,
     IRepository<MenuItem> menuItemRepository,
     IRepository<GuestSession> guestSessionRepo,
+    IRepository<WeatherData> weatherRepo,
     ILogger<OrderService> logger,
     ICurrentUserContext currentUser,
     IValidationService validationService,
@@ -329,6 +330,26 @@ public class OrderService(
             .ToList();
 
         return combinedItems;
+    }
+
+    public async Task LinkOrdersWithWeatherData()
+    {
+        var orders = await repository.GetAllAsync();
+        var weatherDataList = await weatherRepo.GetAllAsync();
+
+        foreach (var order in orders)
+        {
+            var matchingWeather = weatherDataList.FirstOrDefault(w =>
+                w.DateTime.Date == order.CreatedAt.Date &&
+                w.DateTime.Hour == order.CreatedAt.Hour);
+
+            if (matchingWeather != null)
+            {
+                order.WeatherId = matchingWeather.Id;
+            }
+        }
+
+        await repository.UpdateRangeAsync(orders);
     }
 
     private static decimal CalculateTotalPrice(List<ProductPerOrder> items)

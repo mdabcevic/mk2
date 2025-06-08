@@ -213,6 +213,21 @@ var app = builder.Build();
     }
 }*/
 
+/*using (var scope = app.Services.CreateScope())
+{
+    var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
+
+    try
+    {
+        await orderService.LinkOrdersWithWeatherData();
+        Console.WriteLine("Orders updated with foreign key to weather data.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error updating orders: {ex.Message}");
+    }
+}*/
+
 
 
 app.UseSerilogRequestLogging(); // Log all HTTP requests automatically
