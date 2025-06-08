@@ -12,6 +12,8 @@ using System.Security.Claims;
 using System.Text;
 using Bartender.Domain.Utility;
 using System.Net.Http.Headers;
+using Bartender.Domain.DTO.Staff;
+using System.Net.Http.Json;
 
 namespace BartenderTests.IntegrationTests;
 
@@ -21,6 +23,7 @@ public class IntegrationTestBase
     protected HttpClient TestClient;
     private PostgreSqlContainer _pgContainer;
     protected WebApplicationFactory<Program> Factory;
+    protected virtual bool UseMockCurrentUser => true;
 
     [OneTimeSetUp]
     public async Task GlobalSetup()
@@ -48,12 +51,15 @@ public class IntegrationTestBase
                         options.UseNpgsql(_pgContainer.GetConnectionString());
                     });
 
-                    var existing = services.SingleOrDefault(s => s.ServiceType == typeof(ICurrentUserContext));
-                    if (existing != null)
-                        services.Remove(existing);
+                    if (UseMockCurrentUser)
+                    {
+                        var existing = services.SingleOrDefault(s => s.ServiceType == typeof(ICurrentUserContext));
+                        if (existing != null)
+                            services.Remove(existing);
 
-                    services.AddScoped<MockCurrentUser>();
-                    services.AddScoped<ICurrentUserContext>(sp => sp.GetRequiredService<MockCurrentUser>());
+                        services.AddScoped<MockCurrentUser>();
+                        services.AddScoped<ICurrentUserContext>(sp => sp.GetRequiredService<MockCurrentUser>());
+                    }
 
                     var sp = services.BuildServiceProvider();
                     using var scope = sp.CreateScope();
@@ -86,12 +92,12 @@ public class IntegrationTestBase
         await _pgContainer.DisposeAsync();
     }
 
-    private static string GenerateTestToken(string key, int placeId = 1)
+    private static string GenerateTestToken(string key, int placeId = 1, string role = "manager")
     {
         var claims = new[]
         {
         new Claim(ClaimTypes.NameIdentifier, "99"),
-        new Claim(ClaimTypes.Role, "manager"),
+        new Claim(ClaimTypes.Role, role),
         new Claim("PlaceId", placeId.ToString())
     };
 
@@ -107,4 +113,18 @@ public class IntegrationTestBase
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    protected void SetAuthHeader(string role = "manager", int placeId = 1)
+    {
+        var jwt = Factory.Services.GetRequiredService<JwtSettings>();
+        var token = GenerateTestToken(jwt.Key, placeId, role);
+        TestClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    }
+
+    protected async Task<string> LoginAndGetTokenAsync(string username, string password)
+    {
+        var loginDto = new LoginStaffDto { Username = username, Password = password };
+        var response = await TestClient.PostAsJsonAsync("/api/auth", loginDto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
 }

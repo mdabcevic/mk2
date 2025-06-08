@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Order } from "../../../../utils/interfaces/order";
 
 interface MyOrdersModalProps {
@@ -10,17 +11,18 @@ interface MyOrdersModalProps {
 const MyOrdersList: React.FC<MyOrdersModalProps> = ({
   myOrders,
 }) => {
+  const { t } = useTranslation("public");
   return (
     <div>
       {
         myOrders.map((order, index) => (
           <div key={order.id} className="mb-6 border-b w-full">
             <p className="text-[16px] font-semibold mb-4 text-black">
-              Order {index + 1} ({order.status.toUpperCase()}) - {order.totalPrice.toFixed(2)}€
+              {t("my_orders_order")} {myOrders.length - index} ({order.status.toUpperCase()}) - {order.totalPrice.toFixed(2)}€
             </p>
             {order.note && (
               <p className="text-sm mb-2 whitespace-pre-line text-[14px]">
-                <span className="font-bold">Note:</span> {order.note}
+                <span className="font-bold">{t("note_2")}:</span> {order.note}
               </p>
             )}
             {order.items.map((item, idx) => (

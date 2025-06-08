@@ -111,10 +111,6 @@ function MyOrders() {
         }`}
       >
 
-        <button onClick={() => setShowOrders(false)} className="self-start mb-4 text-mocha-600 font-semibold underline flex items-center" >
-          {t("go_back").toUpperCase()}
-        </button>
-
         <h4 className="text-md font-bold border-b pb-2 mb-4">
           {t("my_orders")}
         </h4>
