@@ -116,11 +116,11 @@ public class AnalyticsRepository : IAnalyticsRepository
             .Include(o => o.Table)
                 .ThenInclude(t => t.Place)
                     .ThenInclude(p => p.City)
+            .Include(o => o.Weather)
             .Where(o => o.Status == OrderStatus.closed);
 
         if (placeId != null)
             query = query.Where(o => o.Table.PlaceId == placeId);
-
         else
             query = query.Where(o => o.Table.Place.BusinessId == businessId);
 
@@ -130,14 +130,10 @@ public class AnalyticsRepository : IAnalyticsRepository
         if (year != null)
             query = query.Where(o => o.CreatedAt.Year == year);
 
-        var result = from o in query 
-                     join w in context.WeatherDatas 
-                     on new { CityId = o.Table.Place.CityId, Date = o.CreatedAt.Date, Hour = o.CreatedAt.Hour} 
-                     equals new {CityId = w.CityId, Date = w.DateTime.Date, Hour = w.DateTime.Hour}
-                     select new { order = o, weather = w };
+        query = query.Where(o => o.Weather != null);
+        var orders = await query.ToListAsync();
 
-        var list = await result.ToListAsync();
-
-        return list.Select(x => (x.order, x.weather)).ToList();
+        return orders.Select(o => (o, o.Weather)).ToList();
     }
+
 }

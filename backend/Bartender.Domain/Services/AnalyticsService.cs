@@ -1,7 +1,5 @@
 ﻿using Bartender.Domain.Interfaces;
-using Bartender.Domain.Services.Data;
 using Microsoft.Extensions.Logging;
-using Bartender.Domain.Utility.Exceptions;
 using Bartender.Domain.DTO.Analytics;
 using AutoMapper;
 using Bartender.Domain.DTO.Table;
@@ -285,7 +283,7 @@ public class AnalyticsService(
             {
                 WeekGroup = x.WeekGroup,
                 WeatherType = x.WeatherType,
-                AverageOrdersPerHour = x.TotalDistinctHours > 0 ? (double)x.TotalOrders / x.TotalDistinctHours : 0
+                AverageOrdersPerHour = Math.Round(x.TotalDistinctHours > 0 ? (double)x.TotalOrders / x.TotalDistinctHours : 0,2)
             })
             .ToList();
 
@@ -304,6 +302,7 @@ public class AnalyticsService(
         var hourlyTraffic = await GetHourlyTraffic(placeId, month, year);
         var placeTraffic = await GetAllPlacesTraffic(month, year);
         var keyValues = await GetAllInfo(placeId, month, year);
+        var weatherAnalytics = await GetOrderWeatherAnalytics(placeId, month, year);
 
         return new AllAnalyticsDataDto
         {
@@ -311,6 +310,7 @@ public class AnalyticsService(
             DailyTraffic = dailyTraffic,
             HourlyTraffic = hourlyTraffic,
             PlaceTraffic = placeTraffic,
+            WeatherAnalytics = weatherAnalytics,
             KeyValues = keyValues
         };
     }
