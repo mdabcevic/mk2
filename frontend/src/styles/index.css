@@ -118,6 +118,26 @@ button{
   background: #DFD8CD;
 }
 
+.react-datepicker__month-wrapper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.react-datepicker__month-text {
+  text-align: center;
+  padding: 6px 0;
+}
+
+.dropdown-option:focus{
+  max-height: 50px;
+}
+
+.dropdown-option{
+  max-height: 50px;
+}
+
 @keyframes floatUpDown {
   0%, 100% {
     transform: translateY(0);

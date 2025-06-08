@@ -26,6 +26,9 @@ public class Place : BaseEntity
 
     public TimeOnly ClosesAt { get; set; } = TimeOnly.FromDateTime(DateTime.Now);
 
+    public decimal Longitude { get; set; }
+    public decimal Latitude { get; set; }
+
     public ICollection<Staff>? Staffs { get; set; }
     public ICollection<Table>? Tables { get; set; }
     public ICollection<MenuItem>? MenuItems { get; set; }

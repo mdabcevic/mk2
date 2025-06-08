@@ -16,4 +16,5 @@ public interface IOrderService
     Task UpdateAsync(int id, UpsertOrderDto order);
     Task UpdateStatusAsync(int id, UpdateOrderStatusDto newStatus);
     Task DeleteAsync(int id);
+    Task LinkOrdersWithWeatherData();
 }

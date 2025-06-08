@@ -1,5 +1,6 @@
 using Bartender.Data;
 using Bartender.Data.Enums;
+using Bartender.Data.Models;
 using Bartender.Domain;
 using Bartender.Domain.Interfaces;
 using Bartender.Domain.Mappings;
@@ -120,6 +121,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             o.MapEnum<OrderStatus>("orderstatus");
             o.MapEnum<PaymentType>("paymenttype");
             o.MapEnum<ImageType>("picturetype");
+            o.MapEnum<WeatherType>("weathertype");
         }));
 
 builder.Services.AddExceptionHandler<AuthorizationExceptionHandler>();
@@ -137,6 +139,7 @@ builder.Services.AddScoped<ITableRepository, TableRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
+builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 
 builder.Services.AddScoped<IBusinessService, BusinessService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
@@ -157,6 +160,9 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ITableSessionService, GuestSessionService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddScoped<IAnalyticsServer, AnalyticsService>();
+builder.Services.AddHttpClient<IGeoCodingService, GeoCodingService>();
+builder.Services.AddHttpClient<IWeatherApiService, WeatherApiService>();
 
 builder.Services.AddSignalR();
 
@@ -179,6 +185,51 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+
+// adding weather history into database
+/*using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var weatherService = scope.ServiceProvider.GetRequiredService<IWeatherApiService>();
+        var cityRepository = scope.ServiceProvider.GetRequiredService<IRepository<City>>();
+
+        var city = await cityRepository.GetByKeyAsync(c => c.Id == 1);
+
+        if (city == null)
+        {
+            Console.WriteLine("City not found");
+        }
+        else
+        {
+            await weatherService.SaveWeatherHistory(city, new DateOnly(2025, 01, 01), new DateOnly(2025, 06, 07));
+            Console.WriteLine("Weather history saved.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error saving weather history: {ex.Message}");
+    }
+}*/
+
+/*using (var scope = app.Services.CreateScope())
+{
+    var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
+
+    try
+    {
+        await orderService.LinkOrdersWithWeatherData();
+        Console.WriteLine("Orders updated with foreign key to weather data.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error updating orders: {ex.Message}");
+    }
+}*/
+
+
+
 app.UseSerilogRequestLogging(); // Log all HTTP requests automatically
 
 // Configure the HTTP request pipeline.

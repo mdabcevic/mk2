@@ -4,6 +4,7 @@ using Bartender.Data;
 using Bartender.Data.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Bartender.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250607203401_AddWeatherDataTable")]
+    partial class AddWeatherDataTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -317,10 +320,6 @@ namespace Bartender.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<int?>("WeatherId")
-                        .HasColumnType("integer")
-                        .HasColumnName("weather_id");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
@@ -328,8 +327,6 @@ namespace Bartender.Data.Migrations
                     b.HasIndex("GuestSessionId");
 
                     b.HasIndex("TableId");
-
-                    b.HasIndex("WeatherId");
 
                     b.ToTable("orders");
                 });
@@ -808,17 +805,11 @@ namespace Bartender.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Bartender.Data.Models.WeatherData", "Weather")
-                        .WithMany()
-                        .HasForeignKey("WeatherId");
-
                     b.Navigation("Customer");
 
                     b.Navigation("GuestSession");
 
                     b.Navigation("Table");
-
-                    b.Navigation("Weather");
                 });
 
             modelBuilder.Entity("Bartender.Data.Models.Place", b =>

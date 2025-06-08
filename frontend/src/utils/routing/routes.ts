@@ -23,6 +23,6 @@ export const AppPaths = {
         tables:`${AdminRoot}/tables`,
         notifications:`${AdminRoot}/notifications`,
         scanner:`${AdminRoot}/scanner`,
-        
+        analytics:`${AdminRoot}/analytics`,
     },
 }

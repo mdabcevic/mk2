@@ -19,15 +19,25 @@ public class PlaceService(
     ILogger<PlaceService> logger,
     ICurrentUserContext currentUser,
     INotificationService notificationService,
-    IMapper mapper
+    IMapper mapper,
+    IGeoCodingService geoCodingService
     ) : IPlaceService
 {
     public async Task AddAsync(InsertPlaceDto dto)
     {
         if (!await IsSameBusinessAsync(dto.BusinessId))
             throw new UnauthorizedBusinessAccessException();
-
+  
         var entity = mapper.Map<Place>(dto);
+
+        var coords = await geoCodingService.GetCoordinatesFromAddress(entity.Address + ", " + entity.City?.Name);
+
+        if (coords != null)
+        {
+            entity.Latitude = coords.Value.Latitude;
+            entity.Longitude = coords.Value.Longitude;
+        }
+
         await repository.AddAsync(entity);
         logger.LogInformation("Place created: {Address}, BusinessId: {BusinessId}", dto.Address, dto.BusinessId);
     }

@@ -1,4 +1,4 @@
-import { BrowserRouter as Routes, Route, Outlet, Navigate } from "react-router-dom";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Places from "../../pages/places/places.tsx";
 import ContactUs from "../../pages/contact-us/contactus.tsx";
 import PlaceDetails from "../../pages/places/place-details/place-details.tsx";
@@ -16,6 +16,7 @@ import { NotificationScreen } from "../../admin/pages/table-view/notifications.t
 import ManagementView from "../../admin/pages/management/management.tsx";
 import HomePage from "../../pages/home/home.tsx";
 import MyOrders from "../../pages/places/place-details/myOrders/my-orders.tsx";
+import Analytics from "../../admin/pages/analytics/analytics";
 
 const AdminLayout = lazy(() => import("../../admin/containers/admin-layout"));
 const Dashboard = lazy(() => import("../../admin/pages/dashboard/dashboard.tsx"));
@@ -66,6 +67,7 @@ function AppRoutes(){
               <Route path={AppPaths.admin.products} element={<ProductsViewPage />} />
               <Route path={AppPaths.admin.tables} element={<TablesPage />} />
               <Route path={AppPaths.admin.notifications} element={<NotificationScreen />} />
+              <Route path={AppPaths.admin.analytics} element={<Analytics />} />
               <Route path="*" element={<Dashboard />} />
             </Route>
           </Route>
