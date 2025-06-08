@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
+import { BrowserRouter as Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Places from "../../pages/places/places.tsx";
 import ContactUs from "../../pages/contact-us/contactus.tsx";
 import PlaceDetails from "../../pages/places/place-details/place-details.tsx";
