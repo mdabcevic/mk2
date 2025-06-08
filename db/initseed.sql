@@ -430,7 +430,7 @@ INSERT INTO place_pictures (place_id, url, image_type, is_visible, created_at) V
 (10, 'https://media-cdn.tripadvisor.com/media/photo-s/13/8a/25/b6/lighting-up-the-night.jpg', 'banner', true, now()),
 (11, 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/19/63/5d/31/cloud9-cafe-bar-at-our.jpg?w=1000&h=-1&s=1', 'banner', true, now())
 
-DO $$
+/*DO $$
 DECLARE
     start_date DATE := CURRENT_DATE - INTERVAL '1 year';
     end_date DATE := CURRENT_DATE - INTERVAL '1 day';
@@ -525,5 +525,5 @@ BEGIN
         END LOOP;
     END LOOP;
 END;
-$$;
+$$;*/
 
