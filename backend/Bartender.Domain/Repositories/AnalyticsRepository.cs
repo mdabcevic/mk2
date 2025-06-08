@@ -77,39 +77,6 @@ public class AnalyticsRepository : IAnalyticsRepository
         return await query.ToListAsync();
     }
 
-    public async Task<List<Order>> GetOrdersByTime(DateTime dateTime, TimeFilter timeFilter, int businessId, int? placeId = null)
-    {
-        var query = context.Orders
-            .Include(o => o.Table)
-                .ThenInclude(t => t.Place)
-            .Where(o => o.Status == OrderStatus.closed);
-
-        if (placeId != null)
-            query = query.Where(o => o.Table.PlaceId == placeId);
-
-        else
-            query = query.Where(o => o.Table.Place.BusinessId == businessId);
-
-        Expression<Func<Order, bool>> filter = o => true;
-
-        switch (timeFilter)
-        {
-            case TimeFilter.Day:
-                filter = o => o.CreatedAt.Date == dateTime.Date;
-                break;
-            case TimeFilter.Month:
-                filter = o => o.CreatedAt.Month == dateTime.Month && o.CreatedAt.Year == dateTime.Year;
-                break;
-            case TimeFilter.Year:
-                filter = o => o.CreatedAt.Year == dateTime.Year;
-                break;
-        }
-
-        query = query.Where(filter);
-
-        return await query.ToListAsync();
-    }
-
     public async Task<List<(Order order, WeatherData? weather)>> GetOrdersWithWeather(int businessId, int? placeId = null, int? month = null, int? year = null)
     {
         var query = context.Orders
