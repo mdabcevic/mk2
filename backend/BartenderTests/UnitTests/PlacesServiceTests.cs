@@ -25,6 +25,7 @@ public class PlacesServiceTests
     INotificationService _notificationService;
     private IMapper _mapper;
     private PlaceService _service;
+    private IGeoCodingService _geoCodingService;
 
     [SetUp]
     public void SetUp()
@@ -34,6 +35,7 @@ public class PlacesServiceTests
         _logger = Substitute.For<ILogger<PlaceService>>();
         _userContext = Substitute.For<ICurrentUserContext>();
         _notificationService = Substitute.For<INotificationService>();
+        _geoCodingService = Substitute.For<IGeoCodingService>();
 
 
         var config = new MapperConfiguration(cfg =>
@@ -42,7 +44,7 @@ public class PlacesServiceTests
         });
         _mapper = config.CreateMapper();
 
-        _service = new PlaceService(_repository, _tableRepository, _logger, _userContext, _notificationService, _mapper);
+        _service = new PlaceService(_repository, _tableRepository, _logger, _userContext, _notificationService, _mapper, _geoCodingService);
     }
 
 

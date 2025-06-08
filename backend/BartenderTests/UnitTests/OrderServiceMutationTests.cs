@@ -22,6 +22,7 @@ public class OrderServiceMutationTests
     private IRepository<Table> _tableRepo;
     private IRepository<MenuItem> _menuItemRepo;
     private IRepository<GuestSession> _guestSessionRepo;
+    private IRepository<WeatherData> _weatherDataRepo;
     private ILogger<OrderService> _logger;
     private ICurrentUserContext _currentUser;
     private IValidationService _validationService;
@@ -37,6 +38,7 @@ public class OrderServiceMutationTests
         _tableRepo = Substitute.For<IRepository<Table>>();
         _menuItemRepo = Substitute.For<IRepository<MenuItem>>();
         _guestSessionRepo = Substitute.For<IRepository<GuestSession>>();
+        _weatherDataRepo = Substitute.For<IRepository<WeatherData>>();
         _logger = Substitute.For<ILogger<OrderService>>();
         _currentUser = Substitute.For<ICurrentUserContext>();
         _validationService = Substitute.For<IValidationService>();
@@ -48,6 +50,7 @@ public class OrderServiceMutationTests
             _tableRepo,
             _menuItemRepo,
             _guestSessionRepo,
+            _weatherDataRepo,
             _logger,
             _currentUser,
             _validationService,
