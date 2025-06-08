@@ -11,7 +11,7 @@ const colorsMap: Record<string, string> = {
     dry: '#8C694C',
     rainy: '#A3A3A3',
     snowy: '#E3DAC9',
-    severe_weather: '#D97706',
+    severe_weather: '#C2AD88',
 };
 
 const WeekdayWeatherChart: React.FC<WeatherOrderChartProps> = ({ data }) => {
