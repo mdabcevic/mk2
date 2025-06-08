@@ -9,5 +9,5 @@ public class PlaceTrafficDto
     public decimal? Lat { get; set; }
     public decimal? Long { get; set; }
     public required int Count { get; set; }
-    public required decimal Earnings { get; set; }
+    public required decimal Revenue { get; set; }
 }

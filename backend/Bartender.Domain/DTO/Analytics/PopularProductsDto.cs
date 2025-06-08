@@ -11,5 +11,5 @@ public class PopularProductsDto
     public required int ProductId { get; set; }
     public required string Product {  get; set; }
     public required int Count { get; set; }
-    public required decimal Earnings { get; set; }
+    public required decimal Revenue { get; set; }
 }

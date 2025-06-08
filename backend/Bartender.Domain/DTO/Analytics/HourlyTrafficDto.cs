@@ -11,5 +11,5 @@ public class HourCountDto
 {
     public int Hour { get; set; }
     public int Count { get; set; }
-    public decimal AverageEarnings { get; set; }
+    public decimal AverageRevenue { get; set; }
 }
