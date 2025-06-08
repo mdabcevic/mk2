@@ -20,6 +20,10 @@ export default function CustomSelect({ options, value, onChange, placeholder }: 
         onChange={(option) => onChange(option?.value ?? undefined)}
         isClearable={true}
         styles={{
+            control: (provided) => ({
+                ...provided,
+                borderRadius: '14px',
+            }),
             menu: (provided) => ({
                 ...provided,
                 maxHeight: '150px',

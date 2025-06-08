@@ -6,7 +6,7 @@ export interface PopularProducts {
     productId: number;
     product: string;
     count: number;
-    earnings: number;
+    revenue: number;
 }
 
 export interface ProductsByDayOfWeek {
@@ -17,13 +17,13 @@ export interface ProductsByDayOfWeek {
 export interface ProductChartData{
     product: string;
     count: number;
-    earnings: number;
+    revenue: number;
 };
 
 export interface TrafficByDayOfWeek {
     dayOfWeek: string;
     count: number;
-    earnings: number;
+    revenue: number;
 }
 
 export interface HourlyTraffic {
@@ -34,13 +34,13 @@ export interface HourlyTraffic {
 export interface HourCount {
     hour: number;
     count: number;
-    averageEarnings: number;
+    averageRevenue: number;
 }
 
 export interface TableTraffic {
     table: Table;
     count: number;
-    averageEarnings: number;
+    averageRevenue: number;
 }
 
 export interface PlaceTraffic {
@@ -50,16 +50,17 @@ export interface PlaceTraffic {
     lat: number,
     long: number;
     count: number;
-    earnings: number;
+    revenue: number;
 }
 
 export interface KeyValues {
-    earnings: number;
+    revenue: number;
     averageOrder: number;
     totalOrders: number;
     firstEverOrderDate: string,
     firstOrderDate: string,
     lastOrderDate: string;
+    mostPopularProduct: string;
 }
 
 export interface AllAnayticsData {
