@@ -13,5 +13,5 @@ public interface IAnalyticsServer
     Task<List<PlaceTrafficDto>> GetAllPlacesTraffic(int? month = null, int? year = null);
     Task<KeyValuesDto> GetAllInfo(int? placeId = null, int? month = null, int? year = null);
     Task<AllAnalyticsDataDto> GetAllAnalyticsData(int? placeId, int? month, int? year);
-
+    Task<List<OrdersByWeatherDto>> GetOrderWeatherAnalytics(int? placeId, int? month = null, int? year = null);
 }

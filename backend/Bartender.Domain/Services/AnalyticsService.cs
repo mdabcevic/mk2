@@ -15,13 +15,14 @@ namespace Bartender.Domain.Services;
 
 public class AnalyticsService(
     IAnalyticsRepository repository,
-    ILogger<OrderService> logger,
+    ILogger<AnalyticsService> logger,
     ICurrentUserContext currentUser,
     IValidationService validationService,
     IMapper mapper
     ) : IAnalyticsServer
 {
     private ConcurrentDictionary<(int businessId, int? placeId, int? month, int? year), List<Order>> _ordersCache = new ConcurrentDictionary<(int, int?, int?, int?), List<Order>>();
+    private ConcurrentDictionary<(int businessId, int? placeId, int? month, int? year), List<ProductPerOrder>> _productsCache = new();
 
 
     private async Task<List<Order>> GetOrdersCached(int businessId, int? placeId, int? month, int? year)
@@ -39,11 +40,27 @@ public class AnalyticsService(
         return orders;
     }
 
+    private async Task<List<ProductPerOrder>> GetProductsCached(int businessId, int? placeId, int? month, int? year)
+    {
+        var key = (businessId, placeId, month, year);
+
+        if (_productsCache.TryGetValue(key, out var cachedProducts))
+        {
+            return cachedProducts;
+        }
+
+        var products = await repository.GetOrderedProductsByBusinessId(businessId, placeId, month, year);
+        _productsCache.TryAdd(key, products);
+
+        return products;
+    }
+
+
     public async Task<List<ProductsByDayOfWeekDto>> GetPopularProductsByDayOfWeek(int? placeId = null, int? month = null, int? year = null)
     {
         int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
 
-        var products = await repository.GetOrderedProductsByBusinessId(businessId, placeId, month, year);
+        var products = await GetProductsCached(businessId, placeId, month, year);
         var topProducts = products
             .GroupBy(o => new { weekGroup = (o.Order.CreatedAt.DayOfWeek == DayOfWeek.Saturday || o.Order.CreatedAt.DayOfWeek == DayOfWeek.Sunday) ? "Weekend" : "Weekday", product = o.MenuItem.Product })
             .Select(g => new PopularProductsDto
@@ -52,7 +69,7 @@ public class AnalyticsService(
                 ProductId = g.Key.product.Id,
                 Product = g.Key.product.Name,
                 Count = g.Sum(o => o.Count),
-                Earnings = g.Sum(o => (o.Count * o.Price)/ (1 - o.Discount / 100m))
+                Revenue = g.Sum(o => (o.Count * o.Price)/ (1 - o.Discount / 100m))
             })
             .GroupBy(p => p.WeekGroup)
             .Select(g => new ProductsByDayOfWeekDto
@@ -74,7 +91,7 @@ public class AnalyticsService(
                 ProductId = g.Key.Id,
                 Product = g.Key.Name,
                 Count = g.Sum(o => o.Count),
-                Earnings = g.Sum(o => (o.Count * o.Price) / (1 - o.Discount / 100m))
+                Revenue = g.Sum(o => (o.Count * o.Price) / (1 - o.Discount / 100m))
             })
             .OrderByDescending(p => p.Count)
             .Take(5)
@@ -101,7 +118,7 @@ public class AnalyticsService(
             {
                 DayOfWeek = g.Key.ToString(),
                 Count = g.Count(),
-                Earnings = g.Sum(o => o.TotalPrice)
+                Revenue = g.Sum(o => o.TotalPrice)
             })
             .OrderBy(g => GetDayOfWeekOrder(g.DayOfWeek))
             .ToList();
@@ -125,7 +142,7 @@ public class AnalyticsService(
                     {
                         Hour = hourGroup.Key,
                         Count = hourGroup.Count(),
-                        AverageEarnings = hourGroup.Average(o => o.TotalPrice)
+                        AverageRevenue = hourGroup.Average(o => o.TotalPrice)
                     })
                 .OrderBy(h => h.Hour)
                 .ToList()
@@ -147,7 +164,7 @@ public class AnalyticsService(
             {
                 Table = mapper.Map<BaseTableDto>(g.Key),
                 Count = g.Count(),
-                AverageEarnings = Math.Round(g.Average(o => o.TotalPrice), 2)
+                AverageRevenue = Math.Round(g.Average(o => o.TotalPrice), 2)
             })
             .ToList();
 
@@ -169,7 +186,7 @@ public class AnalyticsService(
                 Lat = g.Key?.Latitude,
                 Long = g.Key?.Longitude,
                 Count = g.Count(),
-                Earnings = g.Sum(o => o.TotalPrice)
+                Revenue = g.Sum(o => o.TotalPrice)
             })
             .ToList();
 
@@ -184,15 +201,26 @@ public class AnalyticsService(
         //var orders = await repository.GetOrdersByTime(dateTime.Value, timeFilter.Value, businessId, placeId);
         var orders = await GetOrdersCached(businessId, placeId, month, year);
         var orders2 = await GetOrdersCached(businessId, placeId, null, null);
+        var products = await GetProductsCached(businessId, placeId, month, year);
 
         var keyValues = new KeyValuesDto
         {
-            Earnings = orders.Sum(o => o.TotalPrice),
+            Revenue = orders.Sum(o => o.TotalPrice),
             AverageOrder = Math.Round(orders.Average(o => o.TotalPrice), 2),
             TotalOrders = orders.Count(),
             FirstEverOrderDate = orders2.OrderBy(o => o.CreatedAt).First().CreatedAt.ToString("dd/MM/yyyy"),
             FirstOrderDate = orders.OrderBy(o => o.CreatedAt).First().CreatedAt,
-            LastOrderDate = orders.OrderByDescending(o => o.CreatedAt).First().CreatedAt
+            LastOrderDate = orders.OrderByDescending(o => o.CreatedAt).First().CreatedAt,
+            MostPopularProduct = products
+            .GroupBy(p => p.MenuItem.Product)
+            .Select(g => new
+            {
+                Product = g.Key,
+                Count = g.Sum(p => p.Count)
+            })
+            .OrderByDescending(g => g.Count)
+            .Select(g => g.Product.Name)
+            .FirstOrDefault() ?? "No products"
         };
 
         return keyValues;
@@ -220,7 +248,7 @@ public class AnalyticsService(
         return businessId.Value;
     }
 
-    public async Task<List<OrdersByWeatherDto>> GetOrderWeatherAnalytics(int placeId, int? month = null, int? year = null)
+    public async Task<List<OrdersByWeatherDto>> GetOrderWeatherAnalytics(int? placeId, int? month = null, int? year = null)
     {
         int businessId = await CheckAuthorizationAndReturnBusinessId(placeId);
 

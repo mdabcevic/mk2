@@ -60,4 +60,11 @@ public class AnalyticsController(IAnalyticsServer analyticsServer) : ControllerB
         var result = await analyticsServer.GetAllAnalyticsData(placeId, month, year);
         return Ok(result);
     }
+
+    [HttpGet("weather/{placeId?}")]
+    public async Task<IActionResult> GetWeatherAnalytics(int? placeId, [FromQuery] int? month, [FromQuery] int? year)
+    {
+        var result = await analyticsServer.GetOrderWeatherAnalytics(placeId, month, year);
+        return Ok(result);
+    }
 }
