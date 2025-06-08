@@ -226,14 +226,16 @@ const AnalyticsSection = () => {
                     </div>
                 </div>
 
-                <div className="flex space-x-6">
-                    <div className="flex-1">
-                    <h2 className="text-xl font-semibold mb-2 text-center">{t("analytics.weather_analytics")}</h2>
-                    <div className="w-full h-[350px]">
-                        <WeatherChart data={ordersByWeather}/>
+                {ordersByWeather.length > 0 && (
+                    <div className="flex space-x-6">
+                        <div className="flex-1">
+                            <h2 className="text-xl font-semibold mb-2 text-center">{t("analytics.weather_analytics")}</h2>
+                            <div className="w-full h-[350px]">
+                                <WeatherChart data={ordersByWeather} />
+                            </div>
+                        </div>
                     </div>
-                    </div>
-                </div> 
+                )} 
 
                 <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-10 pt-16">
                     <div className="flex-1 flex flex-col">

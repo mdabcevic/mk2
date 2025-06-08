@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { PlaceTraffic } from "./analytics-interface";
 import { LatLngTuple } from 'leaflet';
+import { useTranslation } from "react-i18next";
 
 interface PlacesTraffic {
   data: PlaceTraffic[];
@@ -47,6 +48,7 @@ const PlaceMap: React.FC<PlacesTraffic> = ({ data }) => {
   const center = calculateCenter() as LatLngTuple;
   const zoom = calculateZoom();
   const maxTraffic = Math.max(...data.map(cafe => cafe.count));
+  const { t } = useTranslation("admin");
 
   return (
     <MapContainer 
@@ -78,7 +80,7 @@ const PlaceMap: React.FC<PlacesTraffic> = ({ data }) => {
             fillColor={color}
           >
             <Tooltip direction="top" opacity={0.9}>
-              {cafe.address} - Promet: {cafe.count}
+              {cafe.address} - {t("analytics.traffic")} : {cafe.count}
             </Tooltip>
           </CircleMarker>
         );
