@@ -98,7 +98,7 @@ export function Menu() {
       {
         !showCart && userRole === UserRole.guest && enableAdd && (
           <div className="fixed bottom-0 left-0 w-full p-4 text-center z-50">
-            <button onClick={() => {if(totalPrice > 0) setShowCart(true);}} className="text-white bg-mocha-600 w-full font-semibold max-w-[350px] py-2 px-10 rounded-[50px] cursor-pointer flex justify-center">
+            <button onClick={() => {if(totalPrice > 0) setShowCart(true);}} className="text-white m-auto bg-mocha-600 w-full font-semibold max-w-[350px] py-2 px-10 rounded-[50px] cursor-pointer flex justify-center">
               <span>{t("total")} {totalPrice.toFixed(2)}€ </span><img className="rotate-180 ml-8" src="/assets/images/arrow.svg" alt="back_arrow"/>
             </button>
           </div>
