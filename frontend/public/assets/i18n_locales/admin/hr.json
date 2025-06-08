@@ -67,12 +67,28 @@
         "total":"Ukupno",
         "date_time":"Datum i vrijeme"
     },
-    "analytics":"Analitika",
-    "popular_products":"Popularni proizvodi",
-    "daily_traffic": "Dnevni promet",
-    "daily_earnings": "Dnevna zarada",
-    "hourly_traffic": "Promet po satu",
-    "table_earnings": "Prosječne narudžbe po stolu",
-    "table_traffic": "Promet po stolu",
-    "place_traffic": "Promet mjesta"
+    "analytics":{
+        "analytics":"Analitika",
+        "title": "Analiza i pregled poslovnih performansi",
+        "popular_products":"Popularni proizvodi",
+        "daily_traffic": "Dnevni promet",
+        "daily_earnings": "Dnevna zarada",
+        "hourly_traffic": "Promet po satu",
+        "table_earnings": "Prosječne narudžbe po stolu",
+        "table_traffic": "Promet po stolu",
+        "place_traffic": "Promet po mjestima",
+        "total_revenue": "Ukupni prihod",
+        "avg_order": "Prosječna vrijednost narudžbe",
+        "total_orders": "Ukupan broj narudžbi",
+        "first_order": "Datum prve narudžbe",
+        "popular_product": "Najpopularniji proizvod",
+        "revenue": "Prihod",
+        "count": "Ukupan broj",
+        "traffic": "Promet",
+        "table": "Stol",
+        "dayOfWeek": "Dan u tjednu",
+        "time_frame": "Vremenski raspon analitike"
+    },
+    "month": "Mjesec",
+    "year": "Godina"
 }

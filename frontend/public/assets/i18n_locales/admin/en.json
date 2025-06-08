@@ -66,12 +66,28 @@
         "total":"Total",
         "date_time":"Date & Time"
     },
-    "analytics":"Analytics",
-    "popular_products":"Popular products",
-    "daily_traffic": "Daily traffic",
-    "daily_earnings": "Daily earnings",
-    "hourly_traffic": "Hourly traffic",
-    "table_earnings": "Table average orders",
-    "table_traffic": "Table traffic",
-    "place_traffic": "Place traffic"
+    "analytics":{
+        "analytics":"Analytics",
+        "title": "Business Performance Analysis and Overview",
+        "popular_products":"Popular products",
+        "daily_traffic": "Daily traffic",
+        "daily_earnings": "Daily earnings",
+        "hourly_traffic": "Hourly traffic",
+        "table_earnings": "Table average orders",
+        "table_traffic": "Table traffic",
+        "place_traffic": "Places traffic",
+        "total_revenue": "Total Revenue",
+        "avg_order": "Average Order Value",
+        "total_orders": "Total Number of Orders",
+        "first_order": "Date of First Order",
+        "popular_product": "Most popular product",
+        "revenue": "Revenue",
+        "count": "Count",
+        "traffic": "Traffic",
+        "table": "Table",
+        "dayOfWeek": "Day of week",
+        "time_frame": "Analytics time frame"
+    },
+    "month": "Month",
+    "year": "Year"
 }

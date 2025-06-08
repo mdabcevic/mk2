@@ -59,7 +59,7 @@ const HeaderAdminComponent = () => {
             to={AppPaths.admin.analytics}
             className={`nav-links transition-all duration-500 ease-in-out ease-in-out ${location.pathname === AppPaths.admin.analytics ? "text-orange-500" : ""}`}
           >
-            {t("analytics")}
+            {t("analytics.analytics")}
           </Link>
         </>
       )}

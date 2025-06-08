@@ -1,6 +1,7 @@
 import React from "react";
 import { ResponsiveLine } from '@nivo/line';
 import { TrafficByDayOfWeek } from "./analytics-interface";
+import { useTranslation } from "react-i18next";
 
 interface DailyTraffic {
     data: TrafficByDayOfWeek[];
@@ -8,12 +9,14 @@ interface DailyTraffic {
 }
 
 const LineChart: React.FC<DailyTraffic> = ({ data,  count}) => {
+    const { t } = useTranslation("admin");
+
     const formattedData = [
         {
-            id: count ? "Count" : "Earnings",
+            id: count ? t("analytics.count") : t("analytics.revenue"),
             data: data.map(d => ({
                 x: d.dayOfWeek,
-                y: count ? d.count : d.earnings
+                y: count ? d.count : d.revenue
             }))
         }
     ];
@@ -23,8 +26,8 @@ const LineChart: React.FC<DailyTraffic> = ({ data,  count}) => {
         data={formattedData}
         margin={{ top: 50, right: 110, bottom: 70, left: 80 }}
         yScale={{ type: 'linear', min: 'auto', max: 'auto', stacked: true, reverse: false }}
-        axisBottom={{ legend: 'dayOfWeek', legendOffset: 50 }}
-        axisLeft={{ legend: count ? "Count" : "Earnings", legendOffset: -60 }}
+        axisBottom={{ legend: t("analytics.dayOfWeek"), legendOffset: 50 }}
+        axisLeft={{ legend: count ? t("analytics.count") : t("analytics.revenue"), legendOffset: -60 }}
         colors={{ scheme: 'brown_blueGreen' }}
         lineWidth={3}
         pointColor={{ theme: 'background' }}

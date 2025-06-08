@@ -23,13 +23,13 @@ const initial_div_width = Constants.create_tables_container_width;
 const initial_div_height = Constants.create_tables_container_height;
 
 const TableAnalytics: React.FC<TableAnalyticsProp> = ({ data, count }) => {
-  const values = count ? data.map(d => d.count) : data.map(d => d.averageEarnings);
+  const values = count ? data.map(d => d.count) : data.map(d => d.averageRevenue);
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
 
     return (
       <div className="relative">
-        <section className="hidden lg:flex justify-center items-start  w-full h-full p-[16px] pt-[80px]">
+        
         <div className="flex flex-col items-center space-x-4 absolute right-0 top-0">
         </div>
           <div
@@ -44,7 +44,7 @@ const TableAnalytics: React.FC<TableAnalyticsProp> = ({ data, count }) => {
             }}
           >
             {data?.length > 0 && data.map((tableData, index) => {
-                const color = getInterpolatedColor(count ? tableData.count : tableData.averageEarnings, minValue, maxValue);
+                const color = getInterpolatedColor(count ? tableData.count : tableData.averageRevenue, minValue, maxValue);
                 return (
                     <div
                         key={index}
@@ -62,14 +62,14 @@ const TableAnalytics: React.FC<TableAnalyticsProp> = ({ data, count }) => {
                             textAlign: "center",
                             overflow: "visible",
                         }}
-                        title={`Table: ${tableData.table.label}, Traffic: ${count ? tableData.count : tableData.averageEarnings}`}
+                        title={`Table: ${tableData.table.label}, Traffic: ${count ? tableData.count : tableData.averageRevenue}`}
                     >
-                        {count ? tableData.count : "~ " + tableData.averageEarnings + " €"}
+                        {count ? tableData.count : "~ " + tableData.averageRevenue + " €"}
                     </div>
                 );
             })}
           </div>
-        </section>
+        
       </div>
       
     );
