@@ -86,7 +86,10 @@
         "traffic": "Traffic",
         "table": "Table",
         "dayOfWeek": "Day of week",
-        "time_frame": "Analytics time frame"
+        "time_frame": "Analytics time frame",
+        "weather_analytics": "Impact of Weather Conditions on Orders",
+        "weather_type": "Weather Type",
+        "avg_orders_hour": "Average Orders Per Hour"
     },
     "month": "Month",
     "year": "Year"

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ProductsByDayOfWeek, TrafficByDayOfWeek, HourlyTraffic, 
+import { ProductsByDayOfWeek, TrafficByDayOfWeek, HourlyTraffic, OrdersByWeather,
     TableTraffic, PlaceTraffic, ProductChartData, KeyValues} from "./analytics-interface";
 import { getDataForChart, formatDate, formatDateToMonthYear, getMonthAndYearOptions } from "./analytics-helpers";
 import { analyticsService } from "../../../utils/services/analytics.service";
@@ -11,6 +11,8 @@ import LineChart from "./line-chart";
 import HeatMapChart from "./heatmap-chart";
 import TableAnalytics from "./table-analytics";
 import PlaceMap from "./place-analytics";
+//import WeatherOrderChart from "./weather-analytics";
+import WeatherChart from "./weather-chart";
 import Dropdown, { DropdownItem } from "../../../utils/components/dropdown";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomSelect from "./custom-select";
@@ -30,6 +32,7 @@ const AnalyticsSection = () => {
     const [hourlyTraffic, setHourlyTraffic] = useState<HourlyTraffic[]>([]);
     const [tableTraffic, setTableTraffic] = useState<TableTraffic[]>([]);
     const [placeTraffic, setPlaceTraffic] = useState<PlaceTraffic[]>([]);
+    const [ordersByWeather, setOrdersByWeather] = useState<OrdersByWeather[]>([]);
     const [loading, setLoading] = useState(true);
     const [keyValues, setKeyValues] = useState<KeyValues>({
         revenue: 0,
@@ -62,6 +65,7 @@ const AnalyticsSection = () => {
         setDailyTraffic(data.dailyTraffic);
         setHourlyTraffic(data.hourlyTraffic);
         setPlaceTraffic(data.placeTraffic);
+        setOrdersByWeather(data.weatherAnalytics);
         setKeyValues(data.keyValues);
     };
 
@@ -239,11 +243,20 @@ const AnalyticsSection = () => {
                     <div className="flex-1">
                         <h2 className="text-xl font-semibold mb-2 text-center">{t("analytics.table_traffic")}</h2>
                         <p className="text-center mb-5">({address})</p>
-                        <div className="w-full h-[600px]">
+                        <div className="w-full h-[500px]">
                         <TableAnalytics data={tableTraffic} count={true}/>
                         </div>
                     </div>
-                </div>      
+                </div>   
+
+                <div className="flex space-x-6">
+                    <div className="flex-1">
+                    <h2 className="text-xl font-semibold mb-2 text-center">{t("analytics.weather_analytics")}</h2>
+                    <div className="w-full h-[400px]">
+                        <WeatherChart data={ordersByWeather}/>
+                    </div>
+                    </div>
+                </div>   
             </div>
         </div>
         </>

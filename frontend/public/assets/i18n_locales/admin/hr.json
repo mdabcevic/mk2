@@ -87,7 +87,10 @@
         "traffic": "Promet",
         "table": "Stol",
         "dayOfWeek": "Dan u tjednu",
-        "time_frame": "Vremenski raspon analitike"
+        "time_frame": "Vremenski raspon analitike",
+        "weather_analytics": "Utjecaj vremenskih uvjeta na narudžbe",
+        "weather_type": "Vrsta vremena",
+        "avg_orders_hour": "Prosječan broj narudžbi po satu"
     },
     "month": "Mjesec",
     "year": "Godina"

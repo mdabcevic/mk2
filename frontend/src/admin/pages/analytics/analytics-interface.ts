@@ -63,10 +63,17 @@ export interface KeyValues {
     mostPopularProduct: string;
 }
 
+export interface OrdersByWeather {
+    weekGroup: string;
+    weatherType: string;
+    averageOrdersPerHour: number;
+}
+
 export interface AllAnayticsData {
     popularProducts: ProductsByDayOfWeek[];
     dailyTraffic: TrafficByDayOfWeek[];
     hourlyTraffic: HourlyTraffic[];
     placeTraffic: PlaceTraffic[];
+    weatherAnalytics: OrdersByWeather[];
     keyValues: KeyValues;
 }
