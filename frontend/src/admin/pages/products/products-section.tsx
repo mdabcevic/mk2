@@ -78,7 +78,7 @@ const ProductsSection = forwardRef((_, ref) => {
   const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage,currentPage * itemsPerPage);
 
   return (
-    <div className="p-4 w-full max-w-[1500px] text-gray-800 m-auto">
+    <div className="w-full max-w-[1500px] text-gray-800 m-auto">
       <section className="bg-white p-4 w-full">
         <div className="flex flex-col md:flex-row md:items-center gap-2 mb-4">
           <input

@@ -8,7 +8,7 @@ interface DashboardCardProps {
 export function DashboardCard({ placeStatus }: DashboardCardProps) {
   const { t } = useTranslation("admin");
   return (
-    <div className="bg-white rounded-[32px] text-black w-full text-center border border-mocha-500">
+    <div className="bg-white rounded-[32px] text-black w-full text-center border border-mocha-500 relative bottom-20">
         <div className="bg-[#E3DAC9] border-b-4 border-mocha-500 w-full flex justify-center flex-col items-center pt-4 pb-4 rounded-t-[32px]">
             <img src="/assets/images/icons/key_info.svg" width={"40px"} /> 
             <span>{t("dashboard.key_info")}</span>

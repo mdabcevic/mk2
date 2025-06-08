@@ -4,7 +4,7 @@ import ProductsSection from "./products-section";
 const Products = forwardRef((_, ref) => {
 
     return (
-    <div className="p-4">
+    <div>
       <ProductsSection ref={ref} />
     </div>
   );
